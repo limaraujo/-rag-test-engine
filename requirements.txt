@@ -1,0 +1,24 @@
+# LLM (Gemini)
+google-genai
+
+# Embeddings (se usar OpenAI opcionalmente)
+openai
+
+# Vector DB
+qdrant-client
+
+# Parsing de código
+tree-sitter
+
+# Estrutura e validação
+pydantic
+pydantic-settings
+
+# Execução de testes
+pytest
+coverage
+
+# Utilidades
+python-dotenv
+tqdm
+
