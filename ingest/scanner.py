@@ -3,7 +3,7 @@ from pathlib import Path
 class RepositoryScanner:
     
     IGNORE_EXTENSIONS = {'.md', '.txt', '.json', '.yaml', '.yml', '.csv'}
-    IGNORE_DIRS = {'.git','__pycache__', 'venv', 'env'}
+    IGNORE_DIRS = {'.git', '.pytest_cache', '.venv', '__pycache__', 'venv', 'env'}
     
     def __init__(self, root: str):
         self.root = Path(root)
@@ -17,7 +17,7 @@ class RepositoryScanner:
             yield path
             
     def _ignored(self, path: Path):
-        
-        return any(
-            part in (self.IGNORE_DIRS | self.IGNORE_EXTENSIONS) for part in path.parts
+        return (
+            path.suffix in self.IGNORE_EXTENSIONS
+            or any(part in self.IGNORE_DIRS for part in path.parts)
         )

@@ -10,3 +10,12 @@ class LLMRequest(BaseModel):
 class LLMResponse(BaseModel):
     content: str 
     model: str
+
+class LLMEmbeddingRequest(BaseModel):
+    input: str
+    model: str
+    
+class LLMEmbeddingResponse(BaseModel):
+    embedding: list[float]
+    model: str
+    dimensions: int
