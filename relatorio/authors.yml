@@ -1,0 +1,12 @@
+- name: Bianca
+  department: Graduanda
+  organization: UF
+  location: Recife, Brazil
+- name: Fátima
+  department: Graduanda
+  organization: UF
+  location: Recife, Brazil
+- name: Rodrigo
+  department: Graduando
+  organization: UF
+  location: Recife, Brazil
