@@ -1,0 +1,5 @@
+#let abstract = [
+  LLMs enfrentam desafios críticos ao gerar testes unitários automaticamente: alucinação de código e falta de contexto do domínio. Este trabalho propõe uma arquitetura Python que integra Análise Estática e Retrieval-Augmented Generation (RAG) para otimizar a geração e o reparo autônomo de testes. O sistema extrai métodos via Abstract Syntax Tree (AST) e emprega o banco vetorial Qdrant para injetar dinamicamente o contexto necessário ao modelo.
+  Realizamos um experimento comparativo em repositórios open-source: (1) linha de base com contexto estático e (2) abordagem com RAG ativado, isolando o impacto da memória vetorial na precisão das suítes. Agentes autônomos orquestram o pipeline, monitorando o esforço computacional pelo número de iterações no ciclo de tuning. Avaliamos o sistema pela taxa de sucesso na execução e cobertura de código alcançada.
+  Espera-se que o RAG reduza significativamente os ciclos de reparo e eleve a cobertura final. A abordagem proposta contribui com um método eficiente e robusto para automatizar testes alinhado ao contexto real de projetos consolidados.
+]
