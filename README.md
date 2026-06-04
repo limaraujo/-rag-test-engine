@@ -19,3 +19,6 @@ Se não tiver cargo/rustup:
 
 Extensão vs-code:
 - Tinymist Typst
+
+Compilar o pdf em tempo real:
+- typst watch --font-path relatorio/fonts relatorio/main.typ
