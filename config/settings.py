@@ -30,7 +30,7 @@ class Settings(BaseSettings):
         default="http://localhost:6333",
     )
 
-        QDRANT_API_KEY: str | None = Field(
+    QDRANT_API_KEY: str | None = Field(
         default=None,
         description="Qdrant Cloud API key. Not needed for local instances.",
     )
