@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from config.run_workspace import RunWorkspace
+from execution.runner import SuiteValidationResult
 
 
 @dataclass
@@ -25,3 +26,4 @@ class OrchestrationResult:
     indexed: int = 0
     cache_hits: int = 0
     token_summary: str | None = None
+    validation: SuiteValidationResult | None = None

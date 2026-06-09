@@ -10,7 +10,7 @@ from config.logging_setup import setup_logging
 from config.run_workspace import RunWorkspace, save_ingest_artifacts, save_run_summary
 from config.settings import ROOT, settings
 from execution.coverage_analyzer import CoverageAnalyzer
-from execution.runner import RunResult, TestRunner
+from execution.runner import RunResult, SuiteValidationResult, TestRunner
 from ingest.call_graph import CallGraph
 from ingest.dependency_graph import DependencyGraph
 from ingest.models.ExtractedSymbol import ExtractedSymbol
@@ -36,6 +36,7 @@ class OrchestratorAgent:
         5. Reparo    — LLM corrige falhas
         6. Cobertura — regenera se abaixo do threshold
         7. Salvamento — tests/ + run_summary.json
+        8. Validação  — pytest na pasta tests/ completa
     """
 
     def __init__(
@@ -76,6 +77,8 @@ class OrchestratorAgent:
             source_dir=src,
         )
 
+        validation = self._validate_suite(workspace)
+
         token_summary = None
         if settings.AI_MODE != "offline":
             token_summary = get_tracker().format_summary()
@@ -90,8 +93,9 @@ class OrchestratorAgent:
                 "coverage_boosted": stats.coverage_boosted,
             },
             token_summary=token_summary,
+            validation=self._validation_payload(validation),
         )
-        self._log_summary(workspace, stats, token_summary)
+        self._log_summary(workspace, stats, token_summary, validation)
 
         return OrchestrationResult(
             workspace=workspace,
@@ -99,6 +103,7 @@ class OrchestratorAgent:
             indexed=indexed,
             cache_hits=cache_hits,
             token_summary=token_summary,
+            validation=validation,
         )
 
     def _ingest(
@@ -327,11 +332,54 @@ class OrchestratorAgent:
         if coverage_boosted:
             stats.coverage_boosted += 1
 
+    def _validate_suite(self, workspace: RunWorkspace) -> SuiteValidationResult:
+        logger.info("[validate] rodando pytest em %s …", workspace.tests_dir)
+        result = self._runner.run_directory(
+            workspace.tests_dir,
+            pythonpath=[str(ROOT)],
+            rootdir=ROOT,
+        )
+
+        if result.passed:
+            logger.info(
+                "  [validate] ok — %d passaram em %.2fs",
+                result.num_passed,
+                result.duration_seconds,
+            )
+        else:
+            logger.warning(
+                "  [validate] falhou (exit %d) — %d falharam, %d erros",
+                result.exit_code,
+                result.num_failed,
+                result.num_errors,
+            )
+            if result.output.strip():
+                for line in result.output.strip().splitlines()[-15:]:
+                    logger.warning("  %s", line)
+
+        validation_log = workspace.logs_dir / "pytest_validation.log"
+        validation_log.write_text(result.output, encoding="utf-8")
+        logger.info("[validate] log salvo em %s", validation_log)
+        return result
+
+    @staticmethod
+    def _validation_payload(validation: SuiteValidationResult) -> dict:
+        return {
+            "passed": validation.passed,
+            "exit_code": validation.exit_code,
+            "tests_dir": validation.tests_dir,
+            "num_passed": validation.num_passed,
+            "num_failed": validation.num_failed,
+            "num_errors": validation.num_errors,
+            "duration_seconds": validation.duration_seconds,
+        }
+
     def _log_summary(
         self,
         workspace: RunWorkspace,
         stats: PipelineStats,
         token_summary: str | None,
+        validation: SuiteValidationResult | None = None,
     ) -> None:
         logger.info("")
         logger.info("=" * 52)
@@ -347,6 +395,14 @@ class OrchestratorAgent:
         logger.info("  Workspace            : %s", workspace.root)
         logger.info("  Testes               : %s", workspace.tests_dir)
         logger.info("  Artefatos            : %s", workspace.artifacts_dir)
+        if validation is not None:
+            status = "ok" if validation.passed else "FALHOU"
+            logger.info(
+                "  Validação pytest     : %s (%d passaram, %d falharam)",
+                status,
+                validation.num_passed,
+                validation.num_failed,
+            )
         if token_summary:
             logger.info("  Uso de tokens (OpenAI)")
             for line in token_summary.splitlines():

@@ -81,7 +81,20 @@ Referência por pacote.
 
 ## `main.py`
 
-Entrypoint CLI. Delega para `OrchestratorAgent().run(source_dir)`.
+Entrypoint CLI fino. Não contém lógica de pipeline.
+
+```python
+def main(source_dir: str = ".") -> OrchestrationResult:
+    orchestrator = OrchestratorAgent()
+    return orchestrator.run(source_dir)
+```
+
+| Responsabilidade | Onde fica |
+|---|---|
+| Parse de `sys.argv` | `main.py` |
+| Pipeline completo | `agents/orchestrator.py` |
+| Configuração | `config/settings.py` |
+| Workspace + artefatos | `config/run_workspace.py` |
 
 ## `tests/`
 

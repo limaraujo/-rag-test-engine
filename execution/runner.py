@@ -72,6 +72,26 @@ class RunResult:
         return summary[:3000] if summary else self.output[:3000]
 
 
+@dataclass
+class SuiteValidationResult:
+    """Resultado da validação pytest de uma pasta de testes gerados."""
+
+    passed: bool
+    exit_code: int
+    stdout: str
+    stderr: str
+    duration_seconds: float
+    tests_dir: str
+    num_passed: int = 0
+    num_failed: int = 0
+    num_errors: int = 0
+
+    @property
+    def output(self) -> str:
+        parts = [p for p in (self.stdout, self.stderr) if p.strip()]
+        return "\n".join(parts)
+
+
 class TestRunner:
     """
     Executa um :class:`~schemas.outputs.GeneratedTest` usando pytest em um subprocesso.
@@ -117,6 +137,77 @@ class TestRunner:
                 extra_pythonpath=pythonpath or [],
                 timeout=timeout,
             )
+
+    def run_directory(
+        self,
+        tests_dir: Path,
+        *,
+        pythonpath: list[str] | None = None,
+        rootdir: Path | None = None,
+        timeout: int = 120,
+    ) -> SuiteValidationResult:
+        """
+        Executa pytest em todos os arquivos de uma pasta de testes gerados.
+
+        Usado pelo orquestrador para validar a suíte completa após o pipeline.
+        """
+        tests_dir = tests_dir.resolve()
+        test_files = sorted(tests_dir.glob("test_*.py"))
+        if not test_files:
+            return SuiteValidationResult(
+                passed=True,
+                exit_code=0,
+                stdout="Nenhum teste gerado para validar.",
+                stderr="",
+                duration_seconds=0.0,
+                tests_dir=str(tests_dir),
+            )
+
+        env = _build_env(pythonpath or [])
+        project_root = (rootdir or tests_dir).resolve()
+
+        cmd = [
+            "python", "-m", "pytest",
+            str(tests_dir),
+            "-v",
+            "--tb=short",
+            "--rootdir", str(project_root),
+        ]
+
+        start = time.perf_counter()
+        try:
+            proc = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+                env=env,
+                cwd=str(project_root),
+            )
+        except subprocess.TimeoutExpired:
+            return SuiteValidationResult(
+                passed=False,
+                exit_code=-1,
+                stdout="",
+                stderr=f"pytest excedeu o tempo limite após {timeout}s",
+                duration_seconds=float(timeout),
+                tests_dir=str(tests_dir),
+            )
+
+        duration = round(time.perf_counter() - start, 3)
+        num_passed, num_failed, num_errors = _parse_pytest_counts(proc.stdout)
+
+        return SuiteValidationResult(
+            passed=proc.returncode == 0,
+            exit_code=proc.returncode,
+            stdout=proc.stdout,
+            stderr=proc.stderr,
+            duration_seconds=duration,
+            tests_dir=str(tests_dir),
+            num_passed=num_passed,
+            num_failed=num_failed,
+            num_errors=num_errors,
+        )
 
     # ── Interno ──────────────────────────────────────────────────────────────
 

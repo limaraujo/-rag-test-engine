@@ -4,6 +4,26 @@
 
 O **RAG Test Engine** é um pipeline em fases orquestrado pelo `OrchestratorAgent`. Cada fase é independente e comunica-se via modelos Pydantic (`ExtractedSymbol`, `FunctionContext`, `GeneratedTest`).
 
+## Entrypoint
+
+```
+main.py  →  OrchestratorAgent.run()  →  OrchestrationResult
+```
+
+A `main.py` não contém lógica de pipeline — apenas:
+
+1. Lê `SOURCE_DIR` dos argumentos da CLI (padrão: `"."`)
+2. Instancia `OrchestratorAgent`
+3. Chama `orchestrator.run(source_dir)`
+4. Retorna `OrchestrationResult`
+
+```python
+# main.py (simplificado)
+def main(source_dir: str = ".") -> OrchestrationResult:
+    orchestrator = OrchestratorAgent()
+    return orchestrator.run(source_dir)
+```
+
 ```mermaid
 flowchart TB
     subgraph ingest [Ingestão]
@@ -100,7 +120,7 @@ score = 0.5 × similaridade_vetorial
 3. Resposta é parseada (`_parse_response`): remove markdown, extrai imports.
 4. `import_utils.normalize_test_imports()` corrige caminhos de importação.
 
-**Imports:** usa `module_name` relativo à raiz do projeto (ex.: `mockes.exemplo`).
+**Imports:** usa `module_name` relativo à raiz do projeto (ex.: `from mockes.exemplo import Calculadora`). O `import_utils.normalize_test_imports()` corrige imports incorretos gerados pelo LLM. O `PYTHONPATH` na execução aponta para a raiz do repositório (`config.settings.ROOT`).
 
 ### 5. Execução
 

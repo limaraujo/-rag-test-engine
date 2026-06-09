@@ -100,6 +100,7 @@ def save_run_summary(
     *,
     stats: dict[str, int],
     token_summary: str | None = None,
+    validation: dict | None = None,
 ) -> None:
     """Grava resumo final da execução em ``artifacts/run_summary.json``."""
     payload: dict = {
@@ -112,6 +113,8 @@ def save_run_summary(
     }
     if token_summary:
         payload["token_usage"] = token_summary
+    if validation:
+        payload["validation"] = validation
 
     (workspace.artifacts_dir / "run_summary.json").write_text(
         json.dumps(payload, indent=2, ensure_ascii=False),

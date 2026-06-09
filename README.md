@@ -30,12 +30,23 @@ Dashboard: http://localhost:6333/dashboard
 
 ## Uso rápido
 
+A `main.py` é apenas o **entrypoint CLI** — ela instancia o `OrchestratorAgent` e delega todo o pipeline a ele.
+
 ```bash
 # Pipeline completo no diretório atual
 uv run python main.py
 
 # Testar a pasta de exemplos
 uv run python main.py mockes
+```
+
+Equivalente em Python:
+
+```python
+from main import main
+
+result = main("mockes")
+print(result.workspace.root)
 ```
 
 Cada execução cria um workspace isolado:
@@ -87,17 +98,32 @@ Detalhes: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 ## Uso programático
 
+**Via entrypoint (recomendado):**
+
+```python
+from main import main
+
+result = main("mockes")
+```
+
+**Via orquestrador diretamente:**
+
 ```python
 from agents.orchestrator import OrchestratorAgent
 
-result = OrchestratorAgent().run("mockes")
-
-print(result.workspace.root)   # runs/mockes/20260609_...
-print(result.stats.ok)         # testes salvos
-print(result.token_summary)    # uso de tokens
+orchestrator = OrchestratorAgent()
+result = orchestrator.run("mockes")
 ```
 
-API dos agentes: [docs/API.md](docs/API.md)
+**Retorno (`OrchestrationResult`):**
+
+```python
+print(result.workspace.root)   # runs/mockes/20260609_...
+print(result.stats.ok)         # testes salvos
+print(result.token_summary)    # uso de tokens (modo openai)
+```
+
+API completa: [docs/API.md](docs/API.md)
 
 ## Testes do projeto
 
@@ -115,19 +141,21 @@ uv run pytest runs/mockes -v
 ## Estrutura do projeto
 
 ```
+main.py        # entrypoint CLI → OrchestratorAgent.run()
 agents/        # OrchestratorAgent, TestGeneratorAgent, RepairAgent
 config/        # settings, logging, run workspace
 execution/     # TestRunner, CoverageAnalyzer
 ingest/        # parser AST, grafos, ExtractedSymbol
 llm/           # OpenAI, embeddings, usage tracker
 retrieval/     # Qdrant, Retriever, busca híbrida
-schemas/       # FunctionContext, GeneratedTest, PipelineStats
-main.py        # entrypoint CLI
+schemas/       # FunctionContext, GeneratedTest, OrchestrationResult
 tests/         # testes unitários
 mockes/        # código de exemplo para testar o pipeline
+runs/          # saída de cada execução (gitignored)
+docs/          # documentação técnica
 ```
 
-Módulos: [docs/MODULES.md](docs/MODULES.md)
+Índice da documentação: [docs/README.md](docs/README.md) · Módulos: [docs/MODULES.md](docs/MODULES.md)
 
 ## Reduzir custos
 

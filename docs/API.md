@@ -2,6 +2,33 @@
 
 Referência programática dos componentes principais.
 
+## Entrypoint: `main()`
+
+**Arquivo:** `main.py`
+
+Ponto de entrada da CLI. Delega ao orquestrador e retorna o resultado.
+
+```python
+from main import main
+
+result = main("mockes")          # str ou Path
+result = main()                  # diretório atual (".")
+
+assert result.stats.ok >= 0
+print(result.workspace.tests_dir)
+```
+
+Equivalente direto:
+
+```python
+from agents.orchestrator import OrchestratorAgent
+
+orchestrator = OrchestratorAgent()
+result = orchestrator.run("mockes")
+```
+
+---
+
 ## OrchestratorAgent
 
 **Arquivo:** `agents/orchestrator.py`
