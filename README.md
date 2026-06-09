@@ -7,3 +7,6 @@ Instalar dependências:
 
 Rodar o projeto:
 - uv run python main.py
+
+Rodar os testes:
+- uv run pytest
