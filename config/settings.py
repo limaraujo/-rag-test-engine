@@ -1,23 +1,125 @@
-from pydantic import Field
+from pathlib import Path
 
+from pydantic import Field
 from pydantic_settings import (
     BaseSettings,
     SettingsConfigDict,
 )
 
+ROOT = Path(__file__).resolve().parents[1]
 
 class Settings(BaseSettings):
 
-    GEMINI_API_KEY: str = Field(...)
-    
-    GEMINI_MODEL: str = Field(
-        default="gemini-2.5-flash"
+    OPENAI_API_KEY: str = Field(...)
+
+    # "openai" = API real; "offline" = embeddings e LLM locais (sem créditos).
+    AI_MODE: str = Field(
+        default="openai",
+    )
+
+    OPENAI_MODEL: str = Field(
+        default="gpt-5-nano",
+    )
+
+    OPENAI_EMBEDDING_MODEL: str = Field(
+        default="text-embedding-3-small",
+    )
+
+    # ── Qdrant ──────────────────────────────────────────────────────────
+    # Use ":memory:" para testes, ou URL para produção.
+    # Ex:
+    #   QDRANT_URL=:memory:
+    #   QDRANT_URL=http://localhost:6333
+    #   QDRANT_URL=https://xyz.cloud.qdrant.io
+    QDRANT_URL: str = Field(
+        default="http://localhost:6333",
+    )
+
+    QDRANT_API_KEY: str | None = Field(
+        default=None,
+        description="Qdrant Cloud API key. Not needed for local instances.",
+    )
+
+    #Coleção que armazena embeddings de símbolos do código de produção.
+    QDRANT_COLLECTION_SYMBOLS: str = Field(
+        default="symbols",
+    )
+
+    #Coleção que armazena embeddings de testes existentes.
+    QDRANT_COLLECTION_TESTS: str = Field(
+        default="tests",
+    )
+
+    # Deve corresponder à dimensionalidade de saída do modelo de embeddings.
+    # text-embedding-3-small → 1536 (dimensões padrão de saída).
+    EMBEDDING_DIMENSIONS: int = Field(
+        default=1536,
+    )
+
+    # Se false, só gera embedding de símbolos novos ou alterados (reutiliza Qdrant).
+    REINDEX_SYMBOLS: bool = Field(
+        default=False,
+    )
+
+    RUNS_DIR: str = Field(
+        default="runs",
+        description="Raiz das pastas de execução (runs/<fonte>/<timestamp>/).",
+    )
+
+    LOG_DIR: str = Field(
+        default="logs",
+        description="Fallback de logs quando setup_logging não recebe caminho.",
+    )
+
+    LOG_LEVEL: str = Field(
+        default="INFO",
+        description="Nível de log: DEBUG, INFO, WARNING, ERROR.",
+    )
+
+    # ── Configurações padrão de recuperação
+    #Quantidade final de resultados após reranking híbrido.
+    RETRIEVER_TOP_K: int = Field(
+        default=10,
+    )
+
+    #Quantidade de trechos de funções relacionadas recuperados por consulta.
+    RETRIEVER_TOP_K_FUNCTIONS: int = Field(
+        default=10,
+    )
+
+    #Quantidade de trechos de testes semelhantes recuperados por consulta.
+    RETRIEVER_TOP_K_TESTS: int = Field(
+        default=10,
+    )
+
+    #Candidatos vetoriais buscados antes do reranking híbrido.
+    RETRIEVER_RERANK_POOL_SIZE: int = Field(
+        default=30,
+    )
+
+    #Pesos do score híbrido (devem somar 1.0).
+    RETRIEVER_VECTOR_WEIGHT: float = Field(default=0.5)
+    RETRIEVER_DEPENDENCY_WEIGHT: float = Field(default=0.3)
+    RETRIEVER_CALL_GRAPH_WEIGHT: float = Field(default=0.2)
+
+    #Pontuação mínima de similaridade cosseno aceita (0 – 1).
+    RETRIEVER_SCORE_THRESHOLD: float = Field(
+        default=0.55,
+    )
+
+    #Percentual mínimo de cobertura de linhas para aceitar um teste gerado.
+    COVERAGE_THRESHOLD: float = Field(
+        default=80.0,
+    )
+
+    #Tentativas de regeneração quando cobertura fica abaixo do threshold.
+    MAX_COVERAGE_ROUNDS: int = Field(
+        default=2,
     )
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=ROOT / ".env",
         env_file_encoding="utf-8",
     )
-
 
 settings = Settings()  # type: ignore

@@ -1,7 +1,4 @@
-# LLM (Gemini)
-google-genai
-
-# Embeddings (se usar OpenAI opcionalmente)
+# LLM + Embeddings (OpenAI)
 openai
 
 # Vector DB
