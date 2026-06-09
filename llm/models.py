@@ -1,6 +1,12 @@
 from pydantic import BaseModel
 
 
+class TokenUsage(BaseModel):
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    total_tokens: int = 0
+
+
 class LLMRequest(BaseModel):
     system_prompt: str
     user_prompt: str
@@ -8,14 +14,18 @@ class LLMRequest(BaseModel):
 
 
 class LLMResponse(BaseModel):
-    content: str 
+    content: str
     model: str
+    usage: TokenUsage | None = None
+
 
 class LLMEmbeddingRequest(BaseModel):
     input: str
     model: str
-    
+
+
 class LLMEmbeddingResponse(BaseModel):
     embedding: list[float]
     model: str
     dimensions: int
+    usage: TokenUsage | None = None

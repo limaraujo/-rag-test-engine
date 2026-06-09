@@ -1,7 +1,8 @@
 from collections.abc import Iterable
 
 from ingest.models.ExtractedSymbol import ExtractedSymbol
-from llm.gemini_embedding import GeminiEmbedding
+from llm.base import BaseEmbedding
+from llm.factory import get_embedder
 from llm.models import LLMEmbeddingRequest
 from retrieval.embedding_builder import to_embedding_doc
 
@@ -9,7 +10,7 @@ from retrieval.embedding_builder import to_embedding_doc
 def embed_symbol(
 	symbol: ExtractedSymbol,
 	*,
-	embedder: GeminiEmbedding
+	embedder: BaseEmbedding
 ) -> dict:
 	"""Create an embedding record for a single symbol."""
 	text, metadata = to_embedding_doc(symbol)
@@ -31,8 +32,8 @@ def embed_symbol(
 def embed_symbols(
 	symbols: Iterable[ExtractedSymbol]
 ) -> list[dict]:
-	"""Create embedding records for many symbols using Gemini."""
-	embedder = GeminiEmbedding()
+	"""Create embedding records for many symbols."""
+	embedder = get_embedder()
 	records: list[dict] = []
 	for symbol in symbols:
 		records.append(

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from agents.test_generator import _parse_response
-from llm.gemini import GeminiLLM
+from llm.base import BaseLLM
+from llm.factory import get_llm
 from llm.models import LLMRequest
 from schemas.context import FunctionContext
 from schemas.outputs import GeneratedTest
@@ -53,8 +54,8 @@ class RepairAgent:
             result = runner.run(test, pythonpath=[...])
     """
 
-    def __init__(self, llm: GeminiLLM | None = None) -> None:
-        self._llm = llm or GeminiLLM()
+    def __init__(self, llm: BaseLLM | None = None) -> None:
+        self._llm = llm or get_llm()
 
     def repair(
         self,
@@ -88,7 +89,7 @@ class RepairAgent:
         )
 
         response = self._llm.generate(request)
-        return _parse_response(response.content, ctx.qualified_name)
+        return _parse_response(response.content, ctx)
 
 
 # ── Auxiliares ─────────────────────────────────────────────────────────────────

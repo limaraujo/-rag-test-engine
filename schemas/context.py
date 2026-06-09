@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from pydantic import BaseModel, Field
 
+from ingest.import_resolver import module_name_from_path
 from ingest.models.ExtractedSymbol import ExtractedSymbol
+from schemas.retrieval_context import RetrievalContext
 
 
 class FunctionContext(BaseModel):
@@ -46,6 +50,10 @@ class FunctionContext(BaseModel):
         ...,
         description="Caminho do arquivo de origem."
     )
+    module_name: str = Field(
+        default="",
+        description="Nome do módulo Python (ex: mockes.exemplo) relativo à raiz do projeto.",
+    )
 
     # Código
     code: str = Field(
@@ -84,10 +92,14 @@ class FunctionContext(BaseModel):
     )
 
     # Contexto RAG (preenchido pelo retriever, opcional)
+    retrieval_context: RetrievalContext | None = Field(
+        default=None,
+        description="Contexto híbrido completo (vetor + call graph + dependency graph).",
+    )
     related_functions: list[str] = Field(
         default_factory=list,
         description=(
-            "Código-fonte de funções similares recuperadas do banco vetorial. "
+            "Código-fonte de funções similares recuperadas por busca híbrida. "
             "Serve como contexto de implementação para o modelo."
         )
     )
@@ -99,8 +111,26 @@ class FunctionContext(BaseModel):
         )
     )
 
+    # Feedback de cobertura (preenchido pelo CoverageAnalyzer entre rodadas)
+    coverage_gaps: list[dict] = Field(
+        default_factory=list,
+        description=(
+            "Lacunas de cobertura detectadas por coverage.py: "
+            "file_path, function_name, uncovered_lines."
+        ),
+    )
+    coverage_summary: dict | None = Field(
+        default=None,
+        description="Resumo JSON da última análise de cobertura.",
+    )
+
     @classmethod
-    def from_symbol(cls, symbol: ExtractedSymbol) -> "FunctionContext":
+    def from_symbol(
+        cls,
+        symbol: ExtractedSymbol,
+        *,
+        project_root: Path | None = None,
+    ) -> "FunctionContext":
         """
         Constrói um FunctionContext diretamente de um ExtractedSymbol.
 
@@ -113,12 +143,20 @@ class FunctionContext(BaseModel):
                 ctx = FunctionContext.from_symbol(symbol)
                 test = generator.generate(ctx)
         """
+        module_name = ""
+        if project_root is not None:
+            module_name = module_name_from_path(
+                project_root,
+                Path(symbol.file_path),
+            )
+
         return cls(
             function_name=symbol.name,
             qualified_name=symbol.qualified_name,
             symbol_type=symbol.symbol_type,
             class_name=symbol.class_name,
             file_path=symbol.file_path,
+            module_name=module_name,
             code=symbol.source_code,
             docstring=symbol.docstring,
             imports=symbol.imports,
@@ -157,6 +195,9 @@ class FunctionContext(BaseModel):
             f"arquivo: {self.file_path}",
         ]
 
+        if self.module_name:
+            parts.append(f"módulo: {self.module_name}")
+
         if self.class_name:
             parts.append(f"classe: {self.class_name}")
 
@@ -188,14 +229,70 @@ class FunctionContext(BaseModel):
                 f"  {self.branches} branch(es) — cubra ao menos um cenário por branch"
             )
 
+        rc = self.retrieval_context
+        if rc and rc.caller_functions:
+            parts.append(
+                f"\n## Funções chamadoras (call graph)\n{bullet(rc.caller_functions)}"
+            )
+
+        if rc and rc.callee_functions:
+            parts.append(
+                f"\n## Funções chamadas (call graph)\n{bullet(rc.callee_functions)}"
+            )
+
+        if rc and rc.dependency_functions:
+            parts.append(
+                f"\n## Dependências estruturais (dependency graph)\n"
+                f"{bullet(rc.dependency_functions)}"
+            )
+
         if self.related_functions:
             parts.append(
-                f"\n## Funções relacionadas (contexto RAG)\n{bullet(self.related_functions)}"
+                f"\n## Funções relacionadas (busca híbrida)\n{bullet(self.related_functions)}"
             )
 
         if self.similar_tests:
             parts.append(
                 f"\n## Testes similares existentes\n{bullet(self.similar_tests)}"
             )
+
+        if self.coverage_gaps:
+            gap_lines = []
+            for gap in self.coverage_gaps:
+                lines = gap.get("uncovered_lines", [])
+                lines_str = ", ".join(str(n) for n in lines)
+                gap_lines.append(
+                    f"  - {gap.get('function_name', '?')}: "
+                    f"linhas não cobertas [{lines_str}]"
+                )
+            parts.append(
+                "\n## Lacunas de cobertura (PRIORIDADE — gere testes para cobrir)\n"
+                + "\n".join(gap_lines)
+            )
+
+        if self.coverage_summary and not self.coverage_summary.get("meets_threshold"):
+            pct = self.coverage_summary.get("line_coverage_percent", 0)
+            threshold = self.coverage_summary.get("threshold_percent", 80)
+            parts.append(
+                f"\n## Cobertura atual\n"
+                f"  {pct}% (mínimo exigido: {threshold}%)"
+            )
+            branches = self.coverage_summary.get("uncovered_branches", [])
+            if branches:
+                branch_lines = [
+                    f"  - {b['function_name']}: branch {b['from_line']}→{b['to_line']}"
+                    for b in branches
+                ]
+                parts.append(
+                    "\n## Branches não cobertos\n" + "\n".join(branch_lines)
+                )
+            uncovered_fns = self.coverage_summary.get("uncovered_functions", [])
+            if uncovered_fns:
+                fn_lines = [
+                    f"  - {f['function_name']}" for f in uncovered_fns
+                ]
+                parts.append(
+                    "\n## Funções sem cobertura\n" + "\n".join(fn_lines)
+                )
 
         return "\n".join(parts)

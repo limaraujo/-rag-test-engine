@@ -1,4 +1,11 @@
+import hashlib
+
 from ingest.models.ExtractedSymbol import ExtractedSymbol
+
+
+def content_hash(text: str) -> str:
+    """Hash estável do texto usado no embedding (detecta mudanças no código)."""
+    return hashlib.sha256(text.encode()).hexdigest()[:16]
 
 
 def to_embedding_doc(

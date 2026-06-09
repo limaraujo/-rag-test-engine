@@ -134,6 +134,8 @@ class TestRunner:
             "-v",
             "--tb=short",
             "--no-header",
+            "--rootdir", str(test_file.parent),
+            "--noconftest",
         ]
 
         start = time.perf_counter()

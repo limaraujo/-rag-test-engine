@@ -5,6 +5,8 @@ import sys
 from typing import Iterator
 
 from ingest.ast_utils import get_ast_from_file
+from ingest.call_graph import CallGraph, CallGraphBuilder
+from ingest.dependency_graph import DependencyGraph, DependencyGraphBuilder
 from ingest.extract import SymbolExtractor
 from ingest.models.ExtractedSymbol import ExtractedSymbol
 from ingest.scanner import RepositoryScanner
@@ -46,6 +48,29 @@ def parse_file_symbols(path: str) -> Iterator[ExtractedSymbol]:
 		source_code=source_code
 	)
 	yield from extractor.extract()
+
+
+def build_call_graph(
+	symbols: list[ExtractedSymbol],
+	root: str,
+) -> CallGraph:
+	"""Build a function/method call graph from extracted symbols."""
+	return CallGraphBuilder(root).build(symbols)
+
+
+def build_dependency_graph(root: str) -> DependencyGraph:
+	"""Build a module/class dependency graph from Python files."""
+	return DependencyGraphBuilder(root).build()
+
+
+def parse_repository_graphs(
+	root: str,
+) -> tuple[list[ExtractedSymbol], CallGraph, DependencyGraph]:
+	"""Extract symbols and build call and dependency graphs for a repository."""
+	symbols = list(parse_repository_symbols(root))
+	call_graph = build_call_graph(symbols, root)
+	dependency_graph = build_dependency_graph(root)
+	return symbols, call_graph, dependency_graph
 
 
 if __name__ == "__main__":

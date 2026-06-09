@@ -2,7 +2,10 @@ from __future__ import annotations
  
 import re
  
-from llm.gemini import GeminiLLM
+from agents.import_utils import import_target, normalize_test_imports
+from config.settings import ROOT
+from llm.base import BaseLLM
+from llm.factory import get_llm
 from llm.models import LLMRequest
 from schemas.context import FunctionContext
 from schemas.outputs import GeneratedTest
@@ -23,9 +26,10 @@ FORMATO DE SAÍDA:
 - Nenhum texto ou prosa antes ou depois do código.
  
 REGRAS DE IMPORTAÇÃO:
-- Deduza o módulo a ser importado a partir do campo "arquivo:" no contexto.
-  Exemplo: arquivo = "src/calc.py"  →  from calc import divide
-  Exemplo: arquivo = "services/user_service.py"  →  from user_service import create_user
+- Use o campo "módulo:" do contexto como caminho de importação.
+  Exemplo: módulo: mockes.exemplo  →  from mockes.exemplo import Calculadora
+  Exemplo: módulo: src.calc  →  from src.calc import divide
+- Se "módulo:" não estiver presente, deduza a partir de "arquivo:" mantendo pacotes.
 - Importe apenas o que o teste realmente usa.
  
 REQUISITOS DO TESTE:
@@ -41,6 +45,13 @@ REQUISITOS DO TESTE:
 6. Mantenha cada teste independente (sem estado mutável compartilhado entre os testes).
 7. Use unittest.mock.patch apenas quando uma dependência for um serviço externo
    (rede, banco de dados, sistema de arquivos) — NÃO faça mock da própria função sob teste.
+
+COBERTURA ORIENTADA:
+- Quando a seção "Lacunas de cobertura" estiver presente, priorize gerar testes
+  que executem as linhas e branches listados.
+- Mantenha os testes existentes que já passam; adicione novos cenários para
+  cobrir o que falta.
+- Cubra branches não cobertos com entradas que forcem cada caminho alternativo.
 """.strip()
  
  
@@ -61,8 +72,8 @@ class TestGeneratorAgent:
         print(test.full_code)
     """
  
-    def __init__(self, llm: GeminiLLM | None = None) -> None:
-        self._llm = llm or GeminiLLM()
+    def __init__(self, llm: BaseLLM | None = None) -> None:
+        self._llm = llm or get_llm()
  
     def generate(self, context: FunctionContext) -> GeneratedTest:
         """
@@ -80,15 +91,17 @@ class TestGeneratorAgent:
             temperature=0.1,
         )
         response = self._llm.generate(request)
-        return _parse_response(response.content, context.qualified_name)
+        return _parse_response(response.content, context)
  
  
 # ── Auxiliares de parsing (também usados pelo RepairAgent) ─────────────────────
  
-def _parse_response(raw: str, qualified_name: str) -> GeneratedTest:
+def _parse_response(raw: str, context: FunctionContext) -> GeneratedTest:
     code = _strip_markdown(raw)
+    module, name = import_target(context, ROOT)
+    code = normalize_test_imports(code, module=module, name=name)
     return GeneratedTest(
-        target_function=qualified_name,
+        target_function=context.qualified_name,
         imports=_extract_imports(code),
         code=code,
         coverage_hints=_extract_coverage_hints(code),

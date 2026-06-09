@@ -116,6 +116,33 @@ class QdrantStore:
         """Retorna o número de pontos armazenados em ``name``."""
         result = self._client.count(collection_name=name, exact=True)
         return result.count
+
+    def get_vector(
+        self,
+        collection_name: str,
+        qualified_name: str,
+    ) -> tuple[list[float], dict[str, Any]] | None:
+        """Retorna (vetor, payload) de um símbolo indexado, ou None se ausente."""
+        if not self.collection_exists(collection_name):
+            return None
+
+        points = self._client.retrieve(
+            collection_name=collection_name,
+            ids=[_point_id(qualified_name)],
+            with_payload=True,
+            with_vectors=True,
+        )
+        if not points:
+            return None
+
+        point = points[0]
+        vector = point.vector
+        if isinstance(vector, dict):
+            vector = next(iter(vector.values()))
+        if not vector:
+            return None
+
+        return list(vector), dict(point.payload or {})
  
     def delete_collection(self, name: str) -> None:
         """
@@ -230,12 +257,13 @@ class QdrantStore:
                 ]
             )
  
-        return self._client.search(
+        response = self._client.query_points(
             collection_name=collection_name,
-            query_vector=query_vector,
+            query=query_vector,
             limit=top_k,
             score_threshold=score_threshold,
             query_filter=qdrant_filter,
             with_payload=True,
             with_vectors=False,
         )
+        return response.points
