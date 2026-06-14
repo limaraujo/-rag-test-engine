@@ -103,7 +103,28 @@ class Settings(BaseSettings):
 
     LOG_API_CALL_BODIES: bool = Field(
         default=False,
-        description="Quando true, persiste prompt e resposta integral nos logs de API.",
+        description=(
+            "Quando true, persiste prompt e resposta integral nos logs de API "
+            "(desativado por padrão por segurança; valores sensíveis são mascarados)."
+        ),
+    )
+
+    SOURCE_DIR_STRICT: bool = Field(
+        default=False,
+        description=(
+            "Quando true, bloqueia source_dir arriscado (raiz do engine ou volume alto) "
+            "salvo SOURCE_DIR_ALLOW_RISKY ou --allow-risky-source."
+        ),
+    )
+
+    SOURCE_DIR_ALLOW_RISKY: bool = Field(
+        default=False,
+        description="Permite source_dir arriscado em automação não interativa (CI/scripts).",
+    )
+
+    SOURCE_DIR_PY_WARN_THRESHOLD: int = Field(
+        default=200,
+        description="Aviso (ou bloqueio em modo estrito) quando há mais arquivos Python incluídos.",
     )
 
     LOG_API_CALL_METADATA: bool = Field(

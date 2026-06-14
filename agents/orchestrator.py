@@ -12,13 +12,14 @@ from cache.generation_cache import GenerationCache
 from config.logging_setup import setup_logging
 from config.run_workspace import RunWorkspace, save_ingest_artifacts, save_run_summary
 from config.settings import ROOT, settings
+from config.source_guard import SourceDirBlockedError, ensure_source_dir_allowed
 from execution.coverage_analyzer import CoverageAnalyzer, coverage_round_signature
 from execution.runner import RunResult, SuiteValidationResult, TestRunner
 from ingest.call_graph import CallGraph
 from ingest.dependency_graph import DependencyGraph
 from ingest.models.ExtractedSymbol import ExtractedSymbol
 from ingest.symbol_filter import SymbolFilterStats, filter_symbols
-from ingest.path_filters import emit_scan_warnings, scan_python_files
+from ingest.path_filters import ScanResult, emit_scan_warnings, scan_python_files
 from ingest.parser import parse_repository_graphs
 from llm.call_logger import setup_api_call_logging
 from llm.usage_tracker import get_tracker, reset_tracker
@@ -106,8 +107,19 @@ class OrchestratorAgent:
         self._max_repairs = max_repairs if max_repairs is not None else settings.MAX_REPAIRS
         self._generation_cache = generation_cache or GenerationCache()
 
-    def run(self, source_dir: str | Path = ".") -> OrchestrationResult:
+    def run(
+        self,
+        source_dir: str | Path = ".",
+        *,
+        allow_risky: bool = False,
+    ) -> OrchestrationResult:
         src = Path(source_dir).resolve()
+        scan_result = scan_python_files(src)
+        ensure_source_dir_allowed(
+            src,
+            allow_risky=allow_risky,
+            scan_result=scan_result,
+        )
         workspace = RunWorkspace.create(src)
 
         log_file = setup_logging(workspace.logs_dir / "pipeline.log")
@@ -125,7 +137,7 @@ class OrchestratorAgent:
         reset_tracker()
 
         all_symbols, test_symbols, call_graph, dependency_graph, filter_stats = (
-            self._ingest(src, workspace)
+            self._ingest(src, workspace, scan_result=scan_result)
         )
         indexed, cache_hits = self._index(all_symbols)
         stats = self._process_symbols(
@@ -189,6 +201,8 @@ class OrchestratorAgent:
         self,
         src: Path,
         workspace: RunWorkspace,
+        *,
+        scan_result: ScanResult | None = None,
     ) -> tuple[
         list[ExtractedSymbol],
         list[ExtractedSymbol],
@@ -197,7 +211,7 @@ class OrchestratorAgent:
         SymbolFilterStats,
     ]:
         logger.info("[ingest] scanning %s …", src)
-        scan_result = scan_python_files(src)
+        scan_result = scan_result or scan_python_files(src)
         emit_scan_warnings(src, scan_result)
         all_symbols, call_graph, dependency_graph = parse_repository_graphs(str(src))
         logger.info("[ingest] %d symbols found", len(all_symbols))

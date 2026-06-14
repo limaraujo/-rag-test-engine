@@ -6,6 +6,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+from config.security_paths import SENSITIVE_DIR_NAMES, is_sensitive_file_name, is_sensitive_path
 from config.settings import ROOT, settings
 
 logger = logging.getLogger(__name__)
@@ -26,6 +27,7 @@ DEFAULT_SKIP_DIRS: frozenset[str] = frozenset(
         "generated_tests",
         "dist",
         "build",
+        *SENSITIVE_DIR_NAMES,
     }
 )
 
@@ -36,7 +38,7 @@ DEFAULT_SKIP_FILE_GLOBS: tuple[str, ...] = (
     "*_demo.py",
 )
 
-FILE_COUNT_WARN_THRESHOLD = 500
+FILE_COUNT_WARN_THRESHOLD = 500  # legado; preferir settings.SOURCE_DIR_PY_WARN_THRESHOLD
 
 
 def _parse_csv(value: str) -> list[str]:
@@ -97,6 +99,8 @@ def should_skip_python_file(
         return True
 
     file_name = rel_parts[-1]
+    if is_sensitive_file_name(file_name) or is_sensitive_path(path, root):
+        return True
     return any(fnmatch.fnmatch(file_name, pattern) for pattern in skip_globs)
 
 
@@ -148,11 +152,13 @@ def emit_scan_warnings(root: str | Path, result: ScanResult) -> None:
             root_path,
         )
 
-    if result.included >= FILE_COUNT_WARN_THRESHOLD:
+    warn_threshold = settings.SOURCE_DIR_PY_WARN_THRESHOLD
+    if result.included > warn_threshold:
         logger.warning(
-            "[ingest] volume alto de arquivos Python incluídos (%d); "
+            "[ingest] volume alto de arquivos Python incluídos (%d > %d); "
             "verifique se o diretório alvo está correto",
             result.included,
+            warn_threshold,
         )
 
     if result.excluded:

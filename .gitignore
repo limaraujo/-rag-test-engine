@@ -151,6 +151,7 @@ activemq-data/
 
 # Environments
 .env
+.env.*
 .envrc
 .venv
 env/
@@ -158,6 +159,25 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+# Chaves e credenciais locais
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+credentials.json
+service-account*.json
+secrets.toml
+secrets/
+.secrets/
+private/
+.private/
 
 # Spyder project settings
 .spyderproject

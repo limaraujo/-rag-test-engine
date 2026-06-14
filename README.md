@@ -61,7 +61,7 @@ runs/<fonte>/<timestamp>/
 ├── tests/          # testes gerados que passaram
 ├── logs/
 │   ├── pipeline.log
-│   └── api_calls/  # prompts/respostas e tokens (LOG_API_CALLS=true)
+│   └── api_calls/  # metadados e tokens (LOG_API_CALLS=true; corpos só se LOG_API_CALL_BODIES=true)
 └── artifacts/
     ├── symbols.json
     ├── call_graph.json
@@ -83,7 +83,10 @@ Copie `.env.example` para `.env`. Variáveis principais:
 | `QDRANT_URL` | `http://localhost:6333` | URL do Qdrant |
 | `REINDEX_SYMBOLS` | `false` | `false` = cache incremental |
 | `RUNS_DIR` | `runs` | Pasta raiz das execuções |
-| `LOG_API_CALLS` | `true` | Grava entrada/saída de cada chamada LLM em `logs/api_calls/` |
+| `LOG_API_CALLS` | `true` | Grava metadados de cada chamada LLM em `logs/api_calls/` |
+| `LOG_API_CALL_BODIES` | `false` | Prompts/respostas integrais (desativado por padrão por segurança) |
+
+**Segurança:** nunca aponte `SOURCE_DIR` para a raiz deste repositório em produção. Arquivos `.env`, chaves e diretórios `secrets/` são ignorados na varredura. Se uma chave foi exposta, rotacione-a no provedor — ver [docs/CONFIGURATION.md](docs/CONFIGURATION.md#rotação-de-chaves).
 
 Documentação completa: [docs/CONFIGURATION.md](docs/CONFIGURATION.md) · CLI: [docs/CLI.md](docs/CLI.md)
 

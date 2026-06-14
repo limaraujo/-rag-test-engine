@@ -92,6 +92,13 @@ def test_non_python_files_not_discovered(sample_project: Path) -> None:
     assert "__pycache__/foo.cpython-312.pyc" not in names
 
 
+def test_secrets_directory_ignored(sample_project: Path) -> None:
+    _write(sample_project / "secrets" / "vault.py", "TOKEN = 'hidden'")
+    result = scan_python_files(sample_project)
+    names = _included_names(sample_project, result.files)
+    assert "secrets/vault.py" not in names
+
+
 def test_exclusions_reduce_file_count(sample_project: Path) -> None:
     result = scan_python_files(sample_project)
     assert result.total_py_found > result.included

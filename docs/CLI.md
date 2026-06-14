@@ -11,8 +11,9 @@ uv run python main.py [SOURCE_DIR]
 | Argumento | Obrigatório | Padrão | Descrição |
 |---|---|---|---|
 | `SOURCE_DIR` | Não | `.` | Diretório raiz com código Python a analisar. Caminho relativo ou absoluto. |
+| `--allow-risky-source` | Não | `false` | Continua com `source_dir` arriscado (raiz do engine ou muitos `.py`). Obrigatório quando `SOURCE_DIR_STRICT=true`. |
 
-Não há flags adicionais na CLI — modelo, Qdrant, logs de API e demais opções vêm do `.env` ([CONFIGURATION.md](CONFIGURATION.md)).
+Demais opções (modelo, Qdrant, logs de API, modo estrito) vêm do `.env` ([CONFIGURATION.md](CONFIGURATION.md)).
 
 ## Ajuda integrada
 

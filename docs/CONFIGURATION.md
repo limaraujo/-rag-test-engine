@@ -55,7 +55,38 @@ Com `REINDEX_SYMBOLS=false`:
 | `RUNS_DIR` | `runs` | Raiz dos workspaces (`runs/<fonte>/<timestamp>/`) |
 | `LOG_DIR` | `logs` | Fallback se logging não receber caminho explícito |
 | `LOG_LEVEL` | `INFO` | `DEBUG`, `INFO`, `WARNING`, `ERROR` |
-| `LOG_API_CALLS` | `true` | Grava entrada/saída e tokens de cada chamada em `logs/api_calls/` |
+| `LOG_API_CALLS` | `true` | Grava metadados e tokens de cada chamada em `logs/api_calls/` |
+| `LOG_API_CALL_BODIES` | `false` | Persiste prompts/respostas integrais (**desativado por padrão**; valores sensíveis são mascarados) |
+| `LOG_API_CALL_METADATA` | `true` | Inclui tamanhos e contexto operacional nos logs de API |
+
+## Segurança
+
+| Variável | Padrão | Descrição |
+|---|---|---|
+| `SOURCE_DIR_STRICT` | `false` | `true` bloqueia `source_dir` arriscado (raiz do engine ou volume alto de `.py`) |
+| `SOURCE_DIR_ALLOW_RISKY` | `false` | Permite continuar em CI/scripts sem flag `--allow-risky-source` |
+| `SOURCE_DIR_PY_WARN_THRESHOLD` | `200` | Limite de arquivos Python incluídos antes de aviso/bloqueio |
+
+### O que nunca é indexado
+
+- Arquivos `.env` e `.env.*`
+- Chaves (`*.pem`, `*.key`, `id_rsa`, etc.)
+- Diretórios sensíveis (`secrets/`, `.ssh/`, `.aws/`, etc.)
+
+### Logs e mascaramento
+
+Por padrão, **prompts completos não são gravados** (`LOG_API_CALL_BODIES=false`). Quando ativado, padrões como `sk-…`, Bearer tokens e atribuições `API_KEY`/`TOKEN`/`SECRET`/`PASSWORD` são mascarados **somente na persistência** — o código-fonte em memória enviado ao modelo não é alterado.
+
+### Rotação de chaves
+
+Se uma chave de API, token ou senha foi exposta em log, issue, commit ou chat:
+
+1. **Revogue** a credencial no painel do provedor (OpenAI, Qdrant Cloud, etc.).
+2. **Gere** uma nova chave e atualize apenas o `.env` local (nunca commite).
+3. **Verifique** o histórico git com `git log -p -- .env` (o arquivo deve estar no `.gitignore`).
+4. Em caso de vazamento em repositório público, considere `git filter-repo` ou suporte do provedor e force-push apenas após alinhar a equipe.
+
+Não reutilize credenciais que já circularam em texto claro.
 
 ## Retriever (RAG)
 
