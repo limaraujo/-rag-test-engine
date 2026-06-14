@@ -13,7 +13,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from agents.orchestrator import OrchestratorAgent
+from agents.orchestrator import OrchestratorAgent, _LLMBudget
 from agents.test_generator import TestGeneratorAgent as GeneratorAgent
 from cache.generation_cache import (
     GenerationCache,
@@ -384,10 +384,12 @@ def test_generate_with_cache_corrupt_counts_invalidation(
     path.write_text("<<<corrupt>>>", encoding="utf-8")
 
     stats = GenerationCacheStats()
+    budget = _LLMBudget(settings.MAX_LLM_CALLS_PER_SYMBOL)
     test, from_cache, _ = orchestrator._generate_with_cache(
         ctx,
         pythonpath=[str(ROOT)],
         cache_stats=stats,
+        budget=budget,
     )
 
     assert not from_cache

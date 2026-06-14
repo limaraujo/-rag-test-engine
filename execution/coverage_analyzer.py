@@ -339,3 +339,14 @@ def _function_at_line(spans: list[_FunctionSpan], line: int) -> str:
         if span.start_line <= line <= span.end_line:
             return span.name
     return "<module>"
+
+
+def coverage_round_signature(summary: dict) -> str:
+    """Assinatura estável de uma rodada de cobertura (detecta repetição idêntica)."""
+    missing = tuple(summary.get("missing_lines") or [])
+    gaps = tuple(
+        (g.get("function_name"), tuple(g.get("uncovered_lines") or []))
+        for g in summary.get("gaps") or []
+    )
+    pct = summary.get("line_coverage_percent")
+    return f"{pct}|{missing}|{gaps}"

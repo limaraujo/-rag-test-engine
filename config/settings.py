@@ -143,14 +143,26 @@ class Settings(BaseSettings):
         default=80.0,
     )
 
-    #Tentativas de regeneração quando cobertura fica abaixo do threshold.
+    #Tentativas de regeneração quando cobertura fica abaixo do threshold (0 = desligado).
     MAX_COVERAGE_ROUNDS: int = Field(
-        default=2,
+        default=0,
+        description="Rodadas extras de geração por cobertura. 0 desliga o loop.",
+    )
+
+    #Interrompe regeneração quando a cobertura não aumenta entre rodadas.
+    COVERAGE_STOP_ON_NO_IMPROVEMENT: bool = Field(
+        default=True,
     )
 
     #Tentativas de reparo via LLM quando pytest falha.
     MAX_REPAIRS: int = Field(
         default=1,
+    )
+
+    #Limite global de chamadas LLM (geração + reparo + cobertura) por símbolo.
+    MAX_LLM_CALLS_PER_SYMBOL: int = Field(
+        default=2,
+        description="Perfil econômico: 1 geração + 1 reparo. Cache hit não consome.",
     )
 
     #Limite de tokens de saída do LLM (None = sem limite na API).
@@ -208,7 +220,7 @@ class Settings(BaseSettings):
 
     #Tamanho máximo do bloco de erro do pytest no prompt de reparo.
     REPAIR_ERROR_MAX_CHARS: int = Field(
-        default=1500,
+        default=900,
     )
 
     model_config = SettingsConfigDict(

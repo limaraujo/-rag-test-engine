@@ -104,7 +104,9 @@ def _build_repair_prompt(
     attempt: int,
 ) -> str:
     """Monta o prompt de reparo completo enviado ao LLM."""
-    error_block = run_result.failure_summary or run_result.output
+    error_block = (run_result.failure_summary or "").strip()
+    if not error_block:
+        error_block = run_result.output.strip()
     max_chars = settings.REPAIR_ERROR_MAX_CHARS
     if len(error_block) > max_chars:
         error_block = error_block[:max_chars] + "\n… (truncado)"
