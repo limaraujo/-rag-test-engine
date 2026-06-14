@@ -14,7 +14,7 @@ from execution.runner import RunResult, SuiteValidationResult, TestRunner
 from ingest.call_graph import CallGraph
 from ingest.dependency_graph import DependencyGraph
 from ingest.models.ExtractedSymbol import ExtractedSymbol
-from ingest.symbol_filter import filter_symbols_for_tests
+from ingest.symbol_filter import SymbolFilterStats, filter_symbols
 from ingest.path_filters import emit_scan_warnings, scan_python_files
 from ingest.parser import parse_repository_graphs
 from llm.call_logger import setup_api_call_logging
@@ -75,14 +75,17 @@ class OrchestratorAgent:
 
         reset_tracker()
 
-        symbols, call_graph, dependency_graph = self._ingest(src, workspace)
-        indexed, cache_hits = self._index(symbols)
+        all_symbols, test_symbols, call_graph, dependency_graph, filter_stats = (
+            self._ingest(src, workspace)
+        )
+        indexed, cache_hits = self._index(all_symbols)
         stats = self._process_symbols(
-            symbols,
+            test_symbols,
             workspace=workspace,
             call_graph=call_graph,
             dependency_graph=dependency_graph,
             source_dir=src,
+            all_symbols=all_symbols,
         )
 
         validation = self._validate_suite(workspace)
@@ -99,11 +102,12 @@ class OrchestratorAgent:
                 "failed": stats.failed,
                 "skipped": stats.skipped,
                 "coverage_boosted": stats.coverage_boosted,
+                "symbol_filter": filter_stats.to_dict(),
             },
             token_summary=token_summary,
             validation=self._validation_payload(validation),
         )
-        self._log_summary(workspace, stats, token_summary, validation)
+        self._log_summary(workspace, stats, token_summary, validation, filter_stats)
 
         return OrchestrationResult(
             workspace=workspace,
@@ -118,12 +122,18 @@ class OrchestratorAgent:
         self,
         src: Path,
         workspace: RunWorkspace,
-    ) -> tuple[list[ExtractedSymbol], CallGraph, DependencyGraph]:
+    ) -> tuple[
+        list[ExtractedSymbol],
+        list[ExtractedSymbol],
+        CallGraph,
+        DependencyGraph,
+        SymbolFilterStats,
+    ]:
         logger.info("[ingest] scanning %s …", src)
         scan_result = scan_python_files(src)
         emit_scan_warnings(src, scan_result)
-        symbols, call_graph, dependency_graph = parse_repository_graphs(str(src))
-        logger.info("[ingest] %d symbols found", len(symbols))
+        all_symbols, call_graph, dependency_graph = parse_repository_graphs(str(src))
+        logger.info("[ingest] %d symbols found", len(all_symbols))
         logger.info(
             "[ingest] call graph: %d nodes, dependency graph: %d nodes",
             len(call_graph.nodes),
@@ -132,23 +142,25 @@ class OrchestratorAgent:
 
         save_ingest_artifacts(
             workspace,
-            symbols=symbols,
+            symbols=all_symbols,
             call_graph=call_graph,
             dependency_graph=dependency_graph,
         )
         logger.info("[ingest] artefatos salvos em %s", workspace.artifacts_dir)
 
-        before = len(symbols)
-        symbols = filter_symbols_for_tests(symbols)
-        skipped = before - len(symbols)
-        if skipped:
+        filter_result = filter_symbols(all_symbols)
+        test_symbols = filter_result.kept
+        filter_stats = filter_result.stats
+        if filter_stats.filtered_total:
             logger.info(
-                "[ingest] %d símbolo(s) ignorado(s) por INGEST_SKIP_* (restam %d)",
-                skipped,
-                len(symbols),
+                "[ingest] %d símbolo(s) filtrado(s) para geração "
+                "(%d container_class, %d elegíveis)",
+                filter_stats.filtered_total,
+                filter_stats.removed_container_class,
+                len(test_symbols),
             )
 
-        return symbols, call_graph, dependency_graph
+        return all_symbols, test_symbols, call_graph, dependency_graph, filter_stats
 
     def _index(self, symbols: list[ExtractedSymbol]) -> tuple[int, int]:
         if settings.REINDEX_SYMBOLS:
@@ -168,9 +180,10 @@ class OrchestratorAgent:
         call_graph: CallGraph,
         dependency_graph: DependencyGraph,
         source_dir: Path,
+        all_symbols: list[ExtractedSymbol],
     ) -> PipelineStats:
         stats = PipelineStats()
-        symbols_by_name = {symbol.qualified_name: symbol for symbol in symbols}
+        symbols_by_name = {symbol.qualified_name: symbol for symbol in all_symbols}
         pythonpath = [str(ROOT)]
 
         for symbol in symbols:
@@ -401,9 +414,20 @@ class OrchestratorAgent:
         stats: PipelineStats,
         token_summary: str | None,
         validation: SuiteValidationResult | None = None,
+        filter_stats: SymbolFilterStats | None = None,
     ) -> None:
         logger.info("")
         logger.info("=" * 52)
+        if filter_stats is not None:
+            logger.info(
+                "  Símbolos extraídos   : %d",
+                filter_stats.extracted_total,
+            )
+            logger.info(
+                "  Filtrados (sem teste): %d (%d container_class)",
+                filter_stats.filtered_total,
+                filter_stats.removed_container_class,
+            )
         logger.info("  Símbolos processados : %d", stats.total)
         logger.info(
             "  Testes salvos        : %d (%d após reparo, %d com boost de cobertura)",

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ingest.models.ExtractedSymbol import ExtractedSymbol
-from ingest.symbol_filter import filter_symbols_for_tests, should_generate_tests
+from ingest.symbol_filter import filter_symbols, should_generate_tests
 from schemas.prompt_utils import compact_rag_snippet
 
 
@@ -40,7 +40,7 @@ def test_filter_symbols_for_tests() -> None:
         _symbol("soma"),
         _symbol("run", file_path="mockes/embedding_demo.py"),
     ]
-    kept = filter_symbols_for_tests(symbols)
+    kept = filter_symbols(symbols).kept
     assert [s.name for s in kept] == ["soma"]
 
 
