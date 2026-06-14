@@ -87,22 +87,22 @@ class Settings(BaseSettings):
     # ── Configurações padrão de recuperação
     #Quantidade final de resultados após reranking híbrido.
     RETRIEVER_TOP_K: int = Field(
-        default=10,
+        default=3,
     )
 
     #Quantidade de trechos de funções relacionadas recuperados por consulta.
     RETRIEVER_TOP_K_FUNCTIONS: int = Field(
-        default=10,
+        default=3,
     )
 
     #Quantidade de trechos de testes semelhantes recuperados por consulta.
     RETRIEVER_TOP_K_TESTS: int = Field(
-        default=10,
+        default=2,
     )
 
     #Candidatos vetoriais buscados antes do reranking híbrido.
     RETRIEVER_RERANK_POOL_SIZE: int = Field(
-        default=30,
+        default=10,
     )
 
     #Pesos do score híbrido (devem somar 1.0).
@@ -111,8 +111,13 @@ class Settings(BaseSettings):
     RETRIEVER_CALL_GRAPH_WEIGHT: float = Field(default=0.2)
 
     #Pontuação mínima de similaridade cosseno aceita (0 – 1).
+    #0.55 filtra ruído semântico fraco; aumente para prompts mais enxutos.
     RETRIEVER_SCORE_THRESHOLD: float = Field(
         default=0.55,
+        description=(
+            "Similaridade cosseno mínima (0–1) para candidatos vetoriais. "
+            "Valores mais altos reduzem recall; mais baixos aumentam ruído."
+        ),
     )
 
     #Percentual mínimo de cobertura de linhas para aceitar um teste gerado.
@@ -158,9 +163,18 @@ class Settings(BaseSettings):
         ),
     )
 
+    #Orçamento global (corpo dos snippets RAG) no prompt do LLM.
+    PROMPT_MAX_RAG_TOTAL_CHARS: int = Field(
+        default=2500,
+        description=(
+            "Limite de caracteres para o corpo dos trechos RAG. "
+            "Cabeçalhos de seção ficam fora deste orçamento."
+        ),
+    )
+
     #Tamanho máximo de cada trecho RAG no prompt do LLM.
     PROMPT_MAX_RAG_SNIPPET_CHARS: int = Field(
-        default=600,
+        default=300,
     )
 
     #Tamanho máximo do bloco de erro do pytest no prompt de reparo.

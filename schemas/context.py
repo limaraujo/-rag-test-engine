@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 
 from ingest.import_resolver import module_name_from_path
 from ingest.models.ExtractedSymbol import ExtractedSymbol
-from schemas.prompt_utils import compact_rag_snippet
+from schemas.prompt_utils import build_rag_prompt_sections, rag_items_from_lists
 from schemas.retrieval_context import RetrievalContext
 
 from config.settings import settings
@@ -185,21 +185,12 @@ class FunctionContext(BaseModel):
             user_prompt = context.to_prompt_block()
             request = LLMRequest(system_prompt=SYSTEM, user_prompt=user_prompt)
         """
-        max_rag = settings.PROMPT_MAX_RAG_SNIPPET_CHARS
-
         def bullet(lst: list[str]) -> str:
             return (
                 "\n".join(f"  - {item}" for item in lst)
                 if lst
                 else "  (nenhum)"
             )
-
-        def bullet_rag(items: list[str]) -> str:
-            trimmed = [
-                compact_rag_snippet(item, max_chars=max_rag)
-                for item in items
-            ]
-            return bullet(trimmed)
 
         parts: list[str] = [
             "## Função alvo",
@@ -244,32 +235,19 @@ class FunctionContext(BaseModel):
 
         if not compact:
             rc = self.retrieval_context
-            if rc and rc.caller_functions:
-                parts.append(
-                    f"\n## Funções chamadoras (call graph)\n{bullet(rc.caller_functions)}"
-                )
-
-            if rc and rc.callee_functions:
-                parts.append(
-                    f"\n## Funções chamadas (call graph)\n{bullet(rc.callee_functions)}"
-                )
-
-            if rc and rc.dependency_functions:
-                parts.append(
-                    f"\n## Dependências estruturais (dependency graph)\n"
-                    f"{bullet(rc.dependency_functions)}"
-                )
-
-            if self.related_functions:
-                parts.append(
-                    f"\n## Funções relacionadas (busca híbrida)\n"
-                    f"{bullet_rag(self.related_functions)}"
-                )
-
-            if self.similar_tests:
-                parts.append(
-                    f"\n## Testes similares existentes\n{bullet_rag(self.similar_tests)}"
-                )
+            rag_items = rag_items_from_lists(
+                dependency_functions=rc.dependency_functions if rc else None,
+                callee_functions=rc.callee_functions if rc else None,
+                caller_functions=rc.caller_functions if rc else None,
+                related_functions=self.related_functions or None,
+                similar_tests=self.similar_tests or None,
+            )
+            rag_sections, _ = build_rag_prompt_sections(
+                rag_items,
+                max_total_chars=settings.PROMPT_MAX_RAG_TOTAL_CHARS,
+                max_snippet_chars=settings.PROMPT_MAX_RAG_SNIPPET_CHARS,
+            )
+            parts.extend(rag_sections)
 
         if self.coverage_gaps:
             gap_lines = []

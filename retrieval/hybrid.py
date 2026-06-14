@@ -41,6 +41,6 @@ def rerank_candidates(
     top_k: int | None = None,
 ) -> list[HybridCandidate]:
     """Ordena candidatos por score híbrido descendente e retorna o top-k."""
-    limit = top_k or settings.RETRIEVER_TOP_K
+    limit = top_k if top_k is not None else settings.RETRIEVER_TOP_K_FUNCTIONS
     ranked = sorted(candidates, key=lambda c: c.hybrid_score, reverse=True)
     return ranked[:limit]

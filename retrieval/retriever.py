@@ -42,7 +42,7 @@ class Retriever:
 
     6. Pesquisa na coleção **tests** por arquivos de teste semelhantes.
     7. Retorna um novo ``FunctionContext`` com :class:`RetrievalContext`
-       preenchido (top 10 em ``related_functions`` e ``similar_tests``).
+       preenchido (limites configuráveis em ``related_functions`` e ``similar_tests``).
 
     As duas coleções são independentes:
 
@@ -89,7 +89,7 @@ class Retriever:
         O *ctx* original nunca é modificado (é utilizado o
         ``model_copy`` do Pydantic).
         """
-        limit = top_k or top_k_functions or settings.RETRIEVER_TOP_K
+        limit = top_k_functions or top_k or settings.RETRIEVER_TOP_K_FUNCTIONS
         k_tests = top_k_tests or settings.RETRIEVER_TOP_K_TESTS
         threshold = (
             score_threshold
@@ -404,7 +404,7 @@ class Retriever:
         self._last_top_score = scores[0] if scores else 0.0
         self._last_avg_score = sum(scores) / len(scores) if scores else 0.0
 
-        return [c.text for c in ranked]
+        return [f"symbol: {c.qualified_name}\n{c.text}" for c in ranked]
 
     def _source_texts(
         self,
@@ -418,7 +418,7 @@ class Retriever:
                 continue
             code = symbol.source_code.strip()
             if code:
-                texts.append(code)
+                texts.append(f"symbol: {qname}\n{code}")
         return texts
 
     def _fetch_similar_tests(
