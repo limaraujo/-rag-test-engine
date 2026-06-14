@@ -11,6 +11,8 @@ class LLMRequest(BaseModel):
     system_prompt: str
     user_prompt: str
     temperature: float = 0.2
+    agent: str | None = None
+    label: str | None = None
 
 
 class LLMResponse(BaseModel):
@@ -22,6 +24,7 @@ class LLMResponse(BaseModel):
 class LLMEmbeddingRequest(BaseModel):
     input: str
     model: str
+    label: str | None = None
 
 
 class LLMEmbeddingResponse(BaseModel):

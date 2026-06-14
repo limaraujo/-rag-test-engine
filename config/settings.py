@@ -76,6 +76,14 @@ class Settings(BaseSettings):
         description="Nível de log: DEBUG, INFO, WARNING, ERROR.",
     )
 
+    LOG_API_CALLS: bool = Field(
+        default=True,
+        description=(
+            "Grava entrada/saída e tokens de cada chamada LLM/embedding em "
+            "logs/api_calls/ do workspace."
+        ),
+    )
+
     # ── Configurações padrão de recuperação
     #Quantidade final de resultados após reranking híbrido.
     RETRIEVER_TOP_K: int = Field(
@@ -115,6 +123,49 @@ class Settings(BaseSettings):
     #Tentativas de regeneração quando cobertura fica abaixo do threshold.
     MAX_COVERAGE_ROUNDS: int = Field(
         default=2,
+    )
+
+    #Tentativas de reparo via LLM quando pytest falha.
+    MAX_REPAIRS: int = Field(
+        default=1,
+    )
+
+    #Limite de tokens de saída do LLM (None = sem limite na API).
+    LLM_MAX_OUTPUT_TOKENS: int | None = Field(
+        default=2048,
+    )
+
+    #Funções de módulo ignoradas na geração (separadas por vírgula).
+    INGEST_SKIP_FUNCTION_NAMES: str = Field(
+        default="main",
+    )
+
+    #Diretórios extras ignorados na ingestão (separados por vírgula; mesclados aos padrões).
+    INGEST_SKIP_DIRS: str = Field(
+        default="",
+        description=(
+            "Nomes de diretório ignorados na varredura. Mesclado com padrões "
+            "como tests/, runs/, __pycache__/, etc."
+        ),
+    )
+
+    #Globs extras de arquivo ignorados na ingestão (separados por vírgula; mesclados aos padrões).
+    INGEST_SKIP_FILE_GLOBS: str = Field(
+        default="",
+        description=(
+            "Globs de nome de arquivo ignorados na varredura e na geração. "
+            "Mesclado com padrões como test_*.py, conftest.py, etc."
+        ),
+    )
+
+    #Tamanho máximo de cada trecho RAG no prompt do LLM.
+    PROMPT_MAX_RAG_SNIPPET_CHARS: int = Field(
+        default=600,
+    )
+
+    #Tamanho máximo do bloco de erro do pytest no prompt de reparo.
+    REPAIR_ERROR_MAX_CHARS: int = Field(
+        default=1500,
     )
 
     model_config = SettingsConfigDict(

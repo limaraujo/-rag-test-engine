@@ -45,6 +45,7 @@ REQUISITOS DO TESTE:
 6. Mantenha cada teste independente (sem estado mutável compartilhado entre os testes).
 7. Use unittest.mock.patch apenas quando uma dependência for um serviço externo
    (rede, banco de dados, sistema de arquivos) — NÃO faça mock da própria função sob teste.
+8. Seja conciso: gere o mínimo de testes necessários; docstrings de uma linha curta.
 
 COBERTURA ORIENTADA:
 - Quando a seção "Lacunas de cobertura" estiver presente, priorize gerar testes
@@ -75,13 +76,19 @@ class TestGeneratorAgent:
     def __init__(self, llm: BaseLLM | None = None) -> None:
         self._llm = llm or get_llm()
  
-    def generate(self, context: FunctionContext) -> GeneratedTest:
+    def generate(
+        self,
+        context: FunctionContext,
+        *,
+        operation: str = "generate",
+    ) -> GeneratedTest:
         """
         Gera um arquivo de teste pytest para o FunctionContext fornecido.
- 
+
         Args:
             context: Contexto totalmente preenchido (com ou sem campos RAG).
- 
+            operation: Identificador da operação (ex.: generate, coverage_1).
+
         Retorna:
             Um GeneratedTest com código (code), imports e coverage_hints preenchidos.
         """
@@ -89,6 +96,8 @@ class TestGeneratorAgent:
             system_prompt=_SYSTEM_PROMPT,
             user_prompt=context.to_prompt_block(),
             temperature=0.1,
+            agent="test_generator",
+            label=f"{context.qualified_name}::{operation}",
         )
         response = self._llm.generate(request)
         return _parse_response(response.content, context)

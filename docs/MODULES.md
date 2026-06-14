@@ -89,9 +89,20 @@ def main(source_dir: str = ".") -> OrchestrationResult:
     return orchestrator.run(source_dir)
 ```
 
+| Argumento CLI | Padrão | Descrição |
+|---|---|---|
+| `SOURCE_DIR` | `.` | Diretório Python a analisar |
+
+```bash
+python main.py --help
+python main.py mockes
+```
+
+Ver [CLI.md](CLI.md).
+
 | Responsabilidade | Onde fica |
 |---|---|
-| Parse de `sys.argv` | `main.py` |
+| Parse de argumentos (`argparse`) | `main.py` |
 | Pipeline completo | `agents/orchestrator.py` |
 | Configuração | `config/settings.py` |
 | Workspace + artefatos | `config/run_workspace.py` |

@@ -33,12 +33,17 @@ Dashboard: http://localhost:6333/dashboard
 A `main.py` é apenas o **entrypoint CLI** — ela instancia o `OrchestratorAgent` e delega todo o pipeline a ele.
 
 ```bash
+# Ajuda dos argumentos
+uv run python main.py --help
+
 # Pipeline completo no diretório atual
 uv run python main.py
 
 # Testar a pasta de exemplos
 uv run python main.py mockes
 ```
+
+Referência completa dos argumentos: [docs/CLI.md](docs/CLI.md)
 
 Equivalente em Python:
 
@@ -55,7 +60,8 @@ Cada execução cria um workspace isolado:
 runs/<fonte>/<timestamp>/
 ├── tests/          # testes gerados que passaram
 ├── logs/
-│   └── pipeline.log
+│   ├── pipeline.log
+│   └── api_calls/  # prompts/respostas e tokens (LOG_API_CALLS=true)
 └── artifacts/
     ├── symbols.json
     ├── call_graph.json
@@ -77,8 +83,9 @@ Copie `.env.example` para `.env`. Variáveis principais:
 | `QDRANT_URL` | `http://localhost:6333` | URL do Qdrant |
 | `REINDEX_SYMBOLS` | `false` | `false` = cache incremental |
 | `RUNS_DIR` | `runs` | Pasta raiz das execuções |
+| `LOG_API_CALLS` | `true` | Grava entrada/saída de cada chamada LLM em `logs/api_calls/` |
 
-Documentação completa: [docs/CONFIGURATION.md](docs/CONFIGURATION.md)
+Documentação completa: [docs/CONFIGURATION.md](docs/CONFIGURATION.md) · CLI: [docs/CLI.md](docs/CLI.md)
 
 ## Pipeline
 
@@ -159,10 +166,18 @@ docs/          # documentação técnica
 
 ## Reduzir custos
 
-- `REINDEX_SYMBOLS=false` + Qdrant persistente → evita re-embedar
-- `MAX_COVERAGE_ROUNDS=0` no `.env` → desliga loop de cobertura
-- `OPENAI_MODEL=gpt-5-nano` (já é o padrão)
-- Reduzir `RETRIEVER_TOP_K*` para prompts menores
+Análise dos logs em `runs/.../logs/api_calls/_index.jsonl` mostra que **saída do LLM**
+(`completion_tokens`) costuma ser 3–5× maior que a entrada. Prioridades:
+
+1. **`MAX_COVERAGE_ROUNDS=0`** — elimina regenerações por cobertura (maior economia)
+2. **`LLM_MAX_OUTPUT_TOKENS=2048`** — limita testes verbosos (já é o padrão)
+3. **`INGEST_SKIP_FUNCTION_NAMES=main`** — ignora `main()` de scripts (já é o padrão)
+4. **`INGEST_SKIP_FILE_GLOBS=*_demo.py`** — ignora arquivos demo (já é o padrão)
+5. **`MAX_REPAIRS=1`** — menos tentativas de reparo (já é o padrão)
+6. **`REINDEX_SYMBOLS=false`** + Qdrant persistente → evita re-embedar
+7. Reduzir `RETRIEVER_TOP_K*` para prompts menores
+
+Perfil completo: [docs/CONFIGURATION.md](docs/CONFIGURATION.md#perfil-econômico-sugerido)
 
 ## Licença
 

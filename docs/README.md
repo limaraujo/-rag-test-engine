@@ -7,6 +7,7 @@
 | Documento | Conteúdo |
 |---|---|
 | [../README.md](../README.md) | Instalação, uso rápido, visão geral |
+| [CLI.md](CLI.md) | Argumentos de linha de comando (`main.py`) |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Arquitetura, fases do pipeline, diagramas |
 | [CONFIGURATION.md](CONFIGURATION.md) | Variáveis de ambiente (`.env`) |
 | [API.md](API.md) | `main()`, agentes e uso programático |
@@ -34,7 +35,9 @@ OrchestratorAgent.run("mockes")
 ```
 runs/<fonte>/<timestamp>/
 ├── tests/              # testes aprovados
-├── logs/pipeline.log   # log da execução
+├── logs/
+│   ├── pipeline.log    # log da execução
+│   └── api_calls/      # prompts/respostas (LOG_API_CALLS=true)
 └── artifacts/          # parser, grafos, resumo, tokens
 ```
 

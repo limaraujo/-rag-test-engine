@@ -13,6 +13,7 @@ AI_MODE=openai
 REINDEX_SYMBOLS=false
 RUNS_DIR=runs
 LOG_LEVEL=INFO
+LOG_API_CALLS=true
 ```
 
 ## OpenAI
@@ -54,6 +55,7 @@ Com `REINDEX_SYMBOLS=false`:
 | `RUNS_DIR` | `runs` | Raiz dos workspaces (`runs/<fonte>/<timestamp>/`) |
 | `LOG_DIR` | `logs` | Fallback se logging não receber caminho explícito |
 | `LOG_LEVEL` | `INFO` | `DEBUG`, `INFO`, `WARNING`, `ERROR` |
+| `LOG_API_CALLS` | `true` | Grava entrada/saída e tokens de cada chamada em `logs/api_calls/` |
 
 ## Retriever (RAG)
 
@@ -76,6 +78,27 @@ Os pesos híbridos devem somar **1.0**.
 |---|---|---|
 | `COVERAGE_THRESHOLD` | `80.0` | Cobertura mínima de linhas (%) |
 | `MAX_COVERAGE_ROUNDS` | `2` | Rodadas de regeneração por cobertura insuficiente |
+| `MAX_REPAIRS` | `1` | Tentativas de reparo via LLM quando pytest falha |
+
+## Ingestão (varredura de código)
+
+| Variável | Padrão | Descrição |
+|---|---|---|
+| `INGEST_SKIP_DIRS` | *(vazio)* | Diretórios extras ignorados na varredura (vírgula). **Mesclado** com padrões fixos: `.git`, `__pycache__`, `.venv`, `venv`, `.pytest_cache`, `.mypy_cache`, `.ruff_cache`, `tests`, `test`, `runs`, `logs`, `generated_tests`, `dist`, `build` |
+| `INGEST_SKIP_FILE_GLOBS` | *(vazio)* | Globs extras de arquivo ignorados (vírgula). **Mesclado** com padrões fixos: `test_*.py`, `*_test.py`, `conftest.py`, `*_demo.py` |
+
+Os padrões fixos **não são removidos** ao definir essas variáveis — apenas acrescentam exclusões.
+
+Código em `src/`, `app/`, `lib/` e pacotes do projeto permanece incluído; somente segmentos de caminho com nome exato de diretório ignorado são excluídos.
+
+## Economia de tokens (LLM)
+
+| Variável | Padrão | Descrição |
+|---|---|---|
+| `LLM_MAX_OUTPUT_TOKENS` | `2048` | Limite de tokens de saída do chat. Use vazio/`null` para sem limite |
+| `INGEST_SKIP_FUNCTION_NAMES` | `main` | Funções de módulo ignoradas na geração (vírgula) |
+| `PROMPT_MAX_RAG_SNIPPET_CHARS` | `600` | Tamanho máximo de cada trecho RAG no prompt |
+| `REPAIR_ERROR_MAX_CHARS` | `1500` | Tamanho máximo do erro pytest no prompt de reparo |
 
 Para desligar o loop de cobertura (economia de tokens):
 
@@ -90,6 +113,13 @@ AI_MODE=openai
 OPENAI_MODEL=gpt-5-nano
 REINDEX_SYMBOLS=false
 MAX_COVERAGE_ROUNDS=0
+MAX_REPAIRS=1
+LLM_MAX_OUTPUT_TOKENS=2048
+INGEST_SKIP_FUNCTION_NAMES=main
+INGEST_SKIP_DIRS=
+INGEST_SKIP_FILE_GLOBS=
+PROMPT_MAX_RAG_SNIPPET_CHARS=400
+REPAIR_ERROR_MAX_CHARS=1200
 RETRIEVER_TOP_K=3
 RETRIEVER_TOP_K_FUNCTIONS=3
 RETRIEVER_TOP_K_TESTS=2

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from agents.test_generator import _parse_response
+from config.settings import settings
 from llm.base import BaseLLM
 from llm.factory import get_llm
 from llm.models import LLMRequest
@@ -86,6 +87,8 @@ class RepairAgent:
             system_prompt=_REPAIR_SYSTEM_PROMPT,
             user_prompt=user_prompt,
             temperature=0.1,
+            agent="repair",
+            label=f"{ctx.qualified_name}::repair_{attempt}",
         )
 
         response = self._llm.generate(request)
@@ -102,15 +105,15 @@ def _build_repair_prompt(
 ) -> str:
     """Monta o prompt de reparo completo enviado ao LLM."""
     error_block = run_result.failure_summary or run_result.output
-    # Limite rígido para a saída de erro para não estourar a janela de contexto
-    if len(error_block) > 3000:
-        error_block = error_block[:3000] + "\n… (truncado)"
+    max_chars = settings.REPAIR_ERROR_MAX_CHARS
+    if len(error_block) > max_chars:
+        error_block = error_block[:max_chars] + "\n… (truncado)"
 
     return "\n".join([
         f"# Tentativa de reparo {attempt}",
         "",
         "## Função sob teste",
-        ctx.to_prompt_block(),
+        ctx.to_prompt_block(compact=True),
         "",
         "## Arquivo de teste falho",
         "```python",

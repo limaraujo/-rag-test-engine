@@ -16,7 +16,8 @@ def embed_symbol(
 	text, metadata = to_embedding_doc(symbol)
 	request = LLMEmbeddingRequest(
 		input=text,
-		model=embedder.model
+		model=embedder.model,
+		label=symbol.qualified_name,
 	)
 	response = embedder.generate_embedding(request)
 

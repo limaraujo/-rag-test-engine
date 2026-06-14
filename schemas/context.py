@@ -6,7 +6,10 @@ from pydantic import BaseModel, Field
 
 from ingest.import_resolver import module_name_from_path
 from ingest.models.ExtractedSymbol import ExtractedSymbol
+from schemas.prompt_utils import compact_rag_snippet
 from schemas.retrieval_context import RetrievalContext
+
+from config.settings import settings
 
 
 class FunctionContext(BaseModel):
@@ -167,7 +170,7 @@ class FunctionContext(BaseModel):
             edge_cases=symbol.edge_cases,
         )
 
-    def to_prompt_block(self) -> str:
+    def to_prompt_block(self, *, compact: bool = False) -> str:
         """
         Formata o contexto como bloco de texto estruturado para o prompt do LLM.
 
@@ -176,17 +179,27 @@ class FunctionContext(BaseModel):
         para gerar testes mais precisos e contextualizados.
 
         Seções omitidas quando vazias para não poluir o prompt.
+        Com ``compact=True`` (reparo), omite contexto RAG e metadados extras.
 
         Exemplo de uso no test_generator:
             user_prompt = context.to_prompt_block()
             request = LLMRequest(system_prompt=SYSTEM, user_prompt=user_prompt)
         """
+        max_rag = settings.PROMPT_MAX_RAG_SNIPPET_CHARS
+
         def bullet(lst: list[str]) -> str:
             return (
                 "\n".join(f"  - {item}" for item in lst)
                 if lst
                 else "  (nenhum)"
             )
+
+        def bullet_rag(items: list[str]) -> str:
+            trimmed = [
+                compact_rag_snippet(item, max_chars=max_rag)
+                for item in items
+            ]
+            return bullet(trimmed)
 
         parts: list[str] = [
             "## Função alvo",
@@ -211,10 +224,10 @@ class FunctionContext(BaseModel):
             "```",
         ]
 
-        if self.imports:
+        if self.imports and not compact:
             parts.append(f"\n## Imports disponíveis no arquivo\n{bullet(self.imports)}")
 
-        if self.dependencies:
+        if self.dependencies and not compact:
             parts.append(f"\n## Dependências chamadas\n{bullet(self.dependencies)}")
 
         if self.exceptions:
@@ -229,32 +242,34 @@ class FunctionContext(BaseModel):
                 f"  {self.branches} branch(es) — cubra ao menos um cenário por branch"
             )
 
-        rc = self.retrieval_context
-        if rc and rc.caller_functions:
-            parts.append(
-                f"\n## Funções chamadoras (call graph)\n{bullet(rc.caller_functions)}"
-            )
+        if not compact:
+            rc = self.retrieval_context
+            if rc and rc.caller_functions:
+                parts.append(
+                    f"\n## Funções chamadoras (call graph)\n{bullet(rc.caller_functions)}"
+                )
 
-        if rc and rc.callee_functions:
-            parts.append(
-                f"\n## Funções chamadas (call graph)\n{bullet(rc.callee_functions)}"
-            )
+            if rc and rc.callee_functions:
+                parts.append(
+                    f"\n## Funções chamadas (call graph)\n{bullet(rc.callee_functions)}"
+                )
 
-        if rc and rc.dependency_functions:
-            parts.append(
-                f"\n## Dependências estruturais (dependency graph)\n"
-                f"{bullet(rc.dependency_functions)}"
-            )
+            if rc and rc.dependency_functions:
+                parts.append(
+                    f"\n## Dependências estruturais (dependency graph)\n"
+                    f"{bullet(rc.dependency_functions)}"
+                )
 
-        if self.related_functions:
-            parts.append(
-                f"\n## Funções relacionadas (busca híbrida)\n{bullet(self.related_functions)}"
-            )
+            if self.related_functions:
+                parts.append(
+                    f"\n## Funções relacionadas (busca híbrida)\n"
+                    f"{bullet_rag(self.related_functions)}"
+                )
 
-        if self.similar_tests:
-            parts.append(
-                f"\n## Testes similares existentes\n{bullet(self.similar_tests)}"
-            )
+            if self.similar_tests:
+                parts.append(
+                    f"\n## Testes similares existentes\n{bullet_rag(self.similar_tests)}"
+                )
 
         if self.coverage_gaps:
             gap_lines = []

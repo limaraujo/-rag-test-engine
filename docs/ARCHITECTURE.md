@@ -12,10 +12,12 @@ main.py  →  OrchestratorAgent.run()  →  OrchestrationResult
 
 A `main.py` não contém lógica de pipeline — apenas:
 
-1. Lê `SOURCE_DIR` dos argumentos da CLI (padrão: `"."`)
+1. Faz parse de `SOURCE_DIR` via `argparse` (padrão: `"."`; use `--help` para ajuda)
 2. Instancia `OrchestratorAgent`
 3. Chama `orchestrator.run(source_dir)`
 4. Retorna `OrchestrationResult`
+
+Detalhes dos argumentos: [CLI.md](CLI.md)
 
 ```python
 # main.py (simplificado)

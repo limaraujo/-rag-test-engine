@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from ingest.import_resolver import ImportResolver, module_name_from_path
+from ingest.path_filters import scan_python_files
 
 
 @dataclass
@@ -260,17 +261,4 @@ class DependencyGraphBuilder:
         return self._graph
 
     def _discover_python_files(self) -> list[Path]:
-        ignore_dirs = {
-            ".git",
-            ".pytest_cache",
-            ".venv",
-            "__pycache__",
-            "venv",
-            "env",
-        }
-        files: list[Path] = []
-        for path in self.root.rglob("*.py"):
-            if any(part in ignore_dirs for part in path.parts):
-                continue
-            files.append(path)
-        return sorted(files)
+        return list(scan_python_files(self.root).files)

@@ -14,7 +14,10 @@ from execution.runner import RunResult, SuiteValidationResult, TestRunner
 from ingest.call_graph import CallGraph
 from ingest.dependency_graph import DependencyGraph
 from ingest.models.ExtractedSymbol import ExtractedSymbol
+from ingest.symbol_filter import filter_symbols_for_tests
+from ingest.path_filters import emit_scan_warnings, scan_python_files
 from ingest.parser import parse_repository_graphs
+from llm.call_logger import setup_api_call_logging
 from llm.usage_tracker import get_tracker, reset_tracker
 from retrieval.retriever import Retriever
 from schemas.context import FunctionContext
@@ -46,13 +49,13 @@ class OrchestratorAgent:
         generator: TestGeneratorAgent | None = None,
         runner: TestRunner | None = None,
         repair_agent: RepairAgent | None = None,
-        max_repairs: int = 2,
+        max_repairs: int | None = None,
     ) -> None:
         self._retriever = retriever or Retriever()
         self._generator = generator or TestGeneratorAgent()
         self._runner = runner or TestRunner()
         self._repair_agent = repair_agent or RepairAgent()
-        self._max_repairs = max_repairs
+        self._max_repairs = max_repairs if max_repairs is not None else settings.MAX_REPAIRS
 
     def run(self, source_dir: str | Path = ".") -> OrchestrationResult:
         src = Path(source_dir).resolve()
@@ -61,6 +64,11 @@ class OrchestratorAgent:
         log_file = setup_logging(workspace.logs_dir / "pipeline.log")
         logger.info("Workspace: %s", workspace.root)
         logger.info("Log: %s", log_file)
+
+        api_calls_dir = workspace.logs_dir / "api_calls"
+        active_calls_dir = setup_api_call_logging(api_calls_dir)
+        if active_calls_dir:
+            logger.info("API calls log: %s", active_calls_dir)
 
         if settings.AI_MODE == "offline":
             logger.warning("AI_MODE=offline — embeddings e LLM locais (sem API OpenAI)")
@@ -112,6 +120,8 @@ class OrchestratorAgent:
         workspace: RunWorkspace,
     ) -> tuple[list[ExtractedSymbol], CallGraph, DependencyGraph]:
         logger.info("[ingest] scanning %s …", src)
+        scan_result = scan_python_files(src)
+        emit_scan_warnings(src, scan_result)
         symbols, call_graph, dependency_graph = parse_repository_graphs(str(src))
         logger.info("[ingest] %d symbols found", len(symbols))
         logger.info(
@@ -127,6 +137,17 @@ class OrchestratorAgent:
             dependency_graph=dependency_graph,
         )
         logger.info("[ingest] artefatos salvos em %s", workspace.artifacts_dir)
+
+        before = len(symbols)
+        symbols = filter_symbols_for_tests(symbols)
+        skipped = before - len(symbols)
+        if skipped:
+            logger.info(
+                "[ingest] %d símbolo(s) ignorado(s) por INGEST_SKIP_* (restam %d)",
+                skipped,
+                len(symbols),
+            )
+
         return symbols, call_graph, dependency_graph
 
     def _index(self, symbols: list[ExtractedSymbol]) -> tuple[int, int]:
@@ -285,7 +306,7 @@ class OrchestratorAgent:
                 "coverage_summary": summary,
             })
             try:
-                test = self._generator.generate(ctx)
+                test = self._generator.generate(ctx, operation=f"coverage_{cov_round}")
             except Exception as exc:
                 logger.warning("  [coverage] erro na regeneração: %s", exc)
                 break
@@ -407,4 +428,6 @@ class OrchestratorAgent:
             logger.info("  Uso de tokens (OpenAI)")
             for line in token_summary.splitlines():
                 logger.info(line)
+        if settings.LOG_API_CALLS:
+            logger.info("  Chamadas API         : %s", workspace.logs_dir / "api_calls")
         logger.info("=" * 52)

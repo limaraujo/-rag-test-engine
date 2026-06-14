@@ -2,6 +2,7 @@ from openai import OpenAI
 
 from config.settings import settings
 from llm.base import BaseLLM
+from llm.call_logger import get_call_logger
 from llm.models import LLMRequest, LLMResponse, TokenUsage
 from llm.usage_tracker import get_tracker
 
@@ -31,6 +32,9 @@ class OpenAILLM(BaseLLM):
         if _supports_custom_temperature(self.model):
             kwargs["temperature"] = request.temperature
 
+        if settings.LLM_MAX_OUTPUT_TOKENS is not None:
+            kwargs["max_completion_tokens"] = settings.LLM_MAX_OUTPUT_TOKENS
+
         response = self.client.chat.completions.create(**kwargs)
 
         choice = response.choices[0].message.content
@@ -46,8 +50,10 @@ class OpenAILLM(BaseLLM):
             )
             get_tracker().record_llm(usage)
 
-        return LLMResponse(
+        llm_response = LLMResponse(
             content=choice,
             model=self.model,
             usage=usage,
         )
+        get_call_logger().log_llm(request, llm_response, model=self.model)
+        return llm_response

@@ -1,23 +1,20 @@
+from __future__ import annotations
+
+from collections.abc import Iterator
 from pathlib import Path
 
+from ingest.path_filters import ScanResult, scan_python_files
+
+
 class RepositoryScanner:
-    
-    IGNORE_EXTENSIONS = {'.md', '.txt', '.json', '.yaml', '.yml', '.csv'}
-    IGNORE_DIRS = {'.git', '.pytest_cache', '.venv', '__pycache__', 'venv', 'env'}
-    
-    def __init__(self, root: str):
+    def __init__(self, root: str) -> None:
         self.root = Path(root)
 
-    def scan_repository(self):
-        for path in self.root.rglob('*.py'):
-            
-            if self._ignored(path):
-                continue
-            
-            yield path
-            
-    def _ignored(self, path: Path):
-        return (
-            path.suffix in self.IGNORE_EXTENSIONS
-            or any(part in self.IGNORE_DIRS for part in path.parts)
-        )
+    def scan_repository(self) -> Iterator[Path]:
+        result = scan_python_files(self.root)
+        self._last_scan = result
+        yield from result.files
+
+    @property
+    def last_scan(self) -> ScanResult | None:
+        return getattr(self, "_last_scan", None)

@@ -2,6 +2,21 @@
 
 Referência programática dos componentes principais.
 
+## CLI: `main.py`
+
+**Sintaxe:**
+
+```bash
+uv run python main.py [SOURCE_DIR]
+uv run python main.py --help
+```
+
+| Argumento | Padrão | Descrição |
+|---|---|---|
+| `SOURCE_DIR` | `.` | Diretório Python a analisar |
+
+Demais opções (modelo, Qdrant, `LOG_API_CALLS`, etc.) vêm do `.env` — ver [CLI.md](CLI.md) e [CONFIGURATION.md](CONFIGURATION.md).
+
 ## Entrypoint: `main()`
 
 **Arquivo:** `main.py`
@@ -197,6 +212,9 @@ print(get_tracker().format_summary())
 ```
 
 Cada `LLMResponse` e `LLMEmbeddingResponse` expõe `.usage` (`TokenUsage`).
+
+Com `LOG_API_CALLS=true` (padrão), cada chamada também é gravada em
+`runs/.../logs/api_calls/` — ver [CLI.md](CLI.md).
 
 ---
 

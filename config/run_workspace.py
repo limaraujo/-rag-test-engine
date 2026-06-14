@@ -113,6 +113,8 @@ def save_run_summary(
     }
     if token_summary:
         payload["token_usage"] = token_summary
+    if settings.LOG_API_CALLS:
+        payload["api_calls_dir"] = str(workspace.logs_dir / "api_calls")
     if validation:
         payload["validation"] = validation
 

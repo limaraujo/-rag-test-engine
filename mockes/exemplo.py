@@ -1,5 +1,18 @@
-"""Exemplo simples para o parser."""
+"""
+Exemplo simples para o parser e para o pipeline de geração de testes.
 
+Parser (sem API):
+    uv run python mockes/exemplo.py
+    → gera ``saida.json`` com símbolos deste arquivo
+
+Pipeline completo com log de entradas/saídas da API:
+    LOG_API_CALLS=true uv run python main.py mockes
+    → logs em ``runs/mockes/<timestamp>/logs/api_calls/``
+
+Só embeddings deste arquivo:
+    LOG_API_CALLS=true uv run python mockes/embedding_demo.py mockes/exemplo.py
+    → logs em ``logs/mockes/embedding_demo/<timestamp>/api_calls/``
+"""
 from dataclasses import dataclass
 import json
 from pathlib import Path
@@ -21,16 +34,8 @@ class Calculadora:
 
     def multiplica(self, a: int, b: int) -> int:
         return a * b
-    
-    def divide(self, a: int, b: int) -> float:
-        if b == 0:
-            raise ValueError("Divisão por zero não é permitida.")
-        return a / b
 
-    def potencia(self, a: int, b: int) -> int:
-        if b < 0:
-            raise ValueError("Expoente negativo não é permitido.")
-        return a ** b
+
 
 
 def main() -> None:
@@ -44,7 +49,7 @@ def main() -> None:
 
     output_path.write_text(
         json.dumps(extracted, indent=2, ensure_ascii=False),
-        encoding="utf-8"
+        encoding="utf-8",
     )
     print(f"Saved {len(extracted)} symbols to {output_path}")
 

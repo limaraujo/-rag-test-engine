@@ -2,6 +2,7 @@ from openai import OpenAI
 
 from config.settings import settings
 from llm.base import BaseEmbedding
+from llm.call_logger import get_call_logger
 from llm.models import LLMEmbeddingRequest, LLMEmbeddingResponse, TokenUsage
 from llm.usage_tracker import get_tracker
 
@@ -35,9 +36,11 @@ class OpenAIEmbedding(BaseEmbedding):
             )
             get_tracker().record_embedding(usage)
 
-        return LLMEmbeddingResponse(
+        embedding_response = LLMEmbeddingResponse(
             embedding=vector,
             model=model,
             dimensions=len(vector),
             usage=usage,
         )
+        get_call_logger().log_embedding(request, embedding_response, model=model)
+        return embedding_response

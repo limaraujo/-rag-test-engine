@@ -4,21 +4,34 @@ Pipeline de Geração de Testes com RAG
 
 Uso:
     uv run python main.py [SOURCE_DIR]
+    uv run python main.py --help
 
-Padrão:
-    SOURCE_DIR = "."   (diretório de trabalho atual)
+Argumentos:
+    SOURCE_DIR   Diretório Python a analisar (padrão: diretório atual).
 
-Cada execução cria uma pasta em ``runs/<nome_fonte>/<timestamp>/`` com:
-    tests/       — testes gerados
-    logs/        — pipeline.log
-    artifacts/   — symbols.json, call_graph.json, dependency_graph.json, run_summary.json
+Documentação completa: docs/CLI.md
 """
 from __future__ import annotations
 
-import sys
+import argparse
 
 from agents.orchestrator import OrchestratorAgent
 from schemas.pipeline import OrchestrationResult
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="main.py",
+        description="Pipeline de geração de testes pytest com RAG.",
+        epilog="Demais opções (modelo, Qdrant, logs de API) vêm do .env — ver docs/CLI.md.",
+    )
+    parser.add_argument(
+        "source_dir",
+        nargs="?",
+        default=".",
+        help="diretório com código Python a analisar (padrão: %(default)s)",
+    )
+    return parser
 
 
 def main(source_dir: str = ".") -> OrchestrationResult:
@@ -27,5 +40,5 @@ def main(source_dir: str = ".") -> OrchestrationResult:
 
 
 if __name__ == "__main__":
-    _src = sys.argv[1] if len(sys.argv) > 1 else "."
-    main(source_dir=_src)
+    args = build_parser().parse_args()
+    main(source_dir=args.source_dir)

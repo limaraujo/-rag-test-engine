@@ -245,6 +245,7 @@ class Retriever:
         request = LLMEmbeddingRequest(
             input=text,
             model=self._embedder.model,
+            label=symbol.qualified_name,
         )
         response = self._embedder.generate_embedding(request)
         return response.embedding
@@ -373,11 +374,11 @@ class Retriever:
 
         candidates: list[HybridCandidate] = []
         for qname in all_qnames:
-            if qname in vector_hits:
-                text, vector_sim = vector_hits[qname]
-            elif qname in symbols_by_name:
+            if qname in symbols_by_name:
                 text = symbols_by_name[qname].source_code.strip()
-                vector_sim = 0.0
+                vector_sim = vector_hits[qname][1] if qname in vector_hits else 0.0
+            elif qname in vector_hits:
+                text, vector_sim = vector_hits[qname]
             else:
                 continue
 
