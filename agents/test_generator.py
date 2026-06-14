@@ -106,6 +106,8 @@ class TestGeneratorAgent:
             temperature=0.1,
             agent="test_generator",
             label=f"{context.qualified_name}::{operation}",
+            operation=operation,
+            symbol=context.qualified_name,
         )
         response = self._llm.generate(request)
         return _parse_response(response.content, context)

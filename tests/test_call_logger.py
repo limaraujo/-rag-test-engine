@@ -9,6 +9,14 @@ from llm.call_logger import APICallLogger, configure_call_logger, reset_call_log
 from llm.models import LLMEmbeddingRequest, LLMEmbeddingResponse, LLMRequest, LLMResponse, TokenUsage
 
 
+@pytest.fixture(autouse=True)
+def _enable_bodies_for_legacy_tests(monkeypatch: pytest.MonkeyPatch) -> None:
+    from config import settings as settings_module
+
+    monkeypatch.setattr(settings_module.settings, "LOG_API_CALL_BODIES", True)
+    monkeypatch.setattr(settings_module.settings, "LOG_API_CALL_METADATA", True)
+
+
 def test_log_llm_writes_input_output_and_usage(tmp_path: Path) -> None:
     configure_call_logger(tmp_path)
     reset_call_logger()
@@ -23,6 +31,8 @@ def test_log_llm_writes_input_output_and_usage(tmp_path: Path) -> None:
         temperature=0.1,
         agent="test_generator",
         label="module.func::generate",
+        operation="generate",
+        symbol="module.func",
     )
     response = LLMResponse(
         content="def test_foo(): pass",
@@ -37,15 +47,19 @@ def test_log_llm_writes_input_output_and_usage(tmp_path: Path) -> None:
     payload = json.loads(path.read_text(encoding="utf-8"))
     assert payload["type"] == "llm"
     assert payload["agent"] == "test_generator"
+    assert payload["operation"] == "generate"
+    assert payload["symbol"] == "module.func"
     assert payload["input"]["user_prompt"] == "user context"
     assert payload["output"]["content"].startswith("def test_foo")
     assert payload["usage"]["total_tokens"] == 15
+    assert payload["metadata"]["user_prompt_chars"] == len("user context")
 
     index_lines = (tmp_path / "_index.jsonl").read_text(encoding="utf-8").strip().splitlines()
     assert len(index_lines) == 1
     index = json.loads(index_lines[0])
     assert index["seq"] == 1
     assert index["usage"]["total_tokens"] == 15
+    assert index["operation"] == "generate"
 
 
 def test_log_embedding_writes_text_input(tmp_path: Path) -> None:
@@ -60,6 +74,7 @@ def test_log_embedding_writes_text_input(tmp_path: Path) -> None:
         input="symbol: pkg.func\ncode:\ndef func(): pass",
         model="text-embedding-3-small",
         label="pkg.func",
+        symbol="pkg.func",
     )
     response = LLMEmbeddingResponse(
         embedding=[0.1, 0.2],
@@ -74,6 +89,7 @@ def test_log_embedding_writes_text_input(tmp_path: Path) -> None:
     payload = json.loads(path.read_text(encoding="utf-8"))
     assert payload["type"] == "embedding"
     assert payload["label"] == "pkg.func"
+    assert payload["operation"] == "embedding"
     assert "pkg.func" in payload["input"]["text"]
     assert payload["usage"]["prompt_tokens"] == 42
 

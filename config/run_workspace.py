@@ -98,8 +98,8 @@ def save_ingest_artifacts(
 def save_run_summary(
     workspace: RunWorkspace,
     *,
-    stats: dict[str, int],
-    token_summary: str | None = None,
+    stats: dict,
+    token_usage: dict | str | None = None,
     validation: dict | None = None,
 ) -> None:
     """Grava resumo final da execução em ``artifacts/run_summary.json``."""
@@ -111,8 +111,8 @@ def save_run_summary(
         "finished_at": datetime.now().isoformat(timespec="seconds"),
         "stats": stats,
     }
-    if token_summary:
-        payload["token_usage"] = token_summary
+    if token_usage is not None:
+        payload["token_usage"] = token_usage
     if settings.LOG_API_CALLS:
         payload["api_calls_dir"] = str(workspace.logs_dir / "api_calls")
     if validation:

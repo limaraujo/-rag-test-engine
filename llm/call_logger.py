@@ -6,13 +6,16 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from config.settings import settings
 from llm.models import LLMEmbeddingRequest, LLMEmbeddingResponse, LLMRequest, LLMResponse, TokenUsage
+from llm.sanitize import sanitize_text
+from llm.token_usage import parse_label, usage_from_dict
 
 _SAFE_NAME = re.compile(r"[^a-zA-Z0-9_.-]+")
 
 
 class APICallLogger:
-    """Persiste entrada/saída e tokens de cada chamada à API (LLM ou embedding)."""
+    """Persiste metadados e, opcionalmente, corpos de chamadas LLM/embedding."""
 
     def __init__(self) -> None:
         self._log_dir: Path | None = None
@@ -39,21 +42,32 @@ class APICallLogger:
         *,
         model: str,
     ) -> Path | None:
+        symbol, operation = _resolve_context(request)
         payload: dict[str, Any] = {
             "type": "llm",
             "agent": request.agent,
+            "operation": operation,
+            "symbol": symbol,
             "label": request.label,
             "model": model,
-            "input": {
-                "system_prompt": request.system_prompt,
-                "user_prompt": request.user_prompt,
-                "temperature": request.temperature,
-            },
-            "output": {
-                "content": response.content,
-            },
             "usage": _usage_dict(response.usage),
         }
+        if settings.LOG_API_CALL_METADATA:
+            payload["metadata"] = {
+                "system_prompt_chars": len(request.system_prompt),
+                "user_prompt_chars": len(request.user_prompt),
+                "output_chars": len(response.content),
+                "temperature": request.temperature,
+            }
+        if settings.LOG_API_CALL_BODIES:
+            payload["input"] = {
+                "system_prompt": sanitize_text(request.system_prompt),
+                "user_prompt": sanitize_text(request.user_prompt),
+                "temperature": request.temperature,
+            }
+            payload["output"] = {
+                "content": sanitize_text(response.content),
+            }
         slug = _slug(request.agent, request.label, "llm")
         return self._write(payload, slug)
 
@@ -64,18 +78,27 @@ class APICallLogger:
         *,
         model: str,
     ) -> Path | None:
+        symbol = request.symbol or request.label
         payload: dict[str, Any] = {
             "type": "embedding",
+            "operation": request.operation or "embedding",
+            "symbol": symbol,
             "label": request.label,
             "model": model,
-            "input": {
-                "text": request.input,
-            },
-            "output": {
-                "dimensions": response.dimensions,
-            },
             "usage": _usage_dict(response.usage),
         }
+        if settings.LOG_API_CALL_METADATA:
+            payload["metadata"] = {
+                "input_chars": len(request.input),
+                "dimensions": response.dimensions,
+            }
+        if settings.LOG_API_CALL_BODIES:
+            payload["input"] = {
+                "text": sanitize_text(request.input),
+            }
+            payload["output"] = {
+                "dimensions": response.dimensions,
+            }
         slug = _slug(None, request.label, "embedding")
         return self._write(payload, slug)
 
@@ -99,6 +122,8 @@ class APICallLogger:
             "timestamp": payload["timestamp"],
             "type": payload["type"],
             "agent": payload.get("agent"),
+            "operation": payload.get("operation"),
+            "symbol": payload.get("symbol"),
             "label": payload.get("label"),
             "model": payload["model"],
             "usage": payload["usage"],
@@ -110,10 +135,32 @@ class APICallLogger:
         return path
 
 
-def _usage_dict(usage: TokenUsage | None) -> dict[str, int] | None:
+def _resolve_context(request: LLMRequest) -> tuple[str | None, str | None]:
+    symbol = request.symbol
+    operation = request.operation
+    if symbol is None or operation is None:
+        parsed_symbol, parsed_operation = parse_label(request.label)
+        symbol = symbol or parsed_symbol
+        operation = operation or parsed_operation
+    return symbol, operation
+
+
+def _usage_dict(usage: TokenUsage | None) -> dict[str, int | float] | None:
     if usage is None:
         return None
-    return usage.model_dump()
+    data = usage.model_dump(exclude_none=True)
+    return data or None
+
+
+def load_call_log(path: Path) -> dict[str, Any]:
+    """
+    Carrega um log de chamada, compatível com formato antigo e novo.
+
+    Campos ausentes não causam erro.
+    """
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    payload["usage"] = usage_from_dict(payload.get("usage"))
+    return payload
 
 
 def _slug(agent: str | None, label: str | None, call_type: str) -> str:
@@ -143,12 +190,10 @@ def reset_call_logger() -> None:
 
 def setup_api_call_logging(log_dir: Path) -> Path | None:
     """
-    Ativa gravação de entradas/saídas se ``LOG_API_CALLS=true`` no ``.env``.
+    Ativa gravação de chamadas se ``LOG_API_CALLS=true`` no ``.env``.
 
     Retorna o diretório de log ou ``None`` quando desativado.
     """
-    from config.settings import settings
-
     if not settings.LOG_API_CALLS:
         configure_call_logger(None)
         return None

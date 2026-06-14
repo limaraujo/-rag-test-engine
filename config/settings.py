@@ -97,8 +97,25 @@ class Settings(BaseSettings):
     LOG_API_CALLS: bool = Field(
         default=True,
         description=(
-            "Grava entrada/saída e tokens de cada chamada LLM/embedding em "
-            "logs/api_calls/ do workspace."
+            "Grava chamadas LLM/embedding em logs/api_calls/ do workspace."
+        ),
+    )
+
+    LOG_API_CALL_BODIES: bool = Field(
+        default=False,
+        description="Quando true, persiste prompt e resposta integral nos logs de API.",
+    )
+
+    LOG_API_CALL_METADATA: bool = Field(
+        default=True,
+        description="Inclui metadados (tamanhos, operação, símbolo) nos logs de API.",
+    )
+
+    LLM_PRICING_JSON: str = Field(
+        default="",
+        description=(
+            "JSON opcional de preços por modelo (USD / 1M tokens). "
+            'Ex.: {"gpt-5-nano":{"input":0.05,"output":0.40}}'
         ),
     )
 

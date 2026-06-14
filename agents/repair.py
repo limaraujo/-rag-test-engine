@@ -89,6 +89,8 @@ class RepairAgent:
             temperature=0.1,
             agent="repair",
             label=f"{ctx.qualified_name}::repair_{attempt}",
+            operation=f"repair_{attempt}",
+            symbol=ctx.qualified_name,
         )
 
         response = self._llm.generate(request)

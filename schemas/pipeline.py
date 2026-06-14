@@ -90,5 +90,6 @@ class OrchestrationResult:
     indexed: int = 0
     cache_hits: int = 0
     token_summary: str | None = None
+    token_usage: dict | None = None
     validation: SuiteValidationResult | None = None
     generation_cache: GenerationCacheStats | None = None

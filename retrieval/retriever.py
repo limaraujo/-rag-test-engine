@@ -246,6 +246,8 @@ class Retriever:
             input=text,
             model=self._embedder.model,
             label=qualified_name,
+            symbol=qualified_name,
+            operation="embedding",
         )
         response = self._embedder.generate_embedding(request)
         record = {
@@ -280,6 +282,8 @@ class Retriever:
             input=text,
             model=self._embedder.model,
             label=symbol.qualified_name,
+            symbol=symbol.qualified_name,
+            operation="embedding",
         )
         response = self._embedder.generate_embedding(request)
         return response.embedding

@@ -139,9 +139,20 @@ class OrchestratorAgent:
 
         validation = self._validate_suite(workspace)
 
-        token_summary = None
+        token_usage_payload = None
+        token_summary_text = None
         if settings.AI_MODE != "offline":
-            token_summary = get_tracker().format_summary()
+            tracker = get_tracker()
+            token_usage_payload = tracker.build_summary(
+                embedding_cache_hits=cache_hits,
+                generation_cache_hits=stats.generation_cache.hits,
+                llm_calls_avoided=stats.generation_cache.llm_calls_avoided,
+                ignored_symbols=self._collect_ignored_symbols(
+                    filter_stats,
+                    stats,
+                ),
+            )
+            token_summary_text = tracker.format_summary()
 
         save_run_summary(
             workspace,
@@ -153,19 +164,23 @@ class OrchestratorAgent:
                 "coverage_boosted": stats.coverage_boosted,
                 "symbol_filter": filter_stats.to_dict(),
                 "generation_cache": stats.generation_cache.to_dict(),
+                "embedding_cache_hits": cache_hits,
                 "symbol_runs": [record.to_dict() for record in stats.symbol_runs],
             },
-            token_summary=token_summary,
+            token_usage=token_usage_payload,
             validation=self._validation_payload(validation),
         )
-        self._log_summary(workspace, stats, token_summary, validation, filter_stats)
+        self._log_summary(
+            workspace, stats, token_summary_text, validation, filter_stats,
+        )
 
         return OrchestrationResult(
             workspace=workspace,
             stats=stats,
             indexed=indexed,
             cache_hits=cache_hits,
-            token_summary=token_summary,
+            token_summary=token_summary_text,
+            token_usage=token_usage_payload,
             validation=validation,
             generation_cache=stats.generation_cache,
         )
@@ -677,6 +692,30 @@ class OrchestratorAgent:
             "num_errors": validation.num_errors,
             "duration_seconds": validation.duration_seconds,
         }
+
+    @staticmethod
+    def _collect_ignored_symbols(
+        filter_stats: SymbolFilterStats,
+        stats: PipelineStats,
+    ) -> list[dict]:
+        ignored: list[dict] = []
+        if filter_stats.filtered_total:
+            ignored.append({
+                "scope": "ingest_filter",
+                "count": filter_stats.filtered_total,
+                "reason": "filtered_before_generation",
+                "detail": filter_stats.to_dict(),
+            })
+        for record in stats.symbol_runs:
+            if not record.stop_reason:
+                continue
+            ignored.append({
+                "qualified_name": record.qualified_name,
+                "reason": record.stop_reason,
+                "state": record.state.value,
+                "from_cache": record.from_cache,
+            })
+        return ignored
 
     def _log_summary(
         self,

@@ -3,7 +3,8 @@ from openai import OpenAI
 from config.settings import settings
 from llm.base import BaseLLM
 from llm.call_logger import get_call_logger
-from llm.models import LLMRequest, LLMResponse, TokenUsage
+from llm.models import LLMRequest, LLMResponse
+from llm.token_usage import token_usage_from_openai
 from llm.usage_tracker import get_tracker
 
 # Modelos de raciocínio (gpt-5*, o1/o3/o4) aceitam só temperature=1 (padrão).
@@ -41,14 +42,16 @@ class OpenAILLM(BaseLLM):
         if not choice:
             raise RuntimeError("No response from OpenAI API")
 
-        usage = None
-        if response.usage:
-            usage = TokenUsage(
-                prompt_tokens=response.usage.prompt_tokens,
-                completion_tokens=response.usage.completion_tokens,
-                total_tokens=response.usage.total_tokens,
+        usage = token_usage_from_openai(response.usage, model=self.model)
+        if usage:
+            get_tracker().record_llm(
+                usage,
+                agent=request.agent,
+                operation=request.operation,
+                symbol=request.symbol,
+                model=self.model,
+                label=request.label,
             )
-            get_tracker().record_llm(usage)
 
         llm_response = LLMResponse(
             content=choice,
