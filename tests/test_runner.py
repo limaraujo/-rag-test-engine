@@ -167,7 +167,7 @@ def test_runner_timeout_returns_failed_result(runner) -> None:
     result = runner.run(test, timeout=1)
     assert not result.passed
     assert result.exit_code == -1
-    assert "timed out" in result.stderr.lower()
+    assert "tempo limite" in result.stderr.lower()
 
 
 # ── CoverageReport ────────────────────────────────────────────────────────────
@@ -200,7 +200,7 @@ def test_coverage_report_uncovered_hint() -> None:
 
 def test_coverage_report_all_covered_hint() -> None:
     r = CoverageReport(module="calc", total_lines=10, covered_lines=10)
-    assert "All lines covered" in r.uncovered_hint()
+    assert "Todas as linhas cobertas" in r.uncovered_hint()
 
 
 # ── _parse_missing_ranges ─────────────────────────────────────────────────────

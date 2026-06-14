@@ -55,14 +55,14 @@ def _failed_result(stdout: str = "ModuleNotFoundError: No module named 'wrong_mo
 
 def test_build_repair_prompt_has_attempt_header() -> None:
     prompt = _build_repair_prompt(_ctx(), _failing_test(), _failed_result(), attempt=2)
-    assert "attempt 2" in prompt.lower()
+    assert "tentativa de reparo 2" in prompt.lower()
 
 
 def test_build_repair_prompt_has_all_sections() -> None:
     prompt = _build_repair_prompt(_ctx(), _failing_test(), _failed_result(), attempt=1)
-    assert "Function under test" in prompt
-    assert "Failing test file" in prompt
-    assert "pytest error output" in prompt
+    assert "Função sob teste" in prompt
+    assert "Arquivo de teste falho" in prompt
+    assert "Saída de erro do pytest" in prompt
 
 
 def test_build_repair_prompt_includes_error_output() -> None:

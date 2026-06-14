@@ -226,6 +226,40 @@ class Retriever:
 
         return total
 
+    def index_generated_test(
+        self,
+        qualified_name: str,
+        test_code: str,
+    ) -> int:
+        """Indexa um teste aprovado para recuperação RAG em execuções futuras."""
+        from retrieval.embedding_builder import content_hash
+
+        text = test_code.strip()
+        digest = content_hash(text)
+        collection = settings.QDRANT_COLLECTION_TESTS
+
+        cached = self._store.get_vector(collection, qualified_name)
+        if cached and cached[1].get("content_hash") == digest:
+            return 0
+
+        request = LLMEmbeddingRequest(
+            input=text,
+            model=self._embedder.model,
+            label=qualified_name,
+        )
+        response = self._embedder.generate_embedding(request)
+        record = {
+            "text": text,
+            "metadata": {
+                "qualified_name": qualified_name,
+                "content_hash": digest,
+            },
+            "embedding": response.embedding,
+            "model": response.model,
+            "dimensions": response.dimensions,
+        }
+        return self.index_tests([record])
+
     # ──────────────────────────────────────────────────────────────────
     # Internal helpers
     # ──────────────────────────────────────────────────────────────────

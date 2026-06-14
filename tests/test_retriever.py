@@ -127,9 +127,8 @@ def test_enrich_with_call_graph_boosts_neighbors(
     )
 
     helper_vec = [1.0] + [0.0] * (TEST_DIM - 1)
-    distant_vec = [0.0] * TEST_DIM
-    _upsert_symbol(store, "distant", distant_vec, "def distant(): pass")
     _upsert_symbol(store, "helper", helper_vec, "def helper(): pass")
+    # distant fica fora do índice vetorial para não superar o vizinho do call graph
 
     ctx = FunctionContext.from_symbol(target)
     enriched = retriever.enrich(

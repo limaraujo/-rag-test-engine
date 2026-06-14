@@ -6,6 +6,7 @@ from pathlib import Path
 
 from agents.repair import RepairAgent
 from agents.test_generator import TestGeneratorAgent
+from cache.generation_cache import GenerationCache
 from config.logging_setup import setup_logging
 from config.run_workspace import RunWorkspace, save_ingest_artifacts, save_run_summary
 from config.settings import ROOT, settings
@@ -22,8 +23,7 @@ from llm.usage_tracker import get_tracker, reset_tracker
 from retrieval.retriever import Retriever
 from schemas.context import FunctionContext
 from schemas.outputs import GeneratedTest
-from schemas.pipeline import OrchestrationResult, PipelineStats
-
+from schemas.pipeline import GenerationCacheStats, OrchestrationResult, PipelineStats
 logger = logging.getLogger(__name__)
 
 
@@ -50,12 +50,14 @@ class OrchestratorAgent:
         runner: TestRunner | None = None,
         repair_agent: RepairAgent | None = None,
         max_repairs: int | None = None,
+        generation_cache: GenerationCache | None = None,
     ) -> None:
         self._retriever = retriever or Retriever()
         self._generator = generator or TestGeneratorAgent()
         self._runner = runner or TestRunner()
         self._repair_agent = repair_agent or RepairAgent()
         self._max_repairs = max_repairs if max_repairs is not None else settings.MAX_REPAIRS
+        self._generation_cache = generation_cache or GenerationCache()
 
     def run(self, source_dir: str | Path = ".") -> OrchestrationResult:
         src = Path(source_dir).resolve()
@@ -103,6 +105,7 @@ class OrchestratorAgent:
                 "skipped": stats.skipped,
                 "coverage_boosted": stats.coverage_boosted,
                 "symbol_filter": filter_stats.to_dict(),
+                "generation_cache": stats.generation_cache.to_dict(),
             },
             token_summary=token_summary,
             validation=self._validation_payload(validation),
@@ -116,6 +119,7 @@ class OrchestratorAgent:
             cache_hits=cache_hits,
             token_summary=token_summary,
             validation=validation,
+            generation_cache=stats.generation_cache,
         )
 
     def _ingest(
@@ -226,14 +230,22 @@ class OrchestratorAgent:
         )
 
         try:
-            test = self._generator.generate(ctx)
+            test, from_cache, cached_result = self._generate_with_cache(
+                ctx,
+                pythonpath=pythonpath,
+                cache_stats=stats.generation_cache,
+            )
         except Exception as exc:
             logger.warning("  [skip] erro na geração: %s", exc)
             stats.skipped += 1
             return
 
-        result = self._runner.run(test, pythonpath=pythonpath)
-        test, result, repaired = self._repair_loop(ctx, test, result, pythonpath)
+        if from_cache and cached_result is not None:
+            result = cached_result
+            repaired = False
+        else:
+            result = self._runner.run(test, pythonpath=pythonpath)
+            test, result, repaired = self._repair_loop(ctx, test, result, pythonpath)
 
         coverage_boosted = False
         if result.passed:
@@ -246,7 +258,16 @@ class OrchestratorAgent:
             )
 
         if result.passed:
-            self._save_test(workspace, qname, test, result, repaired, coverage_boosted, stats)
+            self._save_test(
+                workspace,
+                qname,
+                test,
+                result,
+                repaired,
+                coverage_boosted,
+                stats,
+                ctx=ctx,
+            )
         else:
             logger.warning(
                 "  [fail] %d falharam, %d erros — ignorando",
@@ -254,6 +275,52 @@ class OrchestratorAgent:
                 result.num_errors,
             )
             stats.failed += 1
+
+    def _generate_with_cache(
+        self,
+        ctx: FunctionContext,
+        *,
+        pythonpath: list[str],
+        cache_stats: GenerationCacheStats,
+    ) -> tuple[GeneratedTest, bool, RunResult | None]:
+        operation = "generate"
+        model = self._generator.model_name
+        cache = self._generation_cache
+
+        if not cache.enabled:
+            cache_stats.misses += 1
+            return self._generator.generate(ctx, operation=operation), False, None
+
+        cache_key = cache.build_cache_key(ctx, operation=operation, model=model)
+        path = cache._entry_path(cache_key)
+        entry = cache.lookup(ctx, operation=operation, model=model)
+
+        if entry is None:
+            if path.is_file():
+                raw = cache._read_json(path)
+                if raw is None:
+                    cache_stats.invalidations += 1
+                elif raw.get("status") == "stale":
+                    pass
+                else:
+                    cache_stats.invalidations += 1
+            cache_stats.misses += 1
+            logger.info("  [cache miss] %s", ctx.qualified_name)
+            return self._generator.generate(ctx, operation=operation), False, None
+
+        test = cache.materialize(entry)
+        result = self._runner.run(test, pythonpath=pythonpath)
+        if result.passed:
+            cache_stats.hits += 1
+            cache_stats.llm_calls_avoided += 1
+            logger.info("  [cache hit] %s", ctx.qualified_name)
+            return test, True, result
+
+        cache.mark_stale(entry.cache_key, reason="pytest_failed")
+        cache_stats.stale += 1
+        cache_stats.misses += 1
+        logger.info("  [cache stale] %s — regenerando", ctx.qualified_name)
+        return self._generator.generate(ctx, operation=operation), False, None
 
     def _repair_loop(
         self,
@@ -346,6 +413,8 @@ class OrchestratorAgent:
         repaired: bool,
         coverage_boosted: bool,
         stats: PipelineStats,
+        *,
+        ctx: FunctionContext | None = None,
     ) -> None:
         safe = re.sub(r"[^a-zA-Z0-9_]", "_", qname)
         dest = workspace.tests_dir / f"test_{safe}.py"
@@ -365,6 +434,20 @@ class OrchestratorAgent:
             stats.repaired += 1
         if coverage_boosted:
             stats.coverage_boosted += 1
+
+        if ctx is not None and self._generation_cache.enabled:
+            coverage_summary = ctx.coverage_summary
+            self._generation_cache.save(
+                ctx,
+                test,
+                operation="generate",
+                model=self._generator.model_name,
+                coverage=coverage_summary,
+            )
+            try:
+                self._retriever.index_generated_test(ctx.qualified_name, test.full_code)
+            except Exception as exc:
+                logger.warning("  [index_tests] %s", exc)
 
     def _validate_suite(self, workspace: RunWorkspace) -> SuiteValidationResult:
         logger.info("[validate] rodando pytest em %s …", workspace.tests_dir)
@@ -437,6 +520,16 @@ class OrchestratorAgent:
         )
         logger.info("  Falharam (descartados): %d", stats.failed)
         logger.info("  Ignorados (erros)    : %d", stats.skipped)
+        gc = stats.generation_cache
+        logger.info(
+            "  Cache de geração     : %d hits, %d misses, %d stale, "
+            "%d invalidações, %d LLM evitadas",
+            gc.hits,
+            gc.misses,
+            gc.stale,
+            gc.invalidations,
+            gc.llm_calls_avoided,
+        )
         logger.info("  Workspace            : %s", workspace.root)
         logger.info("  Testes               : %s", workspace.tests_dir)
         logger.info("  Artefatos            : %s", workspace.artifacts_dir)

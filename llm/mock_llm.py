@@ -46,7 +46,6 @@ def _build_mock_test(user_prompt: str) -> str:
         raises_block = f"""
 
 def test_{simple_name}_raises():
-    \"\"\"Cobre caminho de exceção.\"\"\"
 {setup}    with pytest.raises(Exception):
         {invoke}(0, 0)
 """
@@ -57,7 +56,6 @@ def test_{simple_name}_raises():
 
 
 def test_{simple_name}_happy_path():
-    \"\"\"Caminho feliz gerado em modo offline.\"\"\"
 {setup}    result = {invoke}(1, 2)
     assert result is not None
 {raises_block}""".strip()

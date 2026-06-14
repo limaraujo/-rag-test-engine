@@ -61,6 +61,24 @@ class Settings(BaseSettings):
         default=False,
     )
 
+    GENERATION_CACHE_ENABLED: bool = Field(
+        default=True,
+        description="Reutiliza testes aprovados do cache persistente antes de chamar o LLM.",
+    )
+
+    GENERATION_CACHE_DIR: str = Field(
+        default="",
+        description=(
+            "Diretório do cache de geração (fora do workspace temporal). "
+            "Vazio = .cache/generation na raiz do projeto."
+        ),
+    )
+
+    GENERATION_CACHE_SCHEMA_VERSION: int = Field(
+        default=1,
+        description="Versão do schema JSON das entradas do cache de geração.",
+    )
+
     RUNS_DIR: str = Field(
         default="runs",
         description="Raiz das pastas de execução (runs/<fonte>/<timestamp>/).",
@@ -137,7 +155,18 @@ class Settings(BaseSettings):
 
     #Limite de tokens de saída do LLM (None = sem limite na API).
     LLM_MAX_OUTPUT_TOKENS: int | None = Field(
-        default=2048,
+        default=1536,
+    )
+
+    #Limites solicitados ao LLM na geração de testes (validados após parsing).
+    GENERATION_MAX_TEST_FUNCTIONS: int = Field(
+        default=4,
+        description="Máximo de funções test_* por arquivo gerado.",
+    )
+
+    GENERATION_MAX_LINES: int = Field(
+        default=80,
+        description="Máximo de linhas no arquivo de teste gerado.",
     )
 
     #Funções de módulo ignoradas na geração (separadas por vírgula).
