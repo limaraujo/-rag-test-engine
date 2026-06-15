@@ -101,7 +101,7 @@ Copie `.env.example` para `.env`. Variáveis principais:
 
 **Segurança:** nunca aponte `SOURCE_DIR` para a raiz deste repositório em produção. Arquivos `.env`, chaves e diretórios `secrets/` são ignorados na varredura. Se uma chave foi exposta, rotacione-a no provedor — ver [docs/CONFIGURATION.md](docs/CONFIGURATION.md#rotação-de-chaves).
 
-Documentação completa: [docs/CONFIGURATION.md](docs/CONFIGURATION.md) · CLI e perfis: [docs/CLI.md](docs/CLI.md)
+Documentação completa: [docs/CONFIGURATION.md](docs/CONFIGURATION.md) · CLI e perfis: [docs/CLI.md](docs/CLI.md) · Repositório externo: [docs/REPOSITORY_TESTING.md](docs/REPOSITORY_TESTING.md)
 
 ## Perfis de teste
 

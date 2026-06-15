@@ -145,14 +145,7 @@ Análise estática de repositórios Python (antigo `ingest/`).
 
 ## `repositorios/`
 
-Pasta opcional na raiz do engine para clones de projetos externos (ex.: `repositorios/code_katas/`). Aponte o pipeline para o subdiretório com código Python:
-
-```bash
-python scripts/ingest_only.py repositorios/code_katas/src
-python main.py repositorios/code_katas/src --profile sem-rag
-```
-
-O slug em `runs/` será `repositorios_code_katas_src`.
+Pasta opcional na raiz do engine para clones de projetos externos. Guia passo a passo: [REPOSITORY_TESTING.md](REPOSITORY_TESTING.md).
 
 ## `main.py`
 

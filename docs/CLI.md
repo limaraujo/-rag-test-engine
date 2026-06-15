@@ -106,7 +106,7 @@ uv run python main.py "C:\projetos\meu-app\src"
 uv run python main.py repositorios/code_katas/src --profile sem-rag
 ```
 
-Repositórios externos podem ficar em `repositorios/` na raiz do engine (clone manual ou script).
+Repositórios externos: [REPOSITORY_TESTING.md](REPOSITORY_TESTING.md).
 
 ## O que acontece na execução
 

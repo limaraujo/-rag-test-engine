@@ -7,6 +7,7 @@
 | Documento | Conteúdo |
 |---|---|
 | [../README.md](../README.md) | Instalação, uso rápido, visão geral |
+| [REPOSITORY_TESTING.md](REPOSITORY_TESTING.md) | Clonar repo externo e testar nos 4 perfis |
 | [CLI.md](CLI.md) | Argumentos de linha de comando e perfis (`--profile`) |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Arquitetura, fases do pipeline, diagramas |
 | [CONFIGURATION.md](CONFIGURATION.md) | Variáveis de ambiente (`.env`) |
