@@ -1,4 +1,4 @@
-﻿from collections.abc import Iterable
+from collections.abc import Iterable
 
 from parsers.source.models.ExtractedSymbol import ExtractedSymbol
 from llm.base import BaseEmbedding

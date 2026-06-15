@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import ast
 import json
@@ -8,6 +8,7 @@ from pathlib import Path
 
 from parsers.source.import_resolver import ImportResolver, module_name_from_path
 from parsers.source.path_filters import scan_python_files
+from parsers.source.text_utils import read_source_text
 
 
 @dataclass
@@ -191,7 +192,7 @@ class DependencyGraphBuilder:
             )
 
             try:
-                source = path.read_text(encoding="utf-8")
+                source = read_source_text(path)
                 tree = ast.parse(source, filename=str(path))
             except (OSError, SyntaxError):
                 continue

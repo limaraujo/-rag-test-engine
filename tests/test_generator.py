@@ -103,6 +103,13 @@ def test_strip_markdown_passthrough_when_no_fence() -> None:
     assert normalize_code_response(code) == code
 
 
+def test_normalize_code_response_strips_utf8_bom() -> None:
+    code = "\ufeffimport pytest\n\ndef test_foo():\n    pass"
+    normalized = normalize_code_response(code)
+    assert not normalized.startswith("\ufeff")
+    validate_syntax(normalized)
+
+
 def test_strip_markdown_multiline_code_block() -> None:
     raw = dedent("""\
         ```python

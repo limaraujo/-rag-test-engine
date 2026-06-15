@@ -1,5 +1,4 @@
 ﻿import ast
-from pathlib import Path
 
 from parsers.source.collectors.branches import BranchCollector
 from parsers.source.collectors.dependency_collector import DependencyCollector
@@ -7,7 +6,7 @@ from parsers.source.collectors.exceptions import ExceptionCollector
 from parsers.source.collectors.imports import ImportCollector
 from parsers.source.heuristics.edge_cases import EdgeCaseInferer
 from parsers.source.models.ExtractedSymbol import ExtractedSymbol
-
+from parsers.source.text_utils import read_source_text
 
 class SymbolExtractor(ast.NodeVisitor):
     """Extract semantic symbols from a Python module."""
@@ -20,7 +19,7 @@ class SymbolExtractor(ast.NodeVisitor):
     ) -> None:
         self.file_path = file_path
         self.tree = tree
-        self.source_code = source_code or Path(file_path).read_text(encoding="utf-8")
+        self.source_code = source_code or read_source_text(file_path)
         self.symbols: list[ExtractedSymbol] = []
         self.current_class: str | None = None
         self._function_depth = 0
@@ -97,6 +96,10 @@ class SymbolExtractor(ast.NodeVisitor):
         edge_inferer = EdgeCaseInferer()
         edge_inferer.visit(node)
 
+        edge_cases = sorted(
+            set(edge_inferer.edge_cases) | set(self._class_init_hints(class_name))
+        )
+
         return ExtractedSymbol(
             symbol_type=symbol_type,
             name=node.name,
@@ -110,8 +113,52 @@ class SymbolExtractor(ast.NodeVisitor):
             decorators=self._decorators(node),
             docstring=ast.get_docstring(node),
             branches=branch_collector.branches,
-            edge_cases=sorted(edge_inferer.edge_cases)
+            edge_cases=edge_cases
         )
+
+    def _class_init_hints(self, class_name: str | None) -> list[str]:
+        if not class_name:
+            return []
+
+        class_node = self._find_class_node(class_name)
+        if class_node is None or not self._is_dataclass(class_node):
+            return []
+
+        fields = self._dataclass_fields(class_node)
+        if not fields:
+            return [
+                f"Classe @dataclass — instancie {class_name}(...) antes de chamar métodos."
+            ]
+        joined = ", ".join(fields)
+        return [
+            f"Classe @dataclass — instancie {class_name}({joined}=...) antes de chamar métodos."
+        ]
+
+    def _find_class_node(self, class_name: str) -> ast.ClassDef | None:
+        for node in self.tree.body:
+            if isinstance(node, ast.ClassDef) and node.name == class_name:
+                return node
+        return None
+
+    @staticmethod
+    def _is_dataclass(class_node: ast.ClassDef) -> bool:
+        for decorator in class_node.decorator_list:
+            label = ast.unparse(decorator)
+            if label == "dataclass" or label.endswith(".dataclass"):
+                return True
+        return False
+
+    @staticmethod
+    def _dataclass_fields(class_node: ast.ClassDef) -> list[str]:
+        fields: list[str] = []
+        for item in class_node.body:
+            if isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
+                fields.append(item.target.id)
+            elif isinstance(item, ast.Assign):
+                for target in item.targets:
+                    if isinstance(target, ast.Name):
+                        fields.append(target.id)
+        return fields
 
     @staticmethod
     def _qualified_name(name: str, class_name: str | None) -> str:

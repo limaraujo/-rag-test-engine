@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import ast
 import json
@@ -8,6 +8,7 @@ from pathlib import Path
 from parsers.source.collectors.dependency_collector import DependencyCollector
 from parsers.source.import_resolver import ImportResolver, module_name_from_path
 from parsers.source.models.ExtractedSymbol import ExtractedSymbol
+from parsers.source.text_utils import read_source_text
 
 CodeSymbol = ExtractedSymbol
 
@@ -101,7 +102,7 @@ class _SymbolIndex:
                 try:
                     module_name = module_name_from_path(root, Path(file_path))
                     self._module_to_file[module_name] = file_path
-                    source = Path(file_path).read_text(encoding="utf-8")
+                    source = read_source_text(file_path)
                     tree = ast.parse(source, filename=file_path)
                     resolver = ImportResolver(module_name, local_modules)
                     resolver.populate_from_tree(tree)

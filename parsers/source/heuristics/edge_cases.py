@@ -1,4 +1,4 @@
-﻿import ast
+import ast
 
 from parsers.source.collectors.exceptions import ExceptionCollector
 

@@ -1,10 +1,11 @@
-﻿from dataclasses import dataclass
+from dataclasses import dataclass
 import ast
 from pathlib import Path
 import sys
 from typing import Iterator
 
 from parsers.source.ast_utils import get_ast_from_file
+from parsers.source.text_utils import read_source_text
 from parsers.source.call_graph import CallGraph, CallGraphBuilder
 from parsers.source.dependency_graph import DependencyGraph, DependencyGraphBuilder
 from parsers.source.extract import SymbolExtractor
@@ -28,7 +29,7 @@ def parse_repository(root: str) -> Iterator[ParsedFile]:
 def parse_repository_symbols(root: str) -> Iterator[ExtractedSymbol]:
 	"""Parse files and yield extracted symbols."""
 	for parsed in parse_repository(root):
-		source_code = Path(parsed.path).read_text(encoding="utf-8")
+		source_code = read_source_text(parsed.path)
 		extractor = SymbolExtractor(
 			file_path=parsed.path,
 			tree=parsed.tree,
@@ -41,7 +42,7 @@ def parse_file_symbols(path: str) -> Iterator[ExtractedSymbol]:
 	"""Parse one Python file and yield extracted symbols."""
 	file_path = Path(path)
 	tree = get_ast_from_file(str(file_path))
-	source_code = file_path.read_text(encoding="utf-8")
+	source_code = read_source_text(file_path)
 	extractor = SymbolExtractor(
 		file_path=str(file_path),
 		tree=tree,

@@ -11,6 +11,7 @@ from pathlib import Path
 import coverage as cov_lib
 
 from config.settings import settings
+from parsers.source.text_utils import read_source_text
 from execution.coverage_format import format_ranges
 from execution.pytest_support import (
     build_pytest_env,
@@ -274,7 +275,7 @@ class CoverageAnalyzer:
 
     def _analyze_file(self, cov: cov_lib.Coverage) -> CoverageAnalysisResult | None:
         file_path = str(self._source_path)
-        source = self._source_path.read_text(encoding="utf-8")
+        source = read_source_text(self._source_path)
         spans = _index_functions(source)
 
         try:

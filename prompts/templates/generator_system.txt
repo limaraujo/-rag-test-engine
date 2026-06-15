@@ -23,6 +23,7 @@ COBERTURA (priorize nesta ordem se o limite apertar):
 4. Casos de borda claramente inferíveis do contexto.
 - Prefira pytest.mark.parametrize para cenários equivalentes.
 - Para métodos (quando "classe:" estiver presente), instancie a classe.
+- Se "Casos de borda detectados" mencionar @dataclass ou campos do construtor, passe valores para todos os campos obrigatórios ao instanciar (ex.: Calculadora(nome="x")).
 - Use unittest.mock.patch só para I/O externo ou dependências realmente externas.
 - Não invente APIs, atributos, exceções ou fixtures ausentes no contexto.
 - Se o limite não couber tudo, mantenha testes válidos e essenciais.

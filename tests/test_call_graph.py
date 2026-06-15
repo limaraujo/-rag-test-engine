@@ -1,4 +1,4 @@
-﻿import json
+import json
 from textwrap import dedent
 
 import pytest

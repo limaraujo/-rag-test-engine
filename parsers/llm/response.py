@@ -8,6 +8,7 @@ import re
 
 from agents.import_utils import import_target, normalize_test_imports
 from config.settings import ROOT, settings
+from parsers.source.text_utils import strip_utf8_bom
 from schemas.context import FunctionContext
 from schemas.outputs import GeneratedTest
 
@@ -37,7 +38,7 @@ def parse_response(raw: str, context: FunctionContext) -> GeneratedTest:
 
 
 def normalize_code_response(raw: str) -> str:
-    text = raw.strip()
+    text = strip_utf8_bom(raw.strip())
     if not text:
         raise EmptyGenerationError("LLM returned empty test code")
 
