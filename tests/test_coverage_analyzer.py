@@ -175,12 +175,67 @@ def test_generate_summary_structure(partial_coverage_module) -> None:
     summary = analyzer.generate_summary()
 
     assert "line_coverage_percent" in summary
+    assert "branch_coverage_percent" in summary
     assert "threshold_percent" in summary
     assert "meets_threshold" in summary
     assert "gaps" in summary
     assert "uncovered_branches" in summary
     assert "uncovered_functions" in summary
     assert isinstance(summary["gaps"], list)
+
+
+def test_generate_summary_includes_branch_coverage(partial_coverage_module) -> None:
+    source_path, test = partial_coverage_module
+    parent = str(Path(source_path).parent)
+    analyzer = CoverageAnalyzer(
+        test, source_path,
+        target_function="subtract",
+        pythonpath=[parent],
+        threshold=80.0,
+    )
+    analyzer.run()
+    summary = analyzer.generate_summary()
+
+    assert summary["total_branches"] >= 1
+    assert summary["branch_coverage_percent"] < 100.0
+    assert len(summary["uncovered_branches"]) >= 1
+
+
+def test_branch_coverage_scoped_to_target_function(tmp_path) -> None:
+    mod = tmp_path / "mod.py"
+    mod.write_text(dedent("""\
+        def covered(x):
+            if x:
+                return 1
+            return 0
+
+        def other(y):
+            if y:
+                return 2
+            return 3
+    """), encoding="utf-8")
+
+    test = _make_test(dedent("""\
+        from mod import covered
+
+        def test_covered():
+            assert covered(1) == 1
+    """), target="covered")
+
+    analyzer = CoverageAnalyzer(
+        test,
+        str(mod),
+        target_function="covered",
+        pythonpath=[str(tmp_path)],
+    )
+    analyzer.run()
+    summary = analyzer.generate_summary()
+
+    assert summary["total_branches"] == 2
+    assert summary["missing_branches_count"] == 1
+    assert summary["branch_coverage_percent"] == 50.0
+    assert len(summary["uncovered_branches"]) == 1
+    assert summary["uncovered_branches"][0]["function_name"] == "covered"
 
 
 def test_generate_summary_json_valid(partial_coverage_module) -> None:

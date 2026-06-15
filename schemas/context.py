@@ -118,7 +118,7 @@ class FunctionContext(BaseModel):
     coverage_gaps: list[dict] = Field(
         default_factory=list,
         description=(
-            "Lacunas de cobertura detectadas por coverage.py: "
+            "Lacunas de cobertura detectadas por pytest-cov: "
             "file_path, function_name, uncovered_lines."
         ),
     )
@@ -265,10 +265,16 @@ class FunctionContext(BaseModel):
 
         if self.coverage_summary and not self.coverage_summary.get("meets_threshold"):
             pct = self.coverage_summary.get("line_coverage_percent", 0)
+            branch_pct = self.coverage_summary.get("branch_coverage_percent")
             threshold = self.coverage_summary.get("threshold_percent", 80)
+            branch_note = (
+                f", branches: {branch_pct}%"
+                if branch_pct is not None
+                else ""
+            )
             parts.append(
                 f"\n## Cobertura atual\n"
-                f"  {pct}% (mínimo exigido: {threshold}%)"
+                f"  linhas: {pct}%{branch_note} (mínimo exigido: {threshold}%)"
             )
             branches = self.coverage_summary.get("uncovered_branches", [])
             if branches:

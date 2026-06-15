@@ -49,6 +49,18 @@ def _openai_usage(
     )
 
 
+def test_token_usage_from_embedding_usage() -> None:
+    """API de embeddings não expõe completion_tokens."""
+    usage = token_usage_from_openai(
+        SimpleNamespace(prompt_tokens=42, total_tokens=42),
+        model="text-embedding-3-small",
+    )
+    assert usage is not None
+    assert usage.prompt_tokens == 42
+    assert usage.completion_tokens == 0
+    assert usage.total_tokens == 42
+
+
 def test_token_usage_without_reasoning_tokens() -> None:
     usage = token_usage_from_openai(_openai_usage(), model="gpt-5-nano")
     assert usage is not None

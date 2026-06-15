@@ -45,6 +45,7 @@ def _build_mock_test(user_prompt: str) -> str:
     if "raise " in source:
         raises_block = f"""
 
+# Verifica que entradas inválidas disparam exceção.
 def test_{simple_name}_raises():
 {setup}    with pytest.raises(Exception):
         {invoke}(0, 0)
@@ -55,6 +56,7 @@ def test_{simple_name}_raises():
 {import_line}
 
 
+# Happy path: chamada válida retorna um resultado.
 def test_{simple_name}_happy_path():
 {setup}    result = {invoke}(1, 2)
     assert result is not None

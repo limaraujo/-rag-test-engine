@@ -59,10 +59,17 @@ def token_usage_from_openai(usage_obj: Any, *, model: str) -> TokenUsage | None:
         if ct is not None:
             cached_prompt_tokens = int(ct)
 
+    # Embeddings retornam só prompt_tokens/total_tokens (sem completion_tokens).
+    prompt_tokens = int(getattr(usage_obj, "prompt_tokens", 0) or 0)
+    completion_tokens = int(getattr(usage_obj, "completion_tokens", 0) or 0)
+    total_tokens = int(getattr(usage_obj, "total_tokens", 0) or 0)
+    if total_tokens == 0 and prompt_tokens:
+        total_tokens = prompt_tokens + completion_tokens
+
     usage = TokenUsage(
-        prompt_tokens=int(usage_obj.prompt_tokens),
-        completion_tokens=int(usage_obj.completion_tokens),
-        total_tokens=int(usage_obj.total_tokens),
+        prompt_tokens=prompt_tokens,
+        completion_tokens=completion_tokens,
+        total_tokens=total_tokens,
         reasoning_tokens=reasoning_tokens,
         cached_prompt_tokens=cached_prompt_tokens,
     )

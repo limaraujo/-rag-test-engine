@@ -13,7 +13,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from agents.orchestrator import OrchestratorAgent, _LLMBudget
+from agents.orchestrator import OrchestratorAgent
+from agents.policies.llm_budget import LLMBudget
+from agents.services.generation_service import generate_with_cache
 from agents.test_generator import TestGeneratorAgent as GeneratorAgent
 from cache.generation_cache import (
     GenerationCache,
@@ -258,6 +260,7 @@ def orchestrator_setup(
     from retrieval.retriever import Retriever
 
     retriever = Retriever(store=store, embedder=fake_embedder)
+    retriever.index_generated_test = MagicMock(return_value=0)
     generator = GeneratorAgent(llm=llm)
     orchestrator = OrchestratorAgent(
         retriever=retriever,
@@ -384,12 +387,15 @@ def test_generate_with_cache_corrupt_counts_invalidation(
     path.write_text("<<<corrupt>>>", encoding="utf-8")
 
     stats = GenerationCacheStats()
-    budget = _LLMBudget(settings.MAX_LLM_CALLS_PER_SYMBOL)
-    test, from_cache, _ = orchestrator._generate_with_cache(
+    budget = LLMBudget(settings.MAX_LLM_CALLS_PER_SYMBOL)
+    test, from_cache, _ = generate_with_cache(
         ctx,
         pythonpath=[str(ROOT)],
         cache_stats=stats,
         budget=budget,
+        generator=orchestrator._generator,
+        runner=orchestrator._runner,
+        generation_cache=orchestrator._generation_cache,
     )
 
     assert not from_cache

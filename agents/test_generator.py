@@ -14,7 +14,7 @@ from schemas.outputs import GeneratedTest
 
 logger = logging.getLogger(__name__)
 
-PROMPT_VERSION = "1"
+PROMPT_VERSION = "2"
 GENERATOR_VERSION = "1"
 
 
@@ -34,10 +34,15 @@ Você gera testes pytest para um único símbolo Python.
 
 SAÍDA:
 - Retorne somente código Python executável.
-- Sem markdown, cercas de código (```) ou explicações.
+- Sem markdown, cercas de código (```) ou explicações fora do código.
 - Comece com imports; nada antes ou depois do código.
-- Sem docstrings ou comentários.
 - Seja conciso: o menor conjunto que ainda cubra o essencial.
+
+COMENTÁRIOS (obrigatório):
+- Antes de cada função test_* (ou do @pytest.mark.parametrize quando usado), inclua um comentário # curto.
+- O comentário deve dizer o que o teste verifica e qual caso/cenário cobre
+  (ex.: happy path, exceção listada, branch, caso de borda).
+- Prefira comentários # em vez de docstrings.
 
 IMPORTS:
 - Use o campo "módulo:" do contexto como caminho de importação.
@@ -224,11 +229,35 @@ def _extract_imports(code: str) -> list[str]:
     ]
 
 
+def _extract_coverage_hint_text(lines: list[str], test_line_index: int) -> str:
+    """Extrai docstring ou comentário # imediatamente acima/abaixo da função de teste."""
+    for j in range(test_line_index + 1, min(test_line_index + 5, len(lines))):
+        inner = lines[j].strip()
+        if inner.startswith('"""') or inner.startswith("'''"):
+            return inner.strip('"""').strip("'''").strip()
+        if inner:
+            break
+
+    comment_lines: list[str] = []
+    for j in range(test_line_index - 1, max(-1, test_line_index - 6), -1):
+        prev = lines[j].strip()
+        if prev.startswith("#"):
+            comment_lines.insert(0, prev.lstrip("#").strip())
+            continue
+        if prev.startswith("@pytest.mark.parametrize"):
+            continue
+        if not prev:
+            continue
+        break
+
+    return " ".join(comment_lines)
+
+
 def _extract_coverage_hints(code: str) -> list[str]:
     """
     Constrói dicas de cobertura a partir dos nomes das funções de teste.
 
-    Inclui docstring de uma linha quando presente; caso contrário usa só o nome.
+    Inclui comentário # ou docstring de uma linha quando presente; caso contrário usa só o nome.
     """
     hints: list[str] = []
     lines = code.splitlines()
@@ -247,16 +276,9 @@ def _extract_coverage_hints(code: str) -> list[str]:
                 parametrize_hint = " (parametrize)"
                 break
 
-        doc = ""
-        for j in range(i + 1, min(i + 5, len(lines))):
-            inner = lines[j].strip()
-            if inner.startswith('"""') or inner.startswith("'''"):
-                doc = inner.strip('"""').strip("'''").strip()
-                break
-            if inner:
-                break
+        hint_text = _extract_coverage_hint_text(lines, i)
 
         label = f"{name}{parametrize_hint}"
-        hints.append(f"{label}: {doc}" if doc else label)
+        hints.append(f"{label}: {hint_text}" if hint_text else label)
 
     return hints

@@ -1,20 +1,26 @@
 from __future__ import annotations
 
-import hashlib
 import logging
-import re
-from dataclasses import dataclass, field
 from pathlib import Path
 
+from agents.policies.llm_budget import LLMBudget, LLMBudgetExhausted, _LLMBudget, _error_fingerprint
 from agents.repair import RepairAgent
+from agents.services.coverage_cycle import run_coverage_loop
+from agents.services.generation_service import generate_with_cache, save_approved_test
+from agents.services.pipeline_logging import (
+    collect_ignored_symbols,
+    log_pytest_result,
+    log_run_summary,
+    validation_payload,
+)
+from agents.services.repair_cycle import run_repair_loop
 from agents.test_generator import TestGeneratorAgent
 from cache.generation_cache import GenerationCache
 from config.logging_setup import setup_logging
 from config.run_workspace import RunWorkspace, save_ingest_artifacts, save_run_summary
 from config.settings import ROOT, settings
-from config.source_guard import SourceDirBlockedError, ensure_source_dir_allowed
-from execution.coverage_analyzer import CoverageAnalyzer, coverage_round_signature
-from execution.runner import RunResult, SuiteValidationResult, TestRunner
+from config.source_guard import ensure_source_dir_allowed
+from execution.runner import SuiteValidationResult, TestRunner
 from ingest.call_graph import CallGraph
 from ingest.dependency_graph import DependencyGraph
 from ingest.models.ExtractedSymbol import ExtractedSymbol
@@ -25,9 +31,7 @@ from llm.call_logger import setup_api_call_logging
 from llm.usage_tracker import get_tracker, reset_tracker
 from retrieval.retriever import Retriever
 from schemas.context import FunctionContext
-from schemas.outputs import GeneratedTest
 from schemas.pipeline import (
-    GenerationCacheStats,
     OrchestrationResult,
     PipelineStats,
     SymbolRunRecord,
@@ -35,44 +39,12 @@ from schemas.pipeline import (
 )
 logger = logging.getLogger(__name__)
 
-
-class LLMBudgetExhausted(RuntimeError):
-    """Orçamento de chamadas LLM por símbolo esgotado."""
-
-
-@dataclass
-class _LLMBudget:
-    max_calls: int
-    calls: int = 0
-    operations: list[str] = field(default_factory=list)
-
-    def can_call(self) -> bool:
-        return self.calls < self.max_calls
-
-    def record(self, operation: str) -> bool:
-        if not self.can_call():
-            return False
-        self.calls += 1
-        self.operations.append(operation)
-        return True
-
-
-def _error_fingerprint(result: RunResult) -> str:
-    text = (result.failure_summary or result.output).strip()
-    text = re.sub(r"C:\\Users\\[^\s]+|/tmp[^\s]+|/var/folders/[^\s]+", "<tmp>", text)
-    text = re.sub(r"\d+\.\d+s\b", "<dur>", text)
-    key_lines: list[str] = []
-    for line in text.splitlines():
-        stripped = line.strip()
-        if stripped.startswith(("E ", ">", "assert ")):
-            key_lines.append(stripped)
-        elif any(token in stripped for token in ("Error", "AssertionError", "FAILED")):
-            key_lines.append(stripped)
-    if key_lines:
-        text = "\n".join(key_lines)
-    if len(text) > settings.REPAIR_ERROR_MAX_CHARS:
-        text = text[: settings.REPAIR_ERROR_MAX_CHARS]
-    return hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
+__all__ = [
+    "LLMBudgetExhausted",
+    "OrchestratorAgent",
+    "_LLMBudget",
+    "_error_fingerprint",
+]
 
 
 class OrchestratorAgent:
@@ -83,9 +55,9 @@ class OrchestratorAgent:
         1. Ingestão  — parser + grafos + artefatos
         2. Indexação — embeddings no Qdrant
         3. Geração   — LLM + RAG por símbolo
-        4. Execução  — pytest
+        4. Execução  — pytest por símbolo
         5. Reparo    — LLM corrige falhas
-        6. Cobertura — regenera se abaixo do threshold
+        6. Cobertura — pytest+coverage (--branch); regenera se abaixo do threshold
         7. Salvamento — tests/ + run_summary.json
         8. Validação  — pytest na pasta tests/ completa
     """
@@ -159,10 +131,7 @@ class OrchestratorAgent:
                 embedding_cache_hits=cache_hits,
                 generation_cache_hits=stats.generation_cache.hits,
                 llm_calls_avoided=stats.generation_cache.llm_calls_avoided,
-                ignored_symbols=self._collect_ignored_symbols(
-                    filter_stats,
-                    stats,
-                ),
+                ignored_symbols=collect_ignored_symbols(filter_stats, stats),
             )
             token_summary_text = tracker.format_summary()
 
@@ -180,10 +149,14 @@ class OrchestratorAgent:
                 "symbol_runs": [record.to_dict() for record in stats.symbol_runs],
             },
             token_usage=token_usage_payload,
-            validation=self._validation_payload(validation),
+            validation=validation_payload(validation),
         )
-        self._log_summary(
-            workspace, stats, token_summary_text, validation, filter_stats,
+        log_run_summary(
+            workspace,
+            stats,
+            token_summary_text,
+            validation=validation,
+            filter_stats=filter_stats,
         )
 
         return OrchestrationResult(
@@ -295,7 +268,7 @@ class OrchestratorAgent:
     ) -> None:
         qname = symbol.qualified_name
         record = SymbolRunRecord(qualified_name=qname)
-        budget = _LLMBudget(settings.MAX_LLM_CALLS_PER_SYMBOL)
+        budget = LLMBudget(settings.MAX_LLM_CALLS_PER_SYMBOL)
         logger.info("[gen] %s", qname)
 
         ctx = FunctionContext.from_symbol(symbol, project_root=ROOT)
@@ -310,11 +283,14 @@ class OrchestratorAgent:
 
         try:
             try:
-                test, from_cache, cached_result = self._generate_with_cache(
+                test, from_cache, cached_result = generate_with_cache(
                     ctx,
                     pythonpath=pythonpath,
                     cache_stats=stats.generation_cache,
                     budget=budget,
+                    generator=self._generator,
+                    runner=self._runner,
+                    generation_cache=self._generation_cache,
                 )
             except LLMBudgetExhausted:
                 record.stop_reason = "llm_budget_exhausted"
@@ -325,6 +301,8 @@ class OrchestratorAgent:
 
             if from_cache and cached_result is not None:
                 result = cached_result
+                record.record_pytest_result(result)
+                log_pytest_result(result)
                 if result.passed:
                     record.set_state(SymbolState.PASSED)
                 else:
@@ -332,25 +310,39 @@ class OrchestratorAgent:
             else:
                 record.set_state(SymbolState.GENERATED)
                 result = self._runner.run(test, pythonpath=pythonpath)
+                record.record_pytest_result(result)
+                log_pytest_result(result)
                 if result.passed:
                     record.set_state(SymbolState.PASSED)
                 else:
                     record.set_state(SymbolState.TEST_FAILED)
-                    test, result, repaired, budget, record = self._repair_loop(
-                        ctx, test, result, pythonpath, budget, record,
+                    test, result, repaired, budget, record = run_repair_loop(
+                        ctx,
+                        test,
+                        result,
+                        pythonpath,
+                        budget,
+                        record,
+                        repair_agent=self._repair_agent,
+                        runner=self._runner,
+                        max_repairs=self._max_repairs,
                     )
 
             coverage_boosted = False
             if result.passed:
                 test, result, repaired, coverage_boosted, budget, record = (
-                    self._coverage_loop(
+                    run_coverage_loop(
                         ctx,
                         test,
                         result,
                         pythonpath,
+                        budget,
+                        record,
                         repaired=repaired,
-                        budget=budget,
-                        record=record,
+                        generator=self._generator,
+                        runner=self._runner,
+                        repair_agent=self._repair_agent,
+                        max_repairs=self._max_repairs,
                     )
                 )
 
@@ -360,7 +352,7 @@ class OrchestratorAgent:
             record.llm_calls = budget.calls
 
             if result.passed:
-                self._save_test(
+                save_approved_test(
                     workspace,
                     qname,
                     test,
@@ -369,6 +361,9 @@ class OrchestratorAgent:
                     coverage_boosted,
                     stats,
                     ctx=ctx,
+                    generator=self._generator,
+                    generation_cache=self._generation_cache,
+                    retriever=self._retriever,
                 )
             else:
                 if not record.stop_reason:
@@ -387,283 +382,6 @@ class OrchestratorAgent:
         finally:
             record.set_state(SymbolState.COMPLETED)
             stats.symbol_runs.append(record)
-
-    def _generate_with_cache(
-        self,
-        ctx: FunctionContext,
-        *,
-        pythonpath: list[str],
-        cache_stats: GenerationCacheStats,
-        budget: _LLMBudget,
-    ) -> tuple[GeneratedTest, bool, RunResult | None]:
-        operation = "generate"
-        model = self._generator.model_name
-        cache = self._generation_cache
-
-        def _generate() -> GeneratedTest:
-            if not budget.record("generate"):
-                raise LLMBudgetExhausted("generate")
-            return self._generator.generate(ctx, operation=operation)
-
-        if not cache.enabled:
-            cache_stats.misses += 1
-            return _generate(), False, None
-
-        cache_key = cache.build_cache_key(ctx, operation=operation, model=model)
-        path = cache._entry_path(cache_key)
-        entry = cache.lookup(ctx, operation=operation, model=model)
-
-        if entry is None:
-            if path.is_file():
-                raw = cache._read_json(path)
-                if raw is None:
-                    cache_stats.invalidations += 1
-                elif raw.get("status") == "stale":
-                    pass
-                else:
-                    cache_stats.invalidations += 1
-            cache_stats.misses += 1
-            logger.info("  [cache miss] %s", ctx.qualified_name)
-            return _generate(), False, None
-
-        test = cache.materialize(entry)
-        result = self._runner.run(test, pythonpath=pythonpath)
-        if result.passed:
-            cache_stats.hits += 1
-            cache_stats.llm_calls_avoided += 1
-            logger.info("  [cache hit] %s", ctx.qualified_name)
-            return test, True, result
-
-        cache.mark_stale(entry.cache_key, reason="pytest_failed")
-        cache_stats.stale += 1
-        cache_stats.misses += 1
-        logger.info("  [cache stale] %s — regenerando", ctx.qualified_name)
-        try:
-            return _generate(), False, None
-        except LLMBudgetExhausted:
-            logger.warning(
-                "  [cache stale] orçamento LLM esgotado — mantendo teste falho",
-            )
-            return test, False, result
-
-    def _repair_loop(
-        self,
-        ctx: FunctionContext,
-        test: GeneratedTest,
-        result: RunResult,
-        pythonpath: list[str],
-        budget: _LLMBudget,
-        record: SymbolRunRecord,
-    ) -> tuple[GeneratedTest, RunResult, bool, _LLMBudget, SymbolRunRecord]:
-        repaired = False
-        last_error_fp: str | None = None
-
-        for attempt in range(1, self._max_repairs + 1):
-            if result.passed:
-                record.set_state(SymbolState.PASSED)
-                break
-
-            error_fp = _error_fingerprint(result)
-            if error_fp == last_error_fp:
-                record.stop_reason = "same_error_repeated"
-                logger.info("  [repair] mesmo erro repetido — parando")
-                break
-            last_error_fp = error_fp
-
-            if not budget.can_call():
-                record.stop_reason = "llm_budget_exhausted"
-                logger.warning("  [repair] orçamento LLM esgotado (%d/%d)",
-                                 budget.calls, budget.max_calls)
-                break
-
-            logger.info("  [repair] tentativa %d/%d …", attempt, self._max_repairs)
-            record.set_state(SymbolState.REPAIRING)
-            try:
-                if not budget.record(f"repair_{attempt}"):
-                    record.stop_reason = "llm_budget_exhausted"
-                    break
-                test = self._repair_agent.repair(ctx, test, result, attempt=attempt)
-                result = self._runner.run(test, pythonpath=pythonpath)
-                if result.passed:
-                    repaired = True
-                    record.set_state(SymbolState.PASSED)
-            except Exception as exc:
-                record.stop_reason = f"repair_error:{exc}"
-                logger.warning("  [repair] erro: %s", exc)
-                break
-
-        if not result.passed and not record.stop_reason:
-            record.set_state(SymbolState.TEST_FAILED)
-        return test, result, repaired, budget, record
-
-    def _coverage_loop(
-        self,
-        ctx: FunctionContext,
-        test: GeneratedTest,
-        result: RunResult,
-        pythonpath: list[str],
-        *,
-        repaired: bool,
-        budget: _LLMBudget,
-        record: SymbolRunRecord,
-    ) -> tuple[GeneratedTest, RunResult, bool, bool, _LLMBudget, SymbolRunRecord]:
-        coverage_boosted = False
-        approved_test = test
-        approved_result = result
-
-        if settings.MAX_COVERAGE_ROUNDS <= 0:
-            return approved_test, approved_result, repaired, coverage_boosted, budget, record
-
-        seen_signatures: set[str] = set()
-        last_pct_before_regen: float | None = None
-
-        for cov_round in range(1, settings.MAX_COVERAGE_ROUNDS + 1):
-            record.set_state(SymbolState.COVERAGE_CHECKED)
-            analyzer = CoverageAnalyzer(
-                approved_test,
-                ctx.file_path,
-                target_function=ctx.qualified_name,
-                pythonpath=pythonpath,
-                threshold=settings.COVERAGE_THRESHOLD,
-            )
-            analyzer.run()
-            summary = analyzer.generate_summary()
-            current_pct = summary["line_coverage_percent"]
-
-            if record.current_coverage_percent is not None:
-                record.previous_coverage_percent = record.current_coverage_percent
-            record.current_coverage_percent = current_pct
-
-            if record.previous_coverage_percent is not None:
-                logger.info(
-                    "  [coverage] anterior=%s%%, atual=%s%% (threshold=%s%%)",
-                    record.previous_coverage_percent,
-                    current_pct,
-                    summary["threshold_percent"],
-                )
-            else:
-                logger.info(
-                    "  [coverage] atual=%s%% (threshold=%s%%)",
-                    current_pct,
-                    summary["threshold_percent"],
-                )
-
-            if summary["meets_threshold"]:
-                logger.info("  [coverage] threshold atingido — parando")
-                break
-
-            round_sig = coverage_round_signature(summary)
-            if round_sig in seen_signatures:
-                record.set_state(SymbolState.COVERAGE_STALLED)
-                record.stop_reason = record.stop_reason or "identical_coverage_round"
-                logger.info("  [coverage] rodada idêntica — parando")
-                break
-            seen_signatures.add(round_sig)
-
-            if (
-                settings.COVERAGE_STOP_ON_NO_IMPROVEMENT
-                and last_pct_before_regen is not None
-                and current_pct <= last_pct_before_regen
-            ):
-                record.set_state(SymbolState.COVERAGE_STALLED)
-                record.stop_reason = record.stop_reason or "coverage_no_improvement"
-                logger.info("  [coverage] sem melhoria — parando")
-                break
-
-            if not budget.can_call():
-                record.stop_reason = record.stop_reason or "llm_budget_exhausted"
-                logger.warning(
-                    "  [coverage] orçamento LLM esgotado — mantendo teste aprovado",
-                )
-                break
-
-            logger.info(
-                "  [coverage] %s%% < %s%% — regenerando (%d/%d) …",
-                current_pct,
-                summary["threshold_percent"],
-                cov_round,
-                settings.MAX_COVERAGE_ROUNDS,
-            )
-            last_pct_before_regen = current_pct
-
-            ctx = ctx.model_copy(update={
-                "coverage_gaps": analyzer.gaps_for_prompt(),
-                "coverage_summary": summary,
-            })
-            try:
-                if not budget.record(f"coverage_{cov_round}"):
-                    record.stop_reason = record.stop_reason or "llm_budget_exhausted"
-                    break
-                candidate = self._generator.generate(ctx, operation=f"coverage_{cov_round}")
-            except Exception as exc:
-                record.stop_reason = record.stop_reason or f"coverage_error:{exc}"
-                logger.warning("  [coverage] erro na regeneração: %s", exc)
-                break
-
-            candidate_result = self._runner.run(candidate, pythonpath=pythonpath)
-            if not candidate_result.passed:
-                candidate, candidate_result, post_repair, budget, record = (
-                    self._repair_loop(
-                        ctx, candidate, candidate_result, pythonpath, budget, record,
-                    )
-                )
-                repaired = repaired or post_repair
-                if not candidate_result.passed:
-                    logger.warning(
-                        "  [coverage] regeneração falhou — mantendo teste aprovado anterior",
-                    )
-                    break
-
-            approved_test = candidate
-            approved_result = candidate_result
-            coverage_boosted = True
-
-        return approved_test, approved_result, repaired, coverage_boosted, budget, record
-
-    def _save_test(
-        self,
-        workspace: RunWorkspace,
-        qname: str,
-        test: GeneratedTest,
-        result: RunResult,
-        repaired: bool,
-        coverage_boosted: bool,
-        stats: PipelineStats,
-        *,
-        ctx: FunctionContext | None = None,
-    ) -> None:
-        safe = re.sub(r"[^a-zA-Z0-9_]", "_", qname)
-        dest = workspace.tests_dir / f"test_{safe}.py"
-        dest.write_text(test.full_code, encoding="utf-8")
-
-        label = " (reparado)" if repaired else ""
-        cov_label = " +cobertura" if coverage_boosted else ""
-        logger.info(
-            "  [ok%s%s] %d testes → %s",
-            label,
-            cov_label,
-            result.num_passed,
-            dest.name,
-        )
-        stats.ok += 1
-        if repaired:
-            stats.repaired += 1
-        if coverage_boosted:
-            stats.coverage_boosted += 1
-
-        if ctx is not None and self._generation_cache.enabled:
-            coverage_summary = ctx.coverage_summary
-            self._generation_cache.save(
-                ctx,
-                test,
-                operation="generate",
-                model=self._generator.model_name,
-                coverage=coverage_summary,
-            )
-            try:
-                self._retriever.index_generated_test(ctx.qualified_name, test.full_code)
-            except Exception as exc:
-                logger.warning("  [index_tests] %s", exc)
 
     def _validate_suite(self, workspace: RunWorkspace) -> SuiteValidationResult:
         logger.info("[validate] rodando pytest em %s …", workspace.tests_dir)
@@ -694,97 +412,3 @@ class OrchestratorAgent:
         validation_log.write_text(result.output, encoding="utf-8")
         logger.info("[validate] log salvo em %s", validation_log)
         return result
-
-    @staticmethod
-    def _validation_payload(validation: SuiteValidationResult) -> dict:
-        return {
-            "passed": validation.passed,
-            "exit_code": validation.exit_code,
-            "tests_dir": validation.tests_dir,
-            "num_passed": validation.num_passed,
-            "num_failed": validation.num_failed,
-            "num_errors": validation.num_errors,
-            "duration_seconds": validation.duration_seconds,
-        }
-
-    @staticmethod
-    def _collect_ignored_symbols(
-        filter_stats: SymbolFilterStats,
-        stats: PipelineStats,
-    ) -> list[dict]:
-        ignored: list[dict] = []
-        if filter_stats.filtered_total:
-            ignored.append({
-                "scope": "ingest_filter",
-                "count": filter_stats.filtered_total,
-                "reason": "filtered_before_generation",
-                "detail": filter_stats.to_dict(),
-            })
-        for record in stats.symbol_runs:
-            if not record.stop_reason:
-                continue
-            ignored.append({
-                "qualified_name": record.qualified_name,
-                "reason": record.stop_reason,
-                "state": record.state.value,
-                "from_cache": record.from_cache,
-            })
-        return ignored
-
-    def _log_summary(
-        self,
-        workspace: RunWorkspace,
-        stats: PipelineStats,
-        token_summary: str | None,
-        validation: SuiteValidationResult | None = None,
-        filter_stats: SymbolFilterStats | None = None,
-    ) -> None:
-        logger.info("")
-        logger.info("=" * 52)
-        if filter_stats is not None:
-            logger.info(
-                "  Símbolos extraídos   : %d",
-                filter_stats.extracted_total,
-            )
-            logger.info(
-                "  Filtrados (sem teste): %d (%d container_class)",
-                filter_stats.filtered_total,
-                filter_stats.removed_container_class,
-            )
-        logger.info("  Símbolos processados : %d", stats.total)
-        logger.info(
-            "  Testes salvos        : %d (%d após reparo, %d com boost de cobertura)",
-            stats.ok,
-            stats.repaired,
-            stats.coverage_boosted,
-        )
-        logger.info("  Falharam (descartados): %d", stats.failed)
-        logger.info("  Ignorados (erros)    : %d", stats.skipped)
-        gc = stats.generation_cache
-        logger.info(
-            "  Cache de geração     : %d hits, %d misses, %d stale, "
-            "%d invalidações, %d LLM evitadas",
-            gc.hits,
-            gc.misses,
-            gc.stale,
-            gc.invalidations,
-            gc.llm_calls_avoided,
-        )
-        logger.info("  Workspace            : %s", workspace.root)
-        logger.info("  Testes               : %s", workspace.tests_dir)
-        logger.info("  Artefatos            : %s", workspace.artifacts_dir)
-        if validation is not None:
-            status = "ok" if validation.passed else "FALHOU"
-            logger.info(
-                "  Validação pytest     : %s (%d passaram, %d falharam)",
-                status,
-                validation.num_passed,
-                validation.num_failed,
-            )
-        if token_summary:
-            logger.info("  Uso de tokens (OpenAI)")
-            for line in token_summary.splitlines():
-                logger.info(line)
-        if settings.LOG_API_CALLS:
-            logger.info("  Chamadas API         : %s", workspace.logs_dir / "api_calls")
-        logger.info("=" * 52)

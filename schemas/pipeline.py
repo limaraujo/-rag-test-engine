@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 
 from config.run_workspace import RunWorkspace
-from execution.runner import SuiteValidationResult
+from execution.runner import RunResult, SuiteValidationResult
 
 
 class SymbolState(str, Enum):
@@ -27,6 +27,12 @@ class SymbolRunRecord:
     stop_reason: str | None = None
     previous_coverage_percent: float | None = None
     current_coverage_percent: float | None = None
+    current_branch_coverage_percent: float | None = None
+    uncovered_branches_count: int | None = None
+    coverage_meets_threshold: bool | None = None
+    pytest_num_passed: int | None = None
+    pytest_num_failed: int | None = None
+    pytest_num_errors: int | None = None
     repaired: bool = False
     coverage_boosted: bool = False
     passed: bool = False
@@ -34,6 +40,19 @@ class SymbolRunRecord:
 
     def set_state(self, state: SymbolState) -> None:
         self.state = state
+
+    def record_pytest_result(self, result: RunResult) -> None:
+        self.pytest_num_passed = result.num_passed
+        self.pytest_num_failed = result.num_failed
+        self.pytest_num_errors = result.num_errors
+
+    def record_coverage_summary(self, summary: dict) -> None:
+        if self.current_coverage_percent is not None:
+            self.previous_coverage_percent = self.current_coverage_percent
+        self.current_coverage_percent = summary.get("line_coverage_percent")
+        self.current_branch_coverage_percent = summary.get("branch_coverage_percent")
+        self.uncovered_branches_count = len(summary.get("uncovered_branches") or [])
+        self.coverage_meets_threshold = summary.get("meets_threshold")
 
     def to_dict(self) -> dict:
         return {
@@ -43,6 +62,12 @@ class SymbolRunRecord:
             "stop_reason": self.stop_reason,
             "previous_coverage_percent": self.previous_coverage_percent,
             "current_coverage_percent": self.current_coverage_percent,
+            "current_branch_coverage_percent": self.current_branch_coverage_percent,
+            "uncovered_branches_count": self.uncovered_branches_count,
+            "coverage_meets_threshold": self.coverage_meets_threshold,
+            "pytest_num_passed": self.pytest_num_passed,
+            "pytest_num_failed": self.pytest_num_failed,
+            "pytest_num_errors": self.pytest_num_errors,
             "repaired": self.repaired,
             "coverage_boosted": self.coverage_boosted,
             "passed": self.passed,

@@ -10,7 +10,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from agents.orchestrator import OrchestratorAgent, _LLMBudget
+from agents.orchestrator import OrchestratorAgent
+from agents.policies.llm_budget import LLMBudget
 from agents.repair import RepairAgent
 from agents.test_generator import TestGeneratorAgent as GeneratorAgent
 from cache.generation_cache import GenerationCache
@@ -164,11 +165,12 @@ def test_llm_budget_blocks_third_call(limits_env, add_symbol) -> None:
 def test_coverage_disabled_no_regeneration(limits_env, add_symbol, monkeypatch) -> None:
     monkeypatch.setattr(settings, "MAX_COVERAGE_ROUNDS", 0)
     llm = ScriptedLLM(generate_code=_FIXED_ADD)
-    with patch.object(OrchestratorAgent, "_coverage_loop", wraps=OrchestratorAgent._coverage_loop) as cov:
-        stats = _run_symbol(_orchestrator(llm), add_symbol)
-        cov.assert_called_once()
+    stats = _run_symbol(_orchestrator(llm), add_symbol)
     assert llm.generate_calls == 1
     assert stats.coverage_boosted == 0
+    record = stats.symbol_runs[0]
+    assert record.current_coverage_percent is not None
+    assert record.pytest_num_passed is not None
 
 
 def test_coverage_stops_when_no_improvement(limits_env, add_symbol, monkeypatch) -> None:
@@ -178,17 +180,21 @@ def test_coverage_stops_when_no_improvement(limits_env, add_symbol, monkeypatch)
     summaries = [
         {
             "line_coverage_percent": 50.0,
+            "branch_coverage_percent": 50.0,
             "threshold_percent": 80.0,
             "meets_threshold": False,
             "missing_lines": [3],
             "gaps": [{"function_name": "add", "uncovered_lines": [3]}],
+            "uncovered_branches": [],
         },
         {
             "line_coverage_percent": 50.0,
+            "branch_coverage_percent": 50.0,
             "threshold_percent": 80.0,
             "meets_threshold": False,
             "missing_lines": [4],
             "gaps": [{"function_name": "add", "uncovered_lines": [4]}],
+            "uncovered_branches": [],
         },
     ]
 
@@ -205,7 +211,7 @@ def test_coverage_stops_when_no_improvement(limits_env, add_symbol, monkeypatch)
         def gaps_for_prompt(self):
             return []
 
-    monkeypatch.setattr("agents.orchestrator.CoverageAnalyzer", FakeAnalyzer)
+    monkeypatch.setattr("agents.services.coverage_cycle.CoverageAnalyzer", FakeAnalyzer)
     stats = _run_symbol(_orchestrator(llm), add_symbol)
 
     assert llm.generate_calls == 2
@@ -217,10 +223,24 @@ def test_coverage_stops_at_threshold(limits_env, add_symbol, monkeypatch) -> Non
     llm = ScriptedLLM(generate_code=_FIXED_ADD)
 
     summaries = [
-        {"line_coverage_percent": 60.0, "threshold_percent": 80.0, "meets_threshold": False,
-         "missing_lines": [3], "gaps": [{"function_name": "add", "uncovered_lines": [3]}]},
-        {"line_coverage_percent": 85.0, "threshold_percent": 80.0, "meets_threshold": True,
-         "missing_lines": [], "gaps": []},
+        {
+            "line_coverage_percent": 60.0,
+            "branch_coverage_percent": 60.0,
+            "threshold_percent": 80.0,
+            "meets_threshold": False,
+            "missing_lines": [3],
+            "gaps": [{"function_name": "add", "uncovered_lines": [3]}],
+            "uncovered_branches": [],
+        },
+        {
+            "line_coverage_percent": 85.0,
+            "branch_coverage_percent": 85.0,
+            "threshold_percent": 80.0,
+            "meets_threshold": True,
+            "missing_lines": [],
+            "gaps": [],
+            "uncovered_branches": [],
+        },
     ]
 
     class FakeAnalyzer:
@@ -236,7 +256,7 @@ def test_coverage_stops_at_threshold(limits_env, add_symbol, monkeypatch) -> Non
         def gaps_for_prompt(self):
             return []
 
-    monkeypatch.setattr("agents.orchestrator.CoverageAnalyzer", FakeAnalyzer)
+    monkeypatch.setattr("agents.services.coverage_cycle.CoverageAnalyzer", FakeAnalyzer)
     stats = _run_symbol(_orchestrator(llm), add_symbol)
 
     assert llm.generate_calls == 2
@@ -284,7 +304,7 @@ def test_one_symbol_failure_does_not_block_others(limits_env, monkeypatch) -> No
 
 
 def test_llm_budget_dataclass() -> None:
-    budget = _LLMBudget(max_calls=2)
+    budget = LLMBudget(max_calls=2)
     assert budget.record("generate")
     assert budget.record("repair_1")
     assert not budget.can_call()

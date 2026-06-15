@@ -1,5 +1,5 @@
 """
-Testes para execution/runner.py e execution/coverage.py.
+Testes para execution/runner.py e execution/coverage_format.py.
 
 Usa chamadas reais de subprocesso do pytest em código de teste trivial em memória.
 Sem necessidade de mocking — isso valida o funcionamento real da execução.
@@ -10,12 +10,7 @@ from textwrap import dedent
 
 import pytest
 
-from execution.coverage import (
-    CoverageReport,
-    _format_ranges,
-    _parse_missing_ranges,
-    parse_coverage_output,
-)
+from execution.coverage_format import format_ranges, parse_missing_ranges
 from execution.runner import RunResult, TestRunner, _parse_pytest_counts
 from schemas.outputs import GeneratedTest
 
@@ -170,117 +165,42 @@ def test_runner_timeout_returns_failed_result(runner) -> None:
     assert "tempo limite" in result.stderr.lower()
 
 
-# ── CoverageReport ────────────────────────────────────────────────────────────
-
-def test_coverage_report_percentage() -> None:
-    r = CoverageReport(module="calc", total_lines=20, covered_lines=15)
-    assert r.percentage == 75.0
-
-
-def test_coverage_report_100_percent() -> None:
-    r = CoverageReport(module="calc", total_lines=10, covered_lines=10)
-    assert r.percentage == 100.0
-    assert r.is_complete
-
-
-def test_coverage_report_zero_total_is_100() -> None:
-    r = CoverageReport(module="calc", total_lines=0, covered_lines=0)
-    assert r.percentage == 100.0
-
-
-def test_coverage_report_uncovered_hint() -> None:
-    r = CoverageReport(
-        module="calc", total_lines=20, covered_lines=17,
-        missing_lines=[8, 12, 13, 14],
-    )
-    hint = r.uncovered_hint()
-    assert "8" in hint
-    assert "12-14" in hint
-
-
-def test_coverage_report_all_covered_hint() -> None:
-    r = CoverageReport(module="calc", total_lines=10, covered_lines=10)
-    assert "Todas as linhas cobertas" in r.uncovered_hint()
-
-
-# ── _parse_missing_ranges ─────────────────────────────────────────────────────
+# ── parse_missing_ranges ──────────────────────────────────────────────────────
 
 def test_parse_missing_ranges_single_lines() -> None:
-    assert _parse_missing_ranges("8, 12, 22") == [8, 12, 22]
+    assert parse_missing_ranges("8, 12, 22") == [8, 12, 22]
 
 
 def test_parse_missing_ranges_range() -> None:
-    assert _parse_missing_ranges("12-14") == [12, 13, 14]
+    assert parse_missing_ranges("12-14") == [12, 13, 14]
 
 
 def test_parse_missing_ranges_mixed() -> None:
-    result = _parse_missing_ranges("8, 12-14, 22")
+    result = parse_missing_ranges("8, 12-14, 22")
     assert result == [8, 12, 13, 14, 22]
 
 
 def test_parse_missing_ranges_empty() -> None:
-    assert _parse_missing_ranges("") == []
+    assert parse_missing_ranges("") == []
 
 
 def test_parse_missing_ranges_deduplicates() -> None:
-    assert _parse_missing_ranges("8, 8, 9") == [8, 9]
+    assert parse_missing_ranges("8, 8, 9") == [8, 9]
 
 
-# ── _format_ranges ────────────────────────────────────────────────────────────
+# ── format_ranges ─────────────────────────────────────────────────────────────
 
 def test_format_ranges_single_numbers() -> None:
-    assert _format_ranges([8, 12, 22]) == "8, 12, 22"
+    assert format_ranges([8, 12, 22]) == "8, 12, 22"
 
 
 def test_format_ranges_consecutive_compresses() -> None:
-    assert _format_ranges([12, 13, 14]) == "12-14"
+    assert format_ranges([12, 13, 14]) == "12-14"
 
 
 def test_format_ranges_mixed() -> None:
-    assert _format_ranges([8, 12, 13, 14, 22]) == "8, 12-14, 22"
+    assert format_ranges([8, 12, 13, 14, 22]) == "8, 12-14, 22"
 
 
 def test_format_ranges_empty() -> None:
-    assert _format_ranges([]) == ""
-
-
-# ── parse_coverage_output ─────────────────────────────────────────────────────
-
-_COVERAGE_OUTPUT = """\
----------- coverage: platform linux ----------
-Name      Stmts   Miss  Cover   Missing
------------------------------------------
-calc.py      15      3    80%   8, 12-14
------------------------------------------
-TOTAL        15      3    80%
-"""
-
-
-def test_parse_coverage_output_finds_module() -> None:
-    report = parse_coverage_output(_COVERAGE_OUTPUT, "src/calc.py")
-    assert report is not None
-    assert report.module == "calc"
-    assert report.total_lines == 15
-    assert report.covered_lines == 12
-
-
-def test_parse_coverage_output_parses_missing_lines() -> None:
-    report = parse_coverage_output(_COVERAGE_OUTPUT, "src/calc.py")
-    assert report is not None
-    assert 8 in report.missing_lines
-    assert 12 in report.missing_lines
-    assert 13 in report.missing_lines
-    assert 14 in report.missing_lines
-
-
-def test_parse_coverage_output_returns_none_for_unknown_module() -> None:
-    report = parse_coverage_output(_COVERAGE_OUTPUT, "nonexistent.py")
-    assert report is None
-
-
-def test_parse_coverage_output_no_missing_column() -> None:
-    output = "Name  Stmts  Miss  Cover\ncalc.py   10   0  100%\n"
-    report = parse_coverage_output(output, "calc.py")
-    assert report is not None
-    assert report.covered_lines == 10
-    assert report.missing_lines == []
+    assert format_ranges([]) == ""

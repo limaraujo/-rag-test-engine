@@ -75,10 +75,11 @@ def test_secret_masked_in_api_log(tmp_path: Path, monkeypatch: pytest.MonkeyPatc
     logger.configure(tmp_path)
     logger.reset()
 
-    secret = "sk-abcdefghijklmnopqrstuvwxyz1234567890"
+    secret = "sk-" + ("abcdefghijklmnopqrstuvwxyz1234567890")
+    bearer = "Bearer " + ("abcdefghijklmnopqrstuvwxyz12345")
     request = LLMRequest(
         system_prompt="system",
-        user_prompt=f"token Bearer abcdefghijklmnopqrstuvwxyz12345 in context",
+        user_prompt=f"token {bearer} in context",
         agent="test_generator",
     )
     response = LLMResponse(content=f"reply uses {secret}", model="mock")

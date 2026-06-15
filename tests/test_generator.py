@@ -49,12 +49,11 @@ def _valid_code() -> str:
 
 # ── Prompt ────────────────────────────────────────────────────────────────────
 
-def test_prompt_does_not_require_docstrings() -> None:
+def test_prompt_requests_comments_on_each_test() -> None:
     prompt = _build_system_prompt()
-    assert "docstring" in prompt.lower()
-    assert "sem docstrings" in prompt.lower() or "sem docstring" in prompt.lower()
-    assert "uma docstring" not in prompt.lower()
-    assert "adicione uma docstring" not in prompt.lower()
+    assert "comentário" in prompt.lower() or "comentarios" in prompt.lower()
+    assert "test_*" in prompt or "test_" in prompt.lower()
+    assert "caso" in prompt.lower() or "cenário" in prompt.lower() or "cenario" in prompt.lower()
 
 
 def test_prompt_includes_limits() -> None:
@@ -225,6 +224,18 @@ def test_extract_coverage_hints_falls_back_to_name_only() -> None:
     """)
     hints = _extract_coverage_hints(code)
     assert hints == ["test_divide_by_zero"]
+
+
+def test_extract_coverage_hints_uses_comment_when_present() -> None:
+    code = dedent("""\
+        # Happy path: divide inteiros positivos.
+        def test_divide_normal():
+            assert divide(10, 2) == 5.0
+    """)
+    hints = _extract_coverage_hints(code)
+    assert len(hints) == 1
+    assert "test_divide_normal" in hints[0]
+    assert "Happy path" in hints[0]
 
 
 def test_extract_coverage_hints_multiple_tests() -> None:

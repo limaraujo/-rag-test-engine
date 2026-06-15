@@ -13,6 +13,7 @@ pydantic-settings
 
 # Execução de testes
 pytest
+pytest-cov
 coverage
 
 # Utilidades

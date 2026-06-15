@@ -52,8 +52,8 @@ Referência por pacote.
 | Arquivo | Descrição |
 |---|---|
 | `runner.py` | `TestRunner`, `RunResult` |
-| `coverage_analyzer.py` | `CoverageAnalyzer` — cobertura orientada |
-| `coverage.py` | Utilitários legados de cobertura |
+| `coverage_analyzer.py` | `CoverageAnalyzer` — pytest-cov + análise de gaps/branches |
+| `coverage_format.py` | Formatação de intervalos de linhas (missing ranges) |
 
 ## `llm/`
 

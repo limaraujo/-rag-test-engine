@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import re
 import subprocess
 import tempfile
@@ -9,6 +8,16 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from schemas.outputs import GeneratedTest
+from execution.pytest_support import (
+    build_pytest_env,
+    parse_pytest_counts,
+    pytest_timeout_message,
+    safe_test_stem,
+)
+
+# Aliases legados para compatibilidade com imports existentes.
+_build_env = build_pytest_env
+_parse_pytest_counts = parse_pytest_counts
 
 
 @dataclass
@@ -128,8 +137,7 @@ class TestRunner:
             Um :class:`RunResult` com status de sucesso/falha e saída.
         """
         with tempfile.TemporaryDirectory() as tmpdir:
-            safe_name = re.sub(r"[^a-zA-Z0-9_]", "_", test.target_function)
-            test_file = Path(tmpdir) / f"test_{safe_name}.py"
+            test_file = Path(tmpdir) / f"test_{safe_test_stem(test.target_function)}.py"
             test_file.write_text(test.full_code, encoding="utf-8")
 
             return self._run_pytest(
@@ -163,7 +171,7 @@ class TestRunner:
                 tests_dir=str(tests_dir),
             )
 
-        env = _build_env(pythonpath or [])
+        env = build_pytest_env(pythonpath or [])
         project_root = (rootdir or tests_dir).resolve()
 
         cmd = [
@@ -189,13 +197,13 @@ class TestRunner:
                 passed=False,
                 exit_code=-1,
                 stdout="",
-                stderr=f"pytest excedeu o tempo limite após {timeout}s",
+                stderr=pytest_timeout_message(timeout),
                 duration_seconds=float(timeout),
                 tests_dir=str(tests_dir),
             )
 
         duration = round(time.perf_counter() - start, 3)
-        num_passed, num_failed, num_errors = _parse_pytest_counts(proc.stdout)
+        num_passed, num_failed, num_errors = parse_pytest_counts(proc.stdout)
 
         return SuiteValidationResult(
             passed=proc.returncode == 0,
@@ -217,7 +225,7 @@ class TestRunner:
         extra_pythonpath: list[str],
         timeout: int,
     ) -> RunResult:
-        env = _build_env(extra_pythonpath)
+        env = build_pytest_env(extra_pythonpath)
 
         cmd = [
             "python", "-m", "pytest",
@@ -243,13 +251,13 @@ class TestRunner:
                 passed=False,
                 exit_code=-1,
                 stdout="",
-                stderr=f"pytest excedeu o tempo limite após {timeout}s",
+                stderr=pytest_timeout_message(timeout),
                 duration_seconds=float(timeout),
                 test_file=str(test_file),
             )
 
         duration = round(time.perf_counter() - start, 3)
-        num_passed, num_failed, num_errors = _parse_pytest_counts(proc.stdout)
+        num_passed, num_failed, num_errors = parse_pytest_counts(proc.stdout)
 
         return RunResult(
             passed=proc.returncode == 0,
@@ -262,43 +270,3 @@ class TestRunner:
             num_failed=num_failed,
             num_errors=num_errors,
         )
-
-
-# ── Helpers ───────────────────────────────────────────────────────────────────
-
-def _build_env(extra_pythonpath: list[str]) -> dict[str, str]:
-    """Retorna uma cópia de os.environ com extra_pythonpath adicionado no início."""
-    env = os.environ.copy()
-    if extra_pythonpath:
-        existing = env.get("PYTHONPATH", "")
-        joined = os.pathsep.join(str(Path(p).resolve()) for p in extra_pythonpath)
-        env["PYTHONPATH"] = f"{joined}{os.pathsep}{existing}" if existing else joined
-    return env
-
-
-def _parse_pytest_counts(output: str) -> tuple[int, int, int]:
-    """
-    Analisa a linha de resumo do pytest para extrair contagens de sucesso/falha/erro.
-
-    Lida com linhas como::
-
-        3 passed, 1 failed in 0.42s
-        2 passed in 0.10s
-        1 error in 0.05s
-    """
-    passed = failed = errors = 0
-    for line in reversed(output.splitlines()):
-        if not any(k in line for k in ("passed", "failed", "error")):
-            continue
-        m = re.search(r"(\d+) passed", line)
-        if m:
-            passed = int(m.group(1))
-        m = re.search(r"(\d+) failed", line)
-        if m:
-            failed = int(m.group(1))
-        m = re.search(r"(\d+) error", line)
-        if m:
-            errors = int(m.group(1))
-        break
-
-    return passed, failed, errors

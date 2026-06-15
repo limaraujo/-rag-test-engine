@@ -205,7 +205,7 @@ class Settings(BaseSettings):
 
     #Limite de tokens de saída do LLM (None = sem limite na API).
     LLM_MAX_OUTPUT_TOKENS: int | None = Field(
-        default=1536,
+        default=None,
     )
 
     #Limites solicitados ao LLM na geração de testes (validados após parsing).

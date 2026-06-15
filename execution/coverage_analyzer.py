@@ -2,18 +2,23 @@ from __future__ import annotations
 
 import ast
 import json
-import re
 import subprocess
 import tempfile
 import time
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 
 import coverage as cov_lib
 
 from config.settings import settings
-from execution.coverage import _format_ranges
-from execution.runner import RunResult, _build_env, _parse_pytest_counts
+from execution.coverage_format import format_ranges
+from execution.pytest_support import (
+    build_pytest_env,
+    parse_pytest_counts,
+    pytest_timeout_message,
+    safe_test_stem,
+)
+from execution.runner import RunResult
 from schemas.outputs import GeneratedTest
 
 
@@ -39,12 +44,17 @@ class CoverageAnalysisResult:
     executable_lines: set[int] = field(default_factory=set)
     missing_lines: list[int] = field(default_factory=list)
     missing_branches: list[tuple[int, int]] = field(default_factory=list)
+    missing_branch_lines: list[int] = field(default_factory=list)
+    branch_total: int = 0
+    branch_missing: int = 0
+    arc_possibilities: set[tuple[int, int]] = field(default_factory=set)
+    arcs_executed: set[tuple[int, int]] = field(default_factory=set)
     function_spans: list[_FunctionSpan] = field(default_factory=list)
 
 
 class CoverageAnalyzer:
     """
-    Executa coverage.py após geração de testes e extrai lacunas estruturadas.
+    Executa pytest-cov após geração de testes e extrai lacunas estruturadas.
 
     Fluxo típico::
 
@@ -80,28 +90,28 @@ class CoverageAnalyzer:
         self._gaps: list[CoverageGap] | None = None
 
     def run(self) -> RunResult:
-        """Executa pytest sob coverage.py e armazena o resultado para análise."""
+        """Executa pytest com pytest-cov (--cov-branch) e carrega o .coverage gerado."""
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp = Path(tmpdir)
-            safe_name = re.sub(r"[^a-zA-Z0-9_]", "_", self._test.target_function)
-            test_file = tmp / f"test_{safe_name}.py"
+            test_file = tmp / f"test_{safe_test_stem(self._test.target_function)}.py"
             test_file.write_text(self._test.full_code, encoding="utf-8")
 
             data_file = tmp / ".coverage"
             source_dir = str(self._source_path.parent)
 
-            env = _build_env(self._pythonpath)
+            env = build_pytest_env(self._pythonpath)
+            env["COVERAGE_FILE"] = str(data_file)
+
             cmd = [
-                "python", "-m", "coverage", "run",
-                "--branch",
-                f"--source={source_dir}",
-                f"--data-file={data_file}",
-                "-m", "pytest",
+                "python", "-m", "pytest",
                 str(test_file),
+                f"--cov={source_dir}",
+                "--cov-branch",
+                "--cov-report=",
                 "-v",
                 "--tb=short",
                 "--no-header",
-                "--rootdir", str(test_file.parent),
+                "--rootdir", str(tmp),
                 "--noconftest",
             ]
 
@@ -113,13 +123,14 @@ class CoverageAnalyzer:
                     text=True,
                     timeout=self._timeout,
                     env=env,
+                    cwd=str(tmp),
                 )
             except subprocess.TimeoutExpired:
                 self._run_result = RunResult(
                     passed=False,
                     exit_code=-1,
                     stdout="",
-                    stderr=f"pytest excedeu o tempo limite após {self._timeout}s",
+                    stderr=pytest_timeout_message(self._timeout),
                     duration_seconds=float(self._timeout),
                     test_file=str(test_file),
                 )
@@ -136,7 +147,7 @@ class CoverageAnalyzer:
             except cov_lib.exceptions.CoverageException:
                 cov = None
 
-            num_passed, num_failed, num_errors = _parse_pytest_counts(proc.stdout)
+            num_passed, num_failed, num_errors = parse_pytest_counts(proc.stdout)
             self._run_result = RunResult(
                 passed=proc.returncode == 0,
                 exit_code=proc.returncode,
@@ -192,10 +203,14 @@ class CoverageAnalyzer:
                 "source_file": str(self._source_path),
                 "target_function": self._target_function,
                 "line_coverage_percent": 0.0,
+                "branch_coverage_percent": 0.0,
                 "threshold_percent": self._threshold,
                 "meets_threshold": False,
                 "total_executable_lines": 0,
                 "covered_lines": 0,
+                "total_branches": 0,
+                "covered_branches": 0,
+                "missing_branches_count": 0,
                 "missing_lines": [],
                 "gaps": [asdict(g) for g in gaps],
                 "uncovered_branches": [],
@@ -208,6 +223,15 @@ class CoverageAnalyzer:
         covered = total - len(missing)
         percentage = round(100.0 * covered / total, 1) if total else 100.0
 
+        branch_total, branch_missing, branch_covered, branch_percentage, scoped_missing_lines = (
+            _branch_stats(analysis, self._target_function)
+        )
+        if scoped_missing_lines is not None:
+            analysis = replace(
+                analysis,
+                missing_branch_lines=scoped_missing_lines,
+            )
+
         uncovered_branches = self._branch_gaps(analysis)
         uncovered_functions = self._uncovered_functions(analysis)
 
@@ -215,12 +239,16 @@ class CoverageAnalyzer:
             "source_file": str(self._source_path),
             "target_function": self._target_function,
             "line_coverage_percent": percentage,
+            "branch_coverage_percent": branch_percentage,
             "threshold_percent": self._threshold,
             "meets_threshold": percentage >= self._threshold,
             "total_executable_lines": total,
             "covered_lines": covered,
+            "total_branches": branch_total,
+            "covered_branches": branch_covered,
+            "missing_branches_count": branch_missing,
             "missing_lines": missing,
-            "missing_lines_formatted": _format_ranges(missing),
+            "missing_lines_formatted": format_ranges(missing),
             "gaps": [asdict(g) for g in gaps],
             "uncovered_branches": uncovered_branches,
             "uncovered_functions": uncovered_functions,
@@ -242,6 +270,40 @@ class CoverageAnalyzer:
 
     def _analyze_file(self, cov: cov_lib.Coverage) -> CoverageAnalysisResult | None:
         file_path = str(self._source_path)
+        source = self._source_path.read_text(encoding="utf-8")
+        spans = _index_functions(source)
+
+        try:
+            analysis = cov._analyze(file_path)
+        except cov_lib.exceptions.CoverageException:
+            return self._analyze_file_legacy(cov, file_path, spans)
+
+        numbers = analysis.numbers
+        missing_branch_lines = sorted(int(line) for line in analysis.missing_branch_arcs())
+        branch_arcs = [
+            (line, line)
+            for line in missing_branch_lines
+        ]
+
+        return CoverageAnalysisResult(
+            file_path=file_path,
+            executable_lines=set(analysis.statements),
+            missing_lines=sorted(analysis.missing),
+            missing_branches=branch_arcs,
+            missing_branch_lines=missing_branch_lines,
+            branch_total=numbers.n_branches,
+            branch_missing=numbers.n_missing_branches,
+            arc_possibilities=set(analysis.arc_possibilities_set),
+            arcs_executed=set(analysis.arcs_executed_set),
+            function_spans=spans,
+        )
+
+    def _analyze_file_legacy(
+        self,
+        cov: cov_lib.Coverage,
+        file_path: str,
+        spans: list[_FunctionSpan],
+    ) -> CoverageAnalysisResult | None:
         try:
             filename, executable, _excluded, missing, missing_branches = cov.analysis2(
                 file_path
@@ -249,37 +311,43 @@ class CoverageAnalyzer:
         except cov_lib.exceptions.CoverageException:
             return None
 
-        source = self._source_path.read_text(encoding="utf-8")
-        spans = _index_functions(source)
-
         branch_arcs: list[tuple[int, int]] = []
+        missing_branch_lines: list[int] = []
         if isinstance(missing_branches, (list, tuple)):
             for arc in missing_branches:
                 if isinstance(arc, (list, tuple)) and len(arc) >= 2:
                     branch_arcs.append((int(arc[0]), int(arc[1])))
+        elif isinstance(missing_branches, str) and missing_branches.isdigit():
+            line = int(missing_branches)
+            missing_branch_lines = [line]
+            branch_arcs = [(line, line)]
 
         return CoverageAnalysisResult(
             file_path=filename,
             executable_lines=set(executable),
             missing_lines=sorted(missing),
             missing_branches=branch_arcs,
+            missing_branch_lines=missing_branch_lines,
             function_spans=spans,
         )
 
     def _branch_gaps(self, analysis: CoverageAnalysisResult) -> list[dict]:
-        if not analysis.missing_branches:
+        branch_lines = analysis.missing_branch_lines
+        if not branch_lines and analysis.missing_branches:
+            branch_lines = sorted({from_line for from_line, _ in analysis.missing_branches})
+        if not branch_lines:
             return []
 
         gaps: list[dict] = []
-        for from_line, to_line in analysis.missing_branches:
-            fn = _function_at_line(analysis.function_spans, from_line)
+        for line in branch_lines:
+            fn = _function_at_line(analysis.function_spans, line)
             if self._target_function and fn != self._target_function:
                 continue
             gaps.append({
                 "file_path": str(self._source_path),
                 "function_name": fn,
-                "from_line": from_line,
-                "to_line": to_line,
+                "from_line": line,
+                "to_line": line,
             })
         return gaps
 
@@ -309,6 +377,53 @@ class CoverageAnalyzer:
                     "function_name": span.name,
                 })
         return uncovered
+
+
+def _span_for_function(
+    spans: list[_FunctionSpan],
+    target_function: str | None,
+) -> _FunctionSpan | None:
+    if not target_function:
+        return None
+    for span in spans:
+        if span.name == target_function:
+            return span
+    return None
+
+
+def _branch_stats(
+    analysis: CoverageAnalysisResult,
+    target_function: str | None,
+) -> tuple[int, int, int, float, list[int] | None]:
+    """
+    Calcula cobertura de branches a partir dos dados do pytest-cov/coverage.py.
+
+    Com ``target_function``, limita aos arcos de branch dentro desse símbolo
+    (ignora branches de outras funções no mesmo arquivo).
+    """
+    if analysis.arc_possibilities:
+        span = _span_for_function(analysis.function_spans, target_function)
+        if span is not None:
+            body_lines = {
+                line for line in analysis.executable_lines
+                if span.start_line < line <= span.end_line
+            }
+            exits = [
+                arc for arc in analysis.arc_possibilities
+                if arc[0] in body_lines and arc[0] > 0 and arc[1] > 0
+            ]
+            total = len(exits)
+            missing = sum(1 for arc in exits if arc not in analysis.arcs_executed)
+            covered = max(total - missing, 0)
+            percentage = round(100.0 * covered / total, 1) if total else 100.0
+            missing_lines = sorted(set(analysis.missing_branch_lines) & body_lines)
+            return total, missing, covered, percentage, missing_lines
+
+    total = analysis.branch_total
+    missing = analysis.branch_missing
+    covered = max(total - missing, 0)
+    percentage = round(100.0 * covered / total, 1) if total else 100.0
+    return total, missing, covered, percentage, None
 
 
 def _index_functions(source: str) -> list[_FunctionSpan]:
@@ -348,5 +463,10 @@ def coverage_round_signature(summary: dict) -> str:
         (g.get("function_name"), tuple(g.get("uncovered_lines") or []))
         for g in summary.get("gaps") or []
     )
+    branches = tuple(
+        (b.get("function_name"), b.get("from_line"), b.get("to_line"))
+        for b in summary.get("uncovered_branches") or []
+    )
     pct = summary.get("line_coverage_percent")
-    return f"{pct}|{missing}|{gaps}"
+    branch_pct = summary.get("branch_coverage_percent")
+    return f"{pct}|{branch_pct}|{missing}|{gaps}|{branches}"
