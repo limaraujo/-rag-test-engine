@@ -101,7 +101,11 @@ Não reutilize credenciais que já circularam em texto claro.
 | `RETRIEVER_VECTOR_WEIGHT` | `0.5` | Peso da similaridade vetorial |
 | `RETRIEVER_DEPENDENCY_WEIGHT` | `0.3` | Peso do dependency graph |
 | `RETRIEVER_CALL_GRAPH_WEIGHT` | `0.2` | Peso do call graph |
-| `RETRIEVER_SCORE_THRESHOLD` | `0.55` | Similaridade mínima (0–1) |
+| `RETRIEVER_SCORE_THRESHOLD` | `0.55` | Similaridade mínima (0–1) para símbolos |
+| `RETRIEVER_TEST_SCORE_THRESHOLD` | `0.45` | Similaridade mínima para testes similares |
+| `RAG_SKIP_ISOLATED_SYMBOLS` | `true` | Pula RAG em símbolos triviais isolados |
+| `RAG_MIN_HYBRID_SCORE` | `0.35` | Filtra candidatos só-vetoriais fracos |
+| `RAG_SAME_MODULE_BOOST` | `0.15` | Bônus no rerank para mesmo diretório |
 
 Os pesos híbridos devem somar **1.0**.
 
@@ -129,9 +133,31 @@ Definidos em `config/run_profiles.py`. Sobrescrevem `RAG_MODE` e `GENERATION_CAC
 ```bash
 uv run python main.py mockes --profile rag-limitado
 uv run python scripts/run_all_profiles.py mockes
+uv run python scripts/clear_cache.py
 ```
 
 Ver [CLI.md](CLI.md#perfis-de-teste---profile).
+
+### `scripts/run_all_profiles.py`
+
+| Argumento | Padrão | Descrição |
+|---|---|---|
+| `SOURCE_DIR` | `mockes` | Diretório Python a analisar |
+| `--allow-risky-source` | `false` | Repassa para cada `main()` |
+| `--protocol` | `fair` | `fair`: RAG sem cache cruzado + 2ª passagem `com-cache-rerun`. `legacy`: limpa cache após cada perfil |
+
+### Cache de geração e limpeza
+
+O cache persistente armazena testes **já aprovados** (hash do código-fonte + contexto RAG) para o perfil `com-cache` e quando `GENERATION_CACHE_ENABLED=true` no `.env`.
+
+| Ação | Comando |
+|---|---|
+| Limpar após um run isolado | `python scripts/clear_cache.py` |
+| Protocolo justo (lote) | `python scripts/run_all_profiles.py [SOURCE_DIR]` — popula cache em `com-cache`, mede em `com-cache-rerun` |
+| Comportamento antigo | `--protocol legacy` |
+| Ver caminho sem apagar | `python scripts/clear_cache.py --dry-run` |
+
+**Importante:** limpar `.cache/generation/` **não** apaga vetores no Qdrant. Para reindexar embeddings do zero, use `REINDEX_SYMBOLS=true` ou limpe a coleção no servidor Qdrant.
 
 ### Comportamento por `RAG_MODE`
 

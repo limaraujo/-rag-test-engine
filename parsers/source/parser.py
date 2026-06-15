@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import ast
+import logging
 from pathlib import Path
 import sys
 from typing import Iterator
@@ -12,6 +13,8 @@ from parsers.source.extract import SymbolExtractor
 from parsers.source.models.ExtractedSymbol import ExtractedSymbol
 from parsers.source.scanner import RepositoryScanner
 
+logger = logging.getLogger(__name__)
+
 
 @dataclass(frozen=True)
 class ParsedFile:
@@ -22,7 +25,12 @@ class ParsedFile:
 def parse_repository(root: str) -> Iterator[ParsedFile]:
 	scanner = RepositoryScanner(root)
 	for path in scanner.scan_repository():
-		tree = get_ast_from_file(str(path))
+		try:
+			tree = get_ast_from_file(str(path))
+		except SyntaxError as exc:
+			rel = path.resolve().relative_to(Path(root).resolve()).as_posix()
+			logger.warning("[ingest] parse ignorado — %s: %s", rel, exc)
+			continue
 		yield ParsedFile(path=str(path), tree=tree)
 
 

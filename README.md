@@ -48,7 +48,7 @@ uv run python main.py mockes --profile rag-limitado
 uv run python main.py mockes --profile rag-completo
 uv run python main.py mockes --profile com-cache
 
-# Rodar os 4 perfis em sequência
+# Rodar lote comparativo (protocolo justo: RAG + com-cache-rerun)
 uv run python scripts/run_all_profiles.py mockes
 ```
 
@@ -79,7 +79,9 @@ runs/<slug>/[<run_group>/]<profile>/[<timestamp>/]
 
 Ingestão isolada (sem LLM): `uv run python scripts/ingest_only.py [SOURCE_DIR]`
 
-Lote dos 4 perfis: `runs/mockes/20260615_143022/sem-rag/`, `.../rag-limitado/`, etc.
+Lote dos 4 perfis: `runs/mockes/20260615_143022/sem-rag/`, `.../rag-limitado/`, etc. O script limpa `.cache/generation/` após cada perfil por padrão.
+
+Repositório externo (ex. [code-katas](https://github.com/rwisecar/code-katas)): [docs/REPOSITORY_TESTING.md](docs/REPOSITORY_TESTING.md)
 
 ## Configuração
 
@@ -117,6 +119,7 @@ Quatro presets via `--profile` para comparar RAG e cache sem editar o `.env`:
 ```bash
 uv run python main.py mockes --profile rag-completo
 uv run python scripts/run_all_profiles.py mockes
+uv run python scripts/clear_cache.py   # após run isolado
 ```
 
 Detalhes: [docs/CLI.md](docs/CLI.md#perfis-de-teste---profile)
@@ -186,7 +189,7 @@ prompts/       # templates LLM e montagem RAG
 parsers/       # parsing de respostas LLM e código-fonte (AST/grafos)
 cache/         # cache persistente de gerações aprovadas
 config/        # settings, run_profiles, logging, run workspace
-scripts/       # run_all_profiles.py (comparar os 4 perfis)
+scripts/       # ingest_only.py, run_all_profiles.py, clear_cache.py
 execution/     # TestRunner, CoverageAnalyzer
 llm/           # OpenAI, embeddings, usage tracker
 retrieval/     # Qdrant, Retriever, busca híbrida

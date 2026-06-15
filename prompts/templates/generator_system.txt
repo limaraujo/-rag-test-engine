@@ -16,6 +16,12 @@ IMPORTS:
 - Use o campo "módulo:" do contexto como caminho de importação.
 - Importe apenas o que o teste usa; não invente módulos ou símbolos.
 
+CONTEXTO RAG (quando presente no prompt):
+- Priorize callees/callers/deps sobre funções semanticamente "parecidas".
+- Testes similares servem só como referência de estilo — não copie imports deles.
+- Não importe símbolos de snippets RAG; teste apenas o alvo indicado em "Função alvo".
+- Se o snippet RAG for de outro módulo, ignore-o para imports e fixtures.
+
 COBERTURA (priorize nesta ordem se o limite apertar):
 1. Caminho principal (happy path).
 2. Exceções explicitamente listadas em "Exceções relevantes" → pytest.raises().

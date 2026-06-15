@@ -65,6 +65,12 @@ def retriever(store, fake_embedder):
     return Retriever(store=store, embedder=fake_embedder)
 
 
+@pytest.fixture(autouse=True)
+def _disable_rag_gating_in_tests(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("config.settings.settings.RAG_SKIP_ISOLATED_SYMBOLS", False)
+    monkeypatch.setattr("config.settings.settings.RAG_MIN_HYBRID_SCORE", 0.0)
+
+
 def test_enrich_populates_retrieval_context(retriever, store, fake_embedder, monkeypatch) -> None:
     from retrieval.embeddings import embed_symbol
 
@@ -145,7 +151,7 @@ def test_enrich_with_call_graph_boosts_neighbors(
 
     assert enriched.retrieval_context is not None
     assert enriched.retrieval_context.callee_functions == ["symbol: helper\ndef helper(): pass"]
-    assert enriched.retrieval_context.related_functions == ["symbol: helper\ndef helper(): pass"]
+    assert enriched.retrieval_context.related_functions == []
 
 
 def test_enrich_with_dependency_graph(

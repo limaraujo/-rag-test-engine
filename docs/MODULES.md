@@ -141,7 +141,9 @@ Análise estática de repositórios Python (antigo `ingest/`).
 | Arquivo | Descrição |
 |---|---|
 | `ingest_only.py` | Ingestão estática (parser + grafos + `ingest_selection.json`) |
-| `run_all_profiles.py` | Executa os 4 perfis (`sem-rag` … `com-cache`) em sequência |
+| `run_all_profiles.py` | Lote comparativo: protocolo `fair` (RAG + `com-cache-rerun`) ou `legacy` |
+| `clear_cache.py` | Remove o cache persistente de geração (`.cache/generation/`) |
+| `compare_run_metrics.py` | Compara métricas entre perfis de um `run_group` |
 
 ## `repositorios/`
 

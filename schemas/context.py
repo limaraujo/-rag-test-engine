@@ -215,11 +215,25 @@ class FunctionContext(BaseModel):
             "```",
         ]
 
-        if self.imports and not compact:
+        if self.imports:
             parts.append(f"\n## Imports disponíveis no arquivo\n{bullet(self.imports)}")
 
         if self.dependencies and not compact:
             parts.append(f"\n## Dependências chamadas\n{bullet(self.dependencies)}")
+
+        if compact and self.retrieval_context:
+            rc = self.retrieval_context
+            hints: list[str] = []
+            for label, items in (
+                ("Chamadas pelo alvo", rc.callee_functions),
+                ("Chamadores do alvo", rc.caller_functions),
+            ):
+                if items:
+                    hints.append(f"{label}:\n" + "\n".join(f"  - {i[:200]}" for i in items[:2]))
+            if hints:
+                parts.append(
+                    "\n## Contexto estrutural (reparo)\n" + "\n".join(hints)
+                )
 
         if self.exceptions:
             parts.append(f"\n## Exceções relevantes\n{bullet(self.exceptions)}")

@@ -7,7 +7,7 @@ from typing import Any, Iterator, Literal
 from config.settings import settings
 
 RagMode = Literal["none", "limited", "full"]
-ProfileName = Literal["sem-rag", "rag-limitado", "rag-completo", "com-cache"]
+ProfileName = Literal["sem-rag", "rag-limitado", "rag-completo", "com-cache", "com-cache-rerun"]
 
 _LIMITED_OVERRIDES: dict[str, Any] = {
     "PROMPT_MAX_RAG_TOTAL_CHARS": 600,
@@ -67,9 +67,28 @@ PROFILES: dict[str, RunProfile] = {
         generation_cache_enabled=True,
         setting_overrides={},
     ),
+    "com-cache-rerun": RunProfile(
+        name="com-cache-rerun",
+        label="RAG completo, com cache (2ª passagem — medir hits)",
+        rag_mode="full",
+        generation_cache_enabled=True,
+        setting_overrides={},
+    ),
 }
 
-PROFILE_CHOICES: list[str] = list(PROFILES.keys())
+# Perfis expostos na CLI (`main.py --profile`)
+PROFILE_CHOICES: list[str] = [
+    "sem-rag",
+    "rag-limitado",
+    "rag-completo",
+    "com-cache",
+]
+
+# Sequência do lote comparativo (`scripts/run_all_profiles.py`)
+BATCH_PROFILE_SEQUENCE: list[str] = [
+    *PROFILE_CHOICES,
+    "com-cache-rerun",
+]
 
 _active_profile: str | None = None
 

@@ -10,6 +10,7 @@
 | [REPOSITORY_TESTING.md](REPOSITORY_TESTING.md) | Clonar repo externo e testar nos 4 perfis |
 | [CLI.md](CLI.md) | Argumentos de linha de comando e perfis (`--profile`) |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Arquitetura, fases do pipeline, diagramas |
+| [RAG_TUNING.md](RAG_TUNING.md) | Ajuste do RAG, gating, protocolo de avaliação |
 | [CONFIGURATION.md](CONFIGURATION.md) | Variáveis de ambiente (`.env`) |
 | [API.md](API.md) | `main()`, agentes e uso programático |
 | [MODULES.md](MODULES.md) | Referência de módulos por pacote |
@@ -47,7 +48,8 @@ Quatro presets para comparar RAG e cache — ver [CLI.md](CLI.md#perfis-de-teste
 ```bash
 uv run python main.py mockes --profile sem-rag
 uv run python scripts/ingest_only.py mockes          # só parser (sem LLM)
-uv run python scripts/run_all_profiles.py mockes   # os 4 em sequência
+uv run python scripts/run_all_profiles.py mockes   # os 4 em sequência; limpa cache após cada perfil
+uv run python scripts/clear_cache.py               # limpar cache manualmente
 ```
 
 ## Estrutura do repositório
@@ -62,7 +64,7 @@ retrieval/     # Qdrant, busca híbrida
 execution/     # pytest, cobertura
 llm/           # OpenAI, embeddings, telemetria
 schemas/       # modelos Pydantic
-scripts/       # ingest_only.py, run_all_profiles.py
+scripts/       # ingest_only.py, run_all_profiles.py, clear_cache.py
 repositorios/  # clones opcionais (ex.: code_katas)
 ```
 

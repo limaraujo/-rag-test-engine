@@ -6,8 +6,14 @@ from config.run_profiles import PROFILES, apply_run_profile, get_active_profile
 from config.settings import settings
 
 
-def test_profile_choices_cover_four_modes() -> None:
-    assert set(PROFILES) == {"sem-rag", "rag-limitado", "rag-completo", "com-cache"}
+def test_profile_choices_cover_modes() -> None:
+    assert set(PROFILES) == {
+        "sem-rag",
+        "rag-limitado",
+        "rag-completo",
+        "com-cache",
+        "com-cache-rerun",
+    }
 
 
 def test_sem_rag_profile_disables_rag_and_cache() -> None:
@@ -39,6 +45,12 @@ def test_rag_completo_disables_cache() -> None:
 
 def test_com_cache_enables_generation_cache() -> None:
     with apply_run_profile("com-cache"):
+        assert settings.RAG_MODE == "full"
+        assert settings.GENERATION_CACHE_ENABLED is True
+
+
+def test_com_cache_rerun_matches_com_cache_settings() -> None:
+    with apply_run_profile("com-cache-rerun"):
         assert settings.RAG_MODE == "full"
         assert settings.GENERATION_CACHE_ENABLED is True
 

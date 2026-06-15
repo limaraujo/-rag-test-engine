@@ -13,6 +13,12 @@ from llm.models import LLMEmbeddingRequest
 from retrieval.embedding_builder import content_hash, to_embedding_doc
 from retrieval.hybrid import HybridCandidate, rerank_candidates
 from retrieval.qdrant_client import QdrantStore
+from retrieval.rag_policy import (
+    exclude_graph_from_related,
+    filter_hybrid_candidates,
+    should_apply_rag,
+    same_module,
+)
 from schemas.context import FunctionContext
 from schemas.retrieval_context import RetrievalContext, RetrievalMetrics
 
@@ -112,6 +118,26 @@ class Retriever:
         callee_functions = self._source_texts(callee_qnames, symbols_index)
         dependency_functions = self._source_texts(dependency_qnames, symbols_index)
 
+        graph_qnames = caller_qnames | callee_qnames | dependency_qnames
+
+        if not should_apply_rag(
+            symbol,
+            caller_qnames=caller_qnames,
+            callee_qnames=callee_qnames,
+            dependency_qnames=dependency_qnames,
+        ):
+            logger.info(
+                "retrieval[%s] skipped — símbolo isolado/trivial (RAG_SKIP_ISOLATED_SYMBOLS)",
+                symbol.qualified_name,
+            )
+            return ctx.model_copy(
+                update={
+                    "retrieval_context": RetrievalContext(),
+                    "related_functions": [],
+                    "similar_tests": [],
+                }
+            )
+
         vector_hits = self._search_symbols(
             query_vector,
             exclude_name=symbol.qualified_name,
@@ -125,13 +151,15 @@ class Retriever:
             caller_qnames=caller_qnames,
             callee_qnames=callee_qnames,
             symbols_by_name=symbols_index,
+            target_symbol=symbol,
             top_k=limit,
         )
+        related = exclude_graph_from_related(related, graph_qnames)
 
         similar_tests = self._fetch_similar_tests(
             query_vector,
             top_k=k_tests,
-            score_threshold=threshold,
+            score_threshold=settings.RETRIEVER_TEST_SCORE_THRESHOLD,
         )
 
         retrieval_context = RetrievalContext(
@@ -401,22 +429,23 @@ class Retriever:
         caller_qnames: set[str],
         callee_qnames: set[str],
         symbols_by_name: dict[str, ExtractedSymbol],
+        target_symbol: ExtractedSymbol,
         top_k: int,
     ) -> list[str]:
-        all_qnames = (
-            set(vector_hits)
-            | dependency_qnames
-            | caller_qnames
-            | callee_qnames
-        )
+        graph_qnames = dependency_qnames | caller_qnames | callee_qnames
+        all_qnames = set(vector_hits) | graph_qnames
 
         candidates: list[HybridCandidate] = []
         for qname in all_qnames:
             if qname in symbols_by_name:
                 text = symbols_by_name[qname].source_code.strip()
                 vector_sim = vector_hits[qname][1] if qname in vector_hits else 0.0
+                module_match = (
+                    1.0 if same_module(target_symbol, symbols_by_name[qname]) else 0.0
+                )
             elif qname in vector_hits:
                 text, vector_sim = vector_hits[qname]
+                module_match = 0.0
             else:
                 continue
 
@@ -434,15 +463,21 @@ class Retriever:
                         if qname in caller_qnames or qname in callee_qnames
                         else 0.0
                     ),
+                    same_module_score=module_match,
                 )
             )
 
-        ranked = rerank_candidates(candidates, top_k=top_k)
-        scores = [c.hybrid_score for c in ranked]
+        ranked = rerank_candidates(candidates, top_k=len(candidates))
+        filtered = filter_hybrid_candidates(
+            ranked,
+            graph_qnames=graph_qnames,
+            top_k=top_k,
+        )
+        scores = [c.hybrid_score for c in filtered]
         self._last_top_score = scores[0] if scores else 0.0
         self._last_avg_score = sum(scores) / len(scores) if scores else 0.0
 
-        return [f"symbol: {c.qualified_name}\n{c.text}" for c in ranked]
+        return [f"symbol: {c.qualified_name}\n{c.text}" for c in filtered]
 
     def _source_texts(
         self,

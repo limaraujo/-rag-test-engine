@@ -40,8 +40,14 @@ uv run python main.py mockes --profile rag-completo
 # RAG completo + cache persistente
 uv run python main.py mockes --profile com-cache
 
-# Rodar os 4 perfis em sequência
+# Rodar os 4 perfis + 2ª passagem de cache (protocolo justo, padrão)
 uv run python scripts/run_all_profiles.py mockes
+
+# Comportamento antigo (limpa cache após cada perfil, sem com-cache-rerun)
+uv run python scripts/run_all_profiles.py mockes --protocol legacy
+
+# Limpar cache manualmente após um run isolado
+uv run python scripts/clear_cache.py
 ```
 
 O perfil ativo aparece em `logs/pipeline.log` e em `artifacts/run_summary.json` (`profile`, `source_slug`, `stats.run_profile`).
@@ -52,7 +58,7 @@ O perfil ativo aparece em `logs/pipeline.log` e em `artifacts/run_summary.json` 
 |---|---|
 | Execução normal | `runs/<slug>/<timestamp>/` |
 | Com `--profile` | `runs/<slug>/<profile>/<timestamp>/` |
-| Lote dos 4 perfis (`scripts/run_all_profiles.py`) | `runs/<slug>/<run_group>/<profile>/` |
+| Lote dos 4 perfis (`scripts/run_all_profiles.py`) | `runs/<slug>/<run_group>/<profile>/` (+ `com-cache-rerun` no protocolo `fair`) |
 
 O `<slug>` deriva do **caminho relativo** de `SOURCE_DIR` à raiz do engine, com `/` trocado por `_` (ex.: `repositorios/code_katas/src` → `repositorios_code_katas_src`; `mockes` → `mockes`).
 
@@ -139,7 +145,8 @@ runs/<slug>/[<profile>/]<timestamp>/
     ├── dependency_graph.json
     ├── ingest_selection.json   # arquivos/símbolos incluídos e ignorados (+ motivos)
     ├── run_meta.json
-    └── run_summary.json        # stats, token_usage, api_calls_dir
+    ├── run_summary.json        # stats, token_usage, suite_metrics, api_calls_dir
+    └── suite_metrics.json      # métricas agregadas da suíte gerada
 ```
 
 ### Exclusões na ingestão (arquivos)
@@ -212,8 +219,26 @@ Ver também: [API.md](API.md).
 | Script | Comando | Descrição |
 |---|---|---|
 | Ingestão só parser | `uv run python scripts/ingest_only.py [SOURCE_DIR]` | Parser + grafos + `ingest_selection.json`; sem LLM/Qdrant |
-| Comparar 4 perfis | `uv run python scripts/run_all_profiles.py mockes` | Roda `sem-rag` → `com-cache` em sequência |
+| Comparar 4 perfis | `uv run python scripts/run_all_profiles.py [SOURCE_DIR]` | Protocolo `fair`: RAG com cache frio; `com-cache` popula cache; `com-cache-rerun` mede hits |
+| Limpar cache | `uv run python scripts/clear_cache.py` | Remove `.cache/generation/` (ou `GENERATION_CACHE_DIR`) |
+| Tabela de métricas | `uv run python scripts/compare_run_metrics.py runs/<slug>/<run_group>` | RAG + benchmark cache (fria vs quente) |
 | Parser AST (sem API) | `uv run python mockes/exemplo.py` | Só `parsers/source`, sem LLM |
+
+### `scripts/run_all_profiles.py`
+
+| Argumento | Padrão | Descrição |
+|---|---|---|
+| `SOURCE_DIR` | `mockes` | Diretório Python a analisar |
+| `--allow-risky-source` | `false` | Repassa para cada `main()` |
+| `--protocol` | `fair` | `fair`: RAG sem cache cruzado + 2ª passagem `com-cache-rerun`. `legacy`: limpa cache após cada perfil |
+
+### `scripts/clear_cache.py`
+
+| Argumento | Descrição |
+|---|---|
+| `--dry-run` | Mostra o caminho que seria removido, sem apagar |
+
+Não remove embeddings do Qdrant nem pastas em `runs/`. Ver [CONFIGURATION.md](CONFIGURATION.md) (seção *Cache de geração e limpeza*).
 
 ## Scripts em `mockes/`
 

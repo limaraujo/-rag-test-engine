@@ -69,11 +69,14 @@ git clone https://github.com/rwisecar/code-katas.git repositorios/code_katas
 
 Muitos repos têm testes junto do código (`src/test_*.py`). O engine **ignora** `test_*.py` na ingestão, mas você deve passar a pasta onde está o **código de produção**:
 
-| Repositório | Caminho correto |
-|---|---|
-| code-katas | `repositorios/code_katas/src` |
-| Projeto flat (só `.py` na raiz) | `repositorios/meu_projeto` |
-| Monorepo | `repositorios/meu_projeto/packages/api` |
+| Repositório | Caminho correto | Símbolos elegíveis (approx.) |
+|---|---|---|
+| [code-katas](https://github.com/rwisecar/code-katas) | `repositorios/code_katas/src` | ~58 |
+| [PyJWT](https://github.com/jpadilla/pyjwt) | `repositorios/pyjwt/jwt` | ~126 |
+| Projeto flat (só `.py` na raiz) | `repositorios/meu_projeto` | — |
+| Monorepo | `repositorios/meu_projeto/packages/api` | — |
+
+**PyJWT:** aponte para a pasta `jwt/` (pacote Python), não a raiz do clone (que contém `tests/` do upstream). Muitos algoritmos exigem `cryptography` em runtime (`pip install cryptography`).
 
 ---
 
@@ -141,13 +144,38 @@ python main.py repositorios/code_katas/src --profile rag-completo
 
 # RAG completo + reutiliza testes do cache persistente
 python main.py repositorios/code_katas/src --profile com-cache
+
+# Limpar cache persistente depois de cada execução (recomendado)
+python scripts/clear_cache.py
 ```
 
 Com **uv**:
 
 ```bash
 uv run python main.py repositorios/code_katas/src --profile sem-rag
+python scripts/clear_cache.py
 ```
+
+### Limpar cache após rodar
+
+O perfil `com-cache` grava testes aprovados em **`.cache/generation/`** (ou `GENERATION_CACHE_DIR`). Para comparar perfis de forma justa ou evitar reutilizar gerações antigas, **limpe o cache depois de cada run**:
+
+```bash
+python scripts/clear_cache.py
+```
+
+**PowerShell (equivalente):**
+
+```powershell
+Remove-Item -Recurse -Force .cache\generation -ErrorAction SilentlyContinue
+```
+
+| O que limpa | O que **não** limpa |
+|---|---|
+| `.cache/generation/` (testes aprovados em disco) | Embeddings no **Qdrant** (use `REINDEX_SYMBOLS=true` ou apague a coleção no servidor) |
+| | Pastas em `runs/` (workspaces e testes gerados) |
+
+Ver [CONFIGURATION.md](CONFIGURATION.md) (seção *Cache de geração e limpeza*).
 
 ### Layout de saída por perfil
 
@@ -170,10 +198,30 @@ Sem `--profile`, a pasta fica `runs/<slug>/<timestamp>/` (sem subpasta de perfil
 
 ---
 
-## 5. Comparar os quatro modos de uma vez
+## 5. Comparar perfis (protocolo justo)
 
 ```bash
 python scripts/run_all_profiles.py repositorios/code_katas/src
+```
+
+**Protocolo `fair` (padrão)** — compara RAG e cache de forma separada:
+
+| Passo | Perfil | Limpa cache depois? |
+|-------|--------|---------------------|
+| início | — | sim (cache vazio) |
+| 1 | `sem-rag` | sim |
+| 2 | `rag-limitado` | sim |
+| 3 | `rag-completo` | sim |
+| 4 | `com-cache` | **não** (popula cache) |
+| 5 | `com-cache-rerun` | sim (mede hits, limpa ao final) |
+
+- **RAG:** compare `sem-rag`, `rag-limitado`, `rag-completo` e a 1ª passagem `com-cache` (todas com cache frio entre si).
+- **Cache:** compare `com-cache` (fria) vs `com-cache-rerun` (quente) — hits e tokens devem cair na 2ª.
+
+Comportamento antigo (limpa cache após cada perfil, sem 2ª passagem):
+
+```bash
+python scripts/run_all_profiles.py repositorios/code_katas/src --protocol legacy
 ```
 
 Cria um `run_group` compartilhado:
@@ -183,10 +231,16 @@ runs/repositorios_code_katas_src/20260615_143022/
 ├── sem-rag/logs/pipeline.log
 ├── rag-limitado/logs/pipeline.log
 ├── rag-completo/logs/pipeline.log
-└── com-cache/logs/pipeline.log
+├── com-cache/logs/pipeline.log
+└── com-cache-rerun/logs/pipeline.log
 ```
 
-Compare `artifacts/run_summary.json` e `token_usage` entre as pastas.
+Tabela comparativa:
+
+```bash
+python scripts/compare_run_metrics.py runs/repositorios_code_katas_src/20260615_143022 \
+  --md-out runs/repositorios_code_katas_src/20260615_143022/artifacts/METRICS_COMPARISON.md
+```
 
 ---
 
@@ -196,7 +250,8 @@ Compare `artifacts/run_summary.json` e `token_usage` entre as pastas.
 |---|---|
 | `logs/pipeline.log` | Fluxo completo; seleção de arquivos/símbolos; erros por símbolo |
 | `artifacts/ingest_selection.json` | Lista exata do que entrou/saiu na ingestão |
-| `artifacts/run_summary.json` | Stats finais, tokens, validação pytest |
+| `artifacts/run_summary.json` | Stats finais, tokens, validação pytest, `suite_metrics` |
+| `artifacts/suite_metrics.json` | Tabela de métricas da suíte (validade, cobertura, custo) |
 | `tests/` | Arquivos `test_*.py` gerados que passaram |
 | `logs/api_calls/` | Detalhe por chamada LLM (se `LOG_API_CALLS=true`) |
 
@@ -204,6 +259,7 @@ Validar testes gerados manualmente:
 
 ```bash
 python -m pytest runs/repositorios_code_katas_src/sem-rag/<timestamp>/tests -v
+python scripts/clear_cache.py
 ```
 
 ---
@@ -217,6 +273,7 @@ python -m pytest runs/repositorios_code_katas_src/sem-rag/<timestamp>/tests -v
 [ ] .env com OPENAI_API_KEY
 [ ] Qdrant rodando (se perfil ≠ sem-rag)
 [ ] main.py ... --profile sem-rag (primeiro run barato)
+[ ] python scripts/clear_cache.py após run isolado (lote `fair` limpa automaticamente)
 [ ] Demais perfis conforme necessidade
 ```
 
@@ -272,12 +329,62 @@ git clone https://github.com/rwisecar/code-katas.git repositorios/code_katas
 # 2. Parser only
 python scripts/ingest_only.py repositorios/code_katas/src
 
-# 3. Pipeline sem RAG
+# 3. Pipeline sem RAG + limpar cache
 python main.py repositorios/code_katas/src --profile sem-rag
+python scripts/clear_cache.py
 
-# 4. (Opcional) Comparar os 4 perfis
+# 4. (Opcional) Comparar os 4 perfis — cache limpo após cada perfil por padrão
 python scripts/run_all_profiles.py repositorios/code_katas/src
 ```
+
+**PowerShell (fluxo recomendado):**
+
+```powershell
+cd "C:\...\ -rag-test-engine"
+python scripts/ingest_only.py repositorios/code_katas/src
+python main.py repositorios/code_katas/src --profile sem-rag
+python scripts/clear_cache.py
+# ou os 4 perfis de uma vez:
+python scripts/run_all_profiles.py repositorios/code_katas/src
+```
+
+---
+
+## 10. Exemplo completo (PyJWT)
+
+Repositório: [jpadilla/pyjwt](https://github.com/jpadilla/pyjwt) — implementação JWT em Python.
+
+```bash
+# 1. Clone (underscore no nome da pasta)
+git clone https://github.com/jpadilla/pyjwt.git repositorios/pyjwt
+
+# 2. Parser only — slug: repositorios_pyjwt_jwt
+python scripts/ingest_only.py repositorios/pyjwt/jwt
+
+# 3. Baseline (recomendado primeiro — ~126 símbolos, custo alto)
+python main.py repositorios/pyjwt/jwt --profile sem-rag
+python scripts/clear_cache.py
+
+# 4. Comparar os 4 perfis (pode levar horas)
+python scripts/run_all_profiles.py repositorios/pyjwt/jwt
+
+# 5. Tabela comparativa entre perfis
+python scripts/compare_run_metrics.py runs/repositorios_pyjwt_jwt/<run_group>
+```
+
+**PowerShell:**
+
+```powershell
+cd "C:\...\ -rag-test-engine"
+git clone https://github.com/jpadilla/pyjwt.git repositorios/pyjwt
+python scripts/ingest_only.py repositorios/pyjwt/jwt
+python main.py repositorios/pyjwt/jwt --profile sem-rag
+python scripts/clear_cache.py
+```
+
+**Escala:** ~126 símbolos elegíveis (2× code-katas). Estime ~45–90 min e centenas de milhares de tokens **por perfil**. Comece sempre com `sem-rag` antes do lote dos 4.
+
+**Saída:** `runs/repositorios_pyjwt_jwt/<run_group>/<profile>/`
 
 ---
 

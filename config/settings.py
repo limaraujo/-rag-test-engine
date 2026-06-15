@@ -185,6 +185,40 @@ class Settings(BaseSettings):
         ),
     )
 
+    RETRIEVER_TEST_SCORE_THRESHOLD: float = Field(
+        default=0.45,
+        description=(
+            "Limiar de similaridade para testes similares (coleção costuma ser "
+            "esparsa no início do run)."
+        ),
+    )
+
+    RAG_SKIP_ISOLATED_SYMBOLS: bool = Field(
+        default=True,
+        description=(
+            "Não enriquece com RAG símbolos sem vizinhos de grafo, sem exceções "
+            "e com poucos branches (funções triviais isoladas)."
+        ),
+    )
+
+    RAG_MIN_BRANCHES_FOR_ENRICHMENT: int = Field(
+        default=1,
+        description="Com RAG_SKIP_ISOLATED_SYMBOLS, exige > este valor de branches.",
+    )
+
+    RAG_MIN_HYBRID_SCORE: float = Field(
+        default=0.35,
+        description=(
+            "Score híbrido mínimo para candidatos vetoriais em related_functions. "
+            "Vizinhos de grafo/deps ignoram este limiar."
+        ),
+    )
+
+    RAG_SAME_MODULE_BOOST: float = Field(
+        default=0.15,
+        description="Bônus no rerank híbrido para símbolos no mesmo diretório do alvo.",
+    )
+
     #Percentual mínimo de cobertura de linhas para aceitar um teste gerado.
     COVERAGE_THRESHOLD: float = Field(
         default=80.0,
