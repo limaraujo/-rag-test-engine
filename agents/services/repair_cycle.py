@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 
 from agents.policies.llm_budget import LLMBudget, error_fingerprint
+from agents.policies.repair_policy import skip_repair_reason
 from agents.repair import RepairAgent
 from execution.runner import RunResult, TestRunner
 from schemas.context import FunctionContext
@@ -26,6 +27,13 @@ def run_repair_loop(
 ) -> tuple[GeneratedTest, RunResult, bool, LLMBudget, SymbolRunRecord]:
     repaired = False
     last_error_fp: str | None = None
+
+    skip = skip_repair_reason(result, ctx)
+    if skip:
+        record.stop_reason = skip
+        logger.info("  [repair] pulado — %s", skip)
+        record.set_state(SymbolState.TEST_FAILED)
+        return test, result, repaired, budget, record
 
     for attempt in range(1, max_repairs + 1):
         if result.passed:
