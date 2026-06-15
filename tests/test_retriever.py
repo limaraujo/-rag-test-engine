@@ -1,9 +1,9 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import pytest
 
-from ingest.call_graph import CallGraph, CallGraphNode
-from ingest.dependency_graph import DependencyGraph, DependencyNode
+from parsers.source.call_graph import CallGraph, CallGraphNode
+from parsers.source.dependency_graph import DependencyGraph, DependencyNode
 from retrieval.hybrid import HybridCandidate, compute_hybrid_score, rerank_candidates
 from retrieval.retriever import Retriever
 from schemas.context import FunctionContext

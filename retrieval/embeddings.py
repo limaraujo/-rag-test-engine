@@ -1,6 +1,6 @@
-from collections.abc import Iterable
+﻿from collections.abc import Iterable
 
-from ingest.models.ExtractedSymbol import ExtractedSymbol
+from parsers.source.models.ExtractedSymbol import ExtractedSymbol
 from llm.base import BaseEmbedding
 from llm.factory import get_embedder
 from llm.models import LLMEmbeddingRequest

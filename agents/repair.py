@@ -1,38 +1,13 @@
 from __future__ import annotations
 
-from agents.test_generator import _parse_response
 from config.settings import settings
 from llm.base import BaseLLM
 from llm.factory import get_llm
 from llm.models import LLMRequest
+from parsers.llm.response import parse_response
+from prompts.loader import load_repair_system_prompt
 from schemas.context import FunctionContext
 from schemas.outputs import GeneratedTest
-
-
-_REPAIR_SYSTEM_PROMPT = """
-Você é um engenheiro de testes Python especialista. Um arquivo de teste pytest gerado falhou.
-
-Sua tarefa: corrigir o código que falhou para que TODOS os testes passem.
-
-FORMATO DE SAÍDA:
-- APENAS código-fonte Python puro.
-- NÃO envolva a saída em blocos de código markdown (sem ``` ou ```python).
-- Comece diretamente com as instruções de import.
-- Nenhum texto ou prosa antes ou depois do código.
-
-ESTRATÉGIA DE REPARO:
-1. Leia a saída de erro com atenção para entender a causa raiz.
-2. Problemas comuns e correções:
-   - ImportError / ModuleNotFoundError → corrija o caminho de importação usando o 
-     campo "arquivo:" no contexto (ex: "src/calc.py" → "from calc import …")
-   - TypeError (argumentos incorretos) → corrija a chamada para corresponder à assinatura real
-   - AssertionError → corrija o valor esperado para corresponder ao comportamento real
-   - AttributeError → o nome da classe/função pode estar errado; verifique o contexto
-   - NameError → adicione o import ausente ou corrija o identificador
-3. Mantenha todos os testes que já estavam corretos.
-4. NÃO remova casos de teste — em vez disso, corrija-os.
-5. NÃO altere o que está sendo testado; apenas corrija como é chamado ou verificado (assert).
-""".strip()
 
 
 class RepairAgent:
@@ -84,7 +59,7 @@ class RepairAgent:
         user_prompt = _build_repair_prompt(ctx, failing_test, run_result, attempt)
 
         request = LLMRequest(
-            system_prompt=_REPAIR_SYSTEM_PROMPT,
+            system_prompt=load_repair_system_prompt(),
             user_prompt=user_prompt,
             temperature=0.1,
             agent="repair",
@@ -94,7 +69,7 @@ class RepairAgent:
         )
 
         response = self._llm.generate(request)
-        return _parse_response(response.content, ctx)
+        return parse_response(response.content, ctx)
 
 
 # ── Auxiliares ─────────────────────────────────────────────────────────────────

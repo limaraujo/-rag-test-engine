@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from pathlib import Path
 from textwrap import dedent
@@ -6,15 +6,15 @@ from textwrap import dedent
 import pytest
 
 from config.settings import settings
-from ingest.dependency_graph import DependencyGraphBuilder
-from ingest.path_filters import (
+from parsers.source.dependency_graph import DependencyGraphBuilder
+from parsers.source.path_filters import (
     DEFAULT_SKIP_DIRS,
     DEFAULT_SKIP_FILE_GLOBS,
     get_skip_dirs,
     get_skip_file_globs,
     scan_python_files,
 )
-from ingest.scanner import RepositoryScanner
+from parsers.source.scanner import RepositoryScanner
 
 
 def _write(path: Path, content: str = "x = 1\n") -> None:

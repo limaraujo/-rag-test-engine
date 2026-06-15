@@ -38,9 +38,6 @@ DEFAULT_SKIP_FILE_GLOBS: tuple[str, ...] = (
     "*_demo.py",
 )
 
-FILE_COUNT_WARN_THRESHOLD = 500  # legado; preferir settings.SOURCE_DIR_PY_WARN_THRESHOLD
-
-
 def _parse_csv(value: str) -> list[str]:
     return [part.strip() for part in value.split(",") if part.strip()]
 

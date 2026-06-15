@@ -11,6 +11,8 @@ OPENAI_EMBEDDING_MODEL=text-embedding-3-small
 QDRANT_URL=http://localhost:6333
 AI_MODE=openai
 REINDEX_SYMBOLS=false
+RAG_MODE=full
+GENERATION_CACHE_ENABLED=true
 RUNS_DIR=runs
 LOG_LEVEL=INFO
 LOG_API_CALLS=true
@@ -92,10 +94,10 @@ Não reutilize credenciais que já circularam em texto claro.
 
 | Variável | Padrão | Descrição |
 |---|---|---|
-| `RETRIEVER_TOP_K` | `10` | Resultados finais após reranking |
-| `RETRIEVER_TOP_K_FUNCTIONS` | `10` | Funções relacionadas por consulta |
-| `RETRIEVER_TOP_K_TESTS` | `10` | Testes similares por consulta |
-| `RETRIEVER_RERANK_POOL_SIZE` | `30` | Candidatos vetoriais antes do rerank |
+| `RETRIEVER_TOP_K` | `3` | Resultados finais após reranking |
+| `RETRIEVER_TOP_K_FUNCTIONS` | `3` | Funções relacionadas por consulta |
+| `RETRIEVER_TOP_K_TESTS` | `2` | Testes similares por consulta |
+| `RETRIEVER_RERANK_POOL_SIZE` | `10` | Candidatos vetoriais antes do rerank |
 | `RETRIEVER_VECTOR_WEIGHT` | `0.5` | Peso da similaridade vetorial |
 | `RETRIEVER_DEPENDENCY_WEIGHT` | `0.3` | Peso do dependency graph |
 | `RETRIEVER_CALL_GRAPH_WEIGHT` | `0.2` | Peso do call graph |
@@ -103,13 +105,50 @@ Não reutilize credenciais que já circularam em texto claro.
 
 Os pesos híbridos devem somar **1.0**.
 
-## Cobertura
+## RAG, cache e perfis de execução
+
+| Variável | Padrão | Descrição |
+|---|---|---|
+| `RAG_MODE` | `full` | `none` = sem enriquecimento RAG; `limited` = orçamento reduzido; `full` = defaults |
+| `GENERATION_CACHE_ENABLED` | `true` | Reutiliza testes aprovados do cache antes de chamar o LLM |
+| `GENERATION_CACHE_DIR` | *(vazio)* | Diretório do cache (padrão: `.cache/generation/`) |
+| `PROMPT_MAX_RAG_TOTAL_CHARS` | `2500` | Orçamento global do corpo dos snippets RAG |
+| `PROMPT_MAX_RAG_SNIPPET_CHARS` | `300` | Tamanho máximo de cada snippet RAG |
+
+### Perfis CLI (`--profile`)
+
+Definidos em `config/run_profiles.py`. Sobrescrevem `RAG_MODE` e `GENERATION_CACHE_ENABLED` **apenas durante a execução** (settings restaurados ao final).
+
+| Perfil | `RAG_MODE` | Cache | Overrides |
+|---|---|---|---|
+| `sem-rag` | `none` | off | — |
+| `rag-limitado` | `limited` | off | `PROMPT_MAX_RAG_TOTAL_CHARS=600`, `PROMPT_MAX_RAG_SNIPPET_CHARS=150`, `RETRIEVER_TOP_K_FUNCTIONS=1`, `RETRIEVER_TOP_K_TESTS=1`, `RETRIEVER_RERANK_POOL_SIZE=5` |
+| `rag-completo` | `full` | off | — |
+| `com-cache` | `full` | on | — |
+
+```bash
+uv run python main.py mockes --profile rag-limitado
+uv run python scripts/run_all_profiles.py mockes
+```
+
+Ver [CLI.md](CLI.md#perfis-de-teste---profile).
+
+### Comportamento por `RAG_MODE`
+
+| Modo | Indexação Qdrant | Enriquecimento RAG | Prompt do usuário |
+|---|---|---|---|
+| `none` | Pulada | Pulado | Só contexto estático do símbolo |
+| `limited` | Ativa | Ativa | RAG com orçamento reduzido |
+| `full` | Ativa | Ativa | RAG com defaults do `.env` |
+
+## Cobertura e reparo
 
 | Variável | Padrão | Descrição |
 |---|---|---|
 | `COVERAGE_THRESHOLD` | `80.0` | Cobertura mínima de linhas (%) |
-| `MAX_COVERAGE_ROUNDS` | `2` | Rodadas de regeneração por cobertura insuficiente |
+| `MAX_COVERAGE_ROUNDS` | `0` | Rodadas de regeneração por cobertura (`0` = desligado) |
 | `MAX_REPAIRS` | `1` | Tentativas de reparo via LLM quando pytest falha |
+| `MAX_LLM_CALLS_PER_SYMBOL` | `2` | Limite global de chamadas LLM por símbolo |
 
 ## Ingestão (varredura de código)
 
@@ -117,6 +156,7 @@ Os pesos híbridos devem somar **1.0**.
 |---|---|---|
 | `INGEST_SKIP_DIRS` | *(vazio)* | Diretórios extras ignorados na varredura (vírgula). **Mesclado** com padrões fixos: `.git`, `__pycache__`, `.venv`, `venv`, `.pytest_cache`, `.mypy_cache`, `.ruff_cache`, `tests`, `test`, `runs`, `logs`, `generated_tests`, `dist`, `build` |
 | `INGEST_SKIP_FILE_GLOBS` | *(vazio)* | Globs extras de arquivo ignorados (vírgula). **Mesclado** com padrões fixos: `test_*.py`, `*_test.py`, `conftest.py`, `*_demo.py` |
+| `INGEST_SKIP_FUNCTION_NAMES` | `main` | Funções de módulo ignoradas na geração (vírgula) |
 
 Os padrões fixos **não são removidos** ao definir essas variáveis — apenas acrescentam exclusões.
 
@@ -126,10 +166,10 @@ Código em `src/`, `app/`, `lib/` e pacotes do projeto permanece incluído; some
 
 | Variável | Padrão | Descrição |
 |---|---|---|
-| `LLM_MAX_OUTPUT_TOKENS` | `2048` | Limite de tokens de saída do chat. Use vazio/`null` para sem limite |
-| `INGEST_SKIP_FUNCTION_NAMES` | `main` | Funções de módulo ignoradas na geração (vírgula) |
-| `PROMPT_MAX_RAG_SNIPPET_CHARS` | `600` | Tamanho máximo de cada trecho RAG no prompt |
-| `REPAIR_ERROR_MAX_CHARS` | `1500` | Tamanho máximo do erro pytest no prompt de reparo |
+| `LLM_MAX_OUTPUT_TOKENS` | *(vazio)* | Limite de tokens de saída do chat. Vazio = sem limite na API |
+| `REPAIR_ERROR_MAX_CHARS` | `900` | Tamanho máximo do erro pytest no prompt de reparo |
+| `GENERATION_MAX_TEST_FUNCTIONS` | `4` | Máximo de funções `test_*` por arquivo gerado |
+| `GENERATION_MAX_LINES` | `80` | Máximo de linhas no arquivo de teste gerado |
 
 Para desligar o loop de cobertura (economia de tokens):
 
@@ -143,16 +183,18 @@ MAX_COVERAGE_ROUNDS=0
 AI_MODE=openai
 OPENAI_MODEL=gpt-5-nano
 REINDEX_SYMBOLS=false
+RAG_MODE=limited
+GENERATION_CACHE_ENABLED=true
 MAX_COVERAGE_ROUNDS=0
 MAX_REPAIRS=1
-LLM_MAX_OUTPUT_TOKENS=2048
+MAX_LLM_CALLS_PER_SYMBOL=2
 INGEST_SKIP_FUNCTION_NAMES=main
-INGEST_SKIP_DIRS=
-INGEST_SKIP_FILE_GLOBS=
-PROMPT_MAX_RAG_SNIPPET_CHARS=400
-REPAIR_ERROR_MAX_CHARS=1200
-RETRIEVER_TOP_K=3
-RETRIEVER_TOP_K_FUNCTIONS=3
-RETRIEVER_TOP_K_TESTS=2
-RETRIEVER_RERANK_POOL_SIZE=10
+PROMPT_MAX_RAG_TOTAL_CHARS=600
+PROMPT_MAX_RAG_SNIPPET_CHARS=150
+REPAIR_ERROR_MAX_CHARS=900
+RETRIEVER_TOP_K_FUNCTIONS=1
+RETRIEVER_TOP_K_TESTS=1
+RETRIEVER_RERANK_POOL_SIZE=5
 ```
+
+Ou use o preset pronto: `uv run python main.py mockes --profile rag-limitado`

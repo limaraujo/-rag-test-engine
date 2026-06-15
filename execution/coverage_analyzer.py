@@ -56,6 +56,10 @@ class CoverageAnalyzer:
     """
     Executa pytest-cov após geração de testes e extrai lacunas estruturadas.
 
+    Com ``target_function``, ``line_coverage_percent``, ``missing_lines`` e
+    ``branch_coverage_percent`` limitam-se ao símbolo alvo (função, método ou
+    classe). Sem alvo, a métrica de linhas cobre o arquivo inteiro.
+
     Fluxo típico::
 
         analyzer = CoverageAnalyzer(test, source_path, target_function=qname)
@@ -218,10 +222,10 @@ class CoverageAnalyzer:
                 "error": "coverage data unavailable",
             }
 
-        total = len(analysis.executable_lines)
-        missing = analysis.missing_lines
-        covered = total - len(missing)
-        percentage = round(100.0 * covered / total, 1) if total else 100.0
+        total, covered, percentage, missing = _line_stats(
+            analysis,
+            self._target_function,
+        )
 
         branch_total, branch_missing, branch_covered, branch_percentage, scoped_missing_lines = (
             _branch_stats(analysis, self._target_function)
@@ -391,6 +395,46 @@ def _span_for_function(
     return None
 
 
+def _line_stats(
+    analysis: CoverageAnalysisResult,
+    target_function: str | None,
+) -> tuple[int, int, float, list[int]]:
+    """
+    Calcula cobertura de linhas.
+
+    Com ``target_function``, limita às linhas executáveis do símbolo alvo
+    (função, método ou classe). Sem alvo, usa o arquivo inteiro.
+    """
+    executable = analysis.executable_lines
+    missing_set = set(analysis.missing_lines)
+
+    span = _span_for_function(analysis.function_spans, target_function)
+    if span is not None:
+        scoped = _executable_lines_for_span(analysis, span)
+        if not scoped:
+            return 0, 0, 100.0, []
+        scoped_missing = sorted(scoped & missing_set)
+        covered = len(scoped) - len(scoped_missing)
+        percentage = round(100.0 * covered / len(scoped), 1)
+        return len(scoped), covered, percentage, scoped_missing
+
+    total = len(executable)
+    missing = analysis.missing_lines
+    covered = total - len(missing)
+    percentage = round(100.0 * covered / total, 1) if total else 100.0
+    return total, covered, percentage, missing
+
+
+def _executable_lines_for_span(
+    analysis: CoverageAnalysisResult,
+    span: _FunctionSpan,
+) -> set[int]:
+    return {
+        line for line in analysis.executable_lines
+        if span.start_line <= line <= span.end_line
+    }
+
+
 def _branch_stats(
     analysis: CoverageAnalysisResult,
     target_function: str | None,
@@ -427,7 +471,7 @@ def _branch_stats(
 
 
 def _index_functions(source: str) -> list[_FunctionSpan]:
-    """Mapeia funções e métodos do arquivo para intervalos de linha."""
+    """Mapeia funções, métodos e classes do arquivo para intervalos de linha."""
     tree = ast.parse(source)
     spans: list[_FunctionSpan] = []
 
@@ -439,6 +483,11 @@ def _index_functions(source: str) -> list[_FunctionSpan]:
                 end_line=node.end_lineno or node.lineno,
             ))
         elif isinstance(node, ast.ClassDef):
+            spans.append(_FunctionSpan(
+                name=node.name,
+                start_line=node.lineno,
+                end_line=node.end_lineno or node.lineno,
+            ))
             for child in node.body:
                 if isinstance(child, ast.FunctionDef | ast.AsyncFunctionDef):
                     spans.append(_FunctionSpan(
@@ -450,10 +499,14 @@ def _index_functions(source: str) -> list[_FunctionSpan]:
 
 
 def _function_at_line(spans: list[_FunctionSpan], line: int) -> str:
-    for span in spans:
-        if span.start_line <= line <= span.end_line:
-            return span.name
-    return "<module>"
+    matches = [
+        span for span in spans
+        if span.start_line <= line <= span.end_line
+    ]
+    if not matches:
+        return "<module>"
+    # Prefer the innermost span (e.g. Class.method over Class).
+    return min(matches, key=lambda span: (span.end_line - span.start_line, span.name)).name
 
 
 def coverage_round_signature(summary: dict) -> str:

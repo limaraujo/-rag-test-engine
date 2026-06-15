@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import ast
 import fnmatch
@@ -6,8 +6,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from config.settings import settings
-from ingest.models.ExtractedSymbol import ExtractedSymbol
-from ingest.path_filters import get_skip_file_globs
+from parsers.source.models.ExtractedSymbol import ExtractedSymbol
+from parsers.source.path_filters import get_skip_file_globs
 
 
 @dataclass(frozen=True)

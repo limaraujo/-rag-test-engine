@@ -1,11 +1,11 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import logging
 
 from config.run_workspace import RunWorkspace
 from config.settings import settings
 from execution.runner import RunResult, SuiteValidationResult
-from ingest.symbol_filter import SymbolFilterStats
+from parsers.source.symbol_filter import SymbolFilterStats
 from schemas.pipeline import PipelineStats, SymbolRunRecord
 
 logger = logging.getLogger(__name__)

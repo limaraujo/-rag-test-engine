@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import json
 import re
@@ -7,24 +7,54 @@ from datetime import datetime
 from pathlib import Path
 
 from config.settings import settings
-from ingest.call_graph import CallGraph
-from ingest.dependency_graph import DependencyGraph
-from ingest.models.ExtractedSymbol import ExtractedSymbol
+from parsers.source.call_graph import CallGraph
+from parsers.source.dependency_graph import DependencyGraph
+from parsers.source.models.ExtractedSymbol import ExtractedSymbol
 
 
-def _source_slug(source_dir: Path) -> str:
+def source_slug(source_dir: Path) -> str:
+    """Nome seguro do repositório/diretório analisado para paths em ``runs/``."""
     name = source_dir.name
     if name in (".", ""):
         name = source_dir.resolve().name or "root"
     return re.sub(r"[^a-zA-Z0-9_-]", "_", name)
 
 
+def resolve_workspace_root(
+    source_dir: Path,
+    *,
+    runs_base: Path,
+    profile: str | None = None,
+    run_group: str | None = None,
+    timestamp: str | None = None,
+) -> Path:
+    """
+    Monta o path do workspace.
+
+    Layout:
+    - sem perfil: ``runs/<repo>/<timestamp>/``
+    - com perfil: ``runs/<repo>/<profile>/<timestamp>/``
+    - lote (4 perfis): ``runs/<repo>/<run_group>/<profile>/``
+    """
+    slug = source_slug(source_dir)
+    ts = timestamp or datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    if profile and run_group:
+        return runs_base / slug / run_group / profile
+    if profile:
+        return runs_base / slug / profile / ts
+    return runs_base / slug / ts
+
+
 @dataclass(frozen=True)
 class RunWorkspace:
-    """Diretório de uma execução: testes, logs e artefatos do ingest."""
+    """Diretório de uma execução: testes, logs e artefatos."""
 
     root: Path
     source_dir: Path
+    source_slug: str
+    profile: str | None
+    run_group: str | None
     tests_dir: Path
     logs_dir: Path
     artifacts_dir: Path
@@ -35,15 +65,25 @@ class RunWorkspace:
         source_dir: Path,
         *,
         runs_base: Path | None = None,
+        profile: str | None = None,
+        run_group: str | None = None,
     ) -> RunWorkspace:
         base = runs_base or Path(settings.RUNS_DIR)
-        slug = _source_slug(source_dir)
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        root = base / slug / timestamp
+        resolved = source_dir.resolve()
+        slug = source_slug(resolved)
+        root = resolve_workspace_root(
+            resolved,
+            runs_base=base,
+            profile=profile,
+            run_group=run_group,
+        )
 
         workspace = cls(
             root=root,
-            source_dir=source_dir.resolve(),
+            source_dir=resolved,
+            source_slug=slug,
+            profile=profile,
+            run_group=run_group,
             tests_dir=root / "tests",
             logs_dir=root / "logs",
             artifacts_dir=root / "artifacts",
@@ -51,6 +91,18 @@ class RunWorkspace:
         for path in (workspace.tests_dir, workspace.logs_dir, workspace.artifacts_dir):
             path.mkdir(parents=True, exist_ok=True)
         return workspace
+
+    def to_meta(self) -> dict[str, str | None]:
+        return {
+            "source_dir": str(self.source_dir),
+            "source_slug": self.source_slug,
+            "profile": self.profile,
+            "run_group": self.run_group,
+            "workspace": str(self.root),
+            "tests_dir": str(self.tests_dir),
+            "logs_dir": str(self.logs_dir),
+            "artifacts_dir": str(self.artifacts_dir),
+        }
 
 
 def save_ingest_artifacts(
@@ -82,7 +134,7 @@ def save_ingest_artifacts(
     (artifacts / "run_meta.json").write_text(
         json.dumps(
             {
-                "source_dir": str(workspace.source_dir),
+                **workspace.to_meta(),
                 "symbol_count": len(symbols),
                 "call_graph_nodes": len(call_graph.nodes),
                 "dependency_graph_nodes": len(dependency_graph.nodes),
@@ -104,10 +156,7 @@ def save_run_summary(
 ) -> None:
     """Grava resumo final da execução em ``artifacts/run_summary.json``."""
     payload: dict = {
-        "workspace": str(workspace.root),
-        "source_dir": str(workspace.source_dir),
-        "tests_dir": str(workspace.tests_dir),
-        "logs_dir": str(workspace.logs_dir),
+        **workspace.to_meta(),
         "finished_at": datetime.now().isoformat(timespec="seconds"),
         "stats": stats,
     }

@@ -201,3 +201,49 @@ def setup_api_call_logging(log_dir: Path) -> Path | None:
     configure_call_logger(log_dir)
     reset_call_logger()
     return log_dir
+
+
+def summarize_api_calls_log(api_calls_dir: Path) -> dict[str, int] | None:
+    """
+    Soma tokens gravados em ``api_calls/_index.jsonl`` para conferência com o tracker.
+    """
+    index_path = api_calls_dir / "_index.jsonl"
+    if not index_path.is_file():
+        return None
+
+    prompt_tokens = 0
+    completion_tokens = 0
+    total_tokens = 0
+    calls = 0
+
+    for line in index_path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            entry = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        usage = entry.get("usage")
+        if not usage:
+            continue
+        calls += 1
+        prompt_tokens += int(usage.get("prompt_tokens", 0) or 0)
+        completion_tokens += int(usage.get("completion_tokens", 0) or 0)
+        entry_total = int(usage.get("total_tokens", 0) or 0)
+        if entry_total:
+            total_tokens += entry_total
+        else:
+            total_tokens += int(usage.get("prompt_tokens", 0) or 0) + int(
+                usage.get("completion_tokens", 0) or 0
+            )
+
+    if calls == 0:
+        return None
+
+    return {
+        "calls": calls,
+        "prompt_tokens": prompt_tokens,
+        "completion_tokens": completion_tokens,
+        "total_tokens": total_tokens,
+    }

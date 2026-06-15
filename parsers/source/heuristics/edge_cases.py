@@ -1,6 +1,6 @@
-import ast
+﻿import ast
 
-from ingest.collectors.exceptions import ExceptionCollector
+from parsers.source.collectors.exceptions import ExceptionCollector
 
 
 class EdgeCaseInferer(ast.NodeVisitor):

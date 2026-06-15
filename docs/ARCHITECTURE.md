@@ -21,9 +21,15 @@ Detalhes dos argumentos: [CLI.md](CLI.md)
 
 ```python
 # main.py (simplificado)
-def main(source_dir: str = ".") -> OrchestrationResult:
-    orchestrator = OrchestratorAgent()
-    return orchestrator.run(source_dir)
+def main(
+    source_dir: str = ".",
+    *,
+    profile: str | None = None,
+) -> OrchestrationResult:
+    if profile:
+        with apply_run_profile(profile):
+            return OrchestratorAgent().run(source_dir)
+    return OrchestratorAgent().run(source_dir)
 ```
 
 ```mermaid
@@ -48,8 +54,10 @@ flowchart TB
         DG --> Retriever
         Retriever --> EnrichedCtx[FunctionContext + RAG]
         EnrichedCtx --> Generator[TestGeneratorAgent]
+        Prompts[prompts/] --> Generator
         Generator --> LLM[OpenAI Chat]
-        LLM --> Test[GeneratedTest]
+        LLM --> Parser[parsers/llm/response]
+        Parser --> Test[GeneratedTest]
     end
 
     subgraph exec [Validação]
@@ -72,7 +80,7 @@ flowchart TB
 
 **Entrada:** caminho do diretório fonte (`SOURCE_DIR`)
 
-**Módulos:** `ingest/scanner.py`, `ingest/parser.py`, `ingest/extract.py`
+**Módulos:** `parsers/source/scanner.py`, `parsers/source/parser.py`, `parsers/source/extract.py`
 
 1. `RepositoryScanner` varre `*.py`, ignorando `.git`, `__pycache__`, `venv`, etc.
 2. Cada arquivo é parseado em AST (`ast_utils.py`).
@@ -86,6 +94,8 @@ flowchart TB
 
 **Módulo:** `retrieval/retriever.py`, `retrieval/embeddings.py`
 
+> **Nota:** pulada quando `RAG_MODE=none` (perfil `sem-rag` ou `.env`).
+
 1. Para cada símbolo, monta documento textual (`embedding_builder.py`).
 2. Gera embedding via `OpenAIEmbedding` (ou `LocalEmbedding` em modo offline).
 3. Faz upsert no Qdrant (`QdrantStore`) na coleção `symbols`.
@@ -95,7 +105,10 @@ flowchart TB
 
 ### 3. Enriquecimento RAG
 
-**Módulo:** `retrieval/retriever.py`, `retrieval/hybrid.py`
+**Módulos:** `retrieval/retriever.py`, `retrieval/hybrid.py`, `prompts/rag.py`
+
+> **Nota:** pulado quando `RAG_MODE=none`. Com `RAG_MODE=limited` (perfil `rag-limitado`),
+> o orçamento de snippets e top-k é reduzido via `config/run_profiles.py`.
 
 Para cada símbolo alvo:
 
@@ -111,16 +124,21 @@ score = 0.5 × similaridade_vetorial
 ```
 
 5. Busca testes similares na coleção `tests` (se existir).
-6. Preenche `FunctionContext.retrieval_context`.
+6. `prompts/rag.py` deduplica, trunca e aplica orçamento global ao bloco RAG no prompt.
+7. Preenche `FunctionContext.retrieval_context`.
 
 ### 4. Geração de testes
 
-**Módulo:** `agents/test_generator.py`
+**Módulos:** `agents/test_generator.py`, `prompts/loader.py`, `parsers/llm/response.py`
 
-1. `FunctionContext.to_prompt_block()` formata contexto estruturado.
-2. `TestGeneratorAgent` envia system + user prompt ao LLM.
-3. Resposta é parseada (`_parse_response`): remove markdown, extrai imports.
-4. `import_utils.normalize_test_imports()` corrige caminhos de importação.
+1. `prompts/templates/generator_system.txt` fornece o system prompt (limites via `settings`).
+2. `FunctionContext.to_prompt_block()` formata o user prompt com contexto estático + RAG.
+3. `TestGeneratorAgent` envia system + user prompt ao LLM.
+4. `parsers/llm/response.parse_response()` normaliza a saída: remove markdown, valida sintaxe.
+5. `agents/import_utils.normalize_test_imports()` corrige caminhos de importação.
+
+**Cache de geração:** se `GENERATION_CACHE_ENABLED=true` (perfil `com-cache` ou `.env`),
+`agents/services/generation_service.py` consulta `cache/generation_cache.py` antes de chamar o LLM.
 
 **Imports:** usa `module_name` relativo à raiz do projeto (ex.: `from mockes.exemplo import Calculadora`). O `import_utils.normalize_test_imports()` corrige imports incorretos gerados pelo LLM. O `PYTHONPATH` na execução aponta para a raiz do repositório (`config.settings.ROOT`).
 
@@ -134,7 +152,7 @@ score = 0.5 × similaridade_vetorial
 
 ### 6. Reparo
 
-**Módulo:** `agents/repair.py`
+**Módulos:** `agents/repair.py`, `prompts/templates/repair_system.txt`
 
 Se `RunResult.passed == False`:
 
@@ -166,7 +184,24 @@ Cada execução cria `runs/<slug>/<timestamp>/`:
 | `artifacts/call_graph.json` | Grafo de chamadas |
 | `artifacts/dependency_graph.json` | Grafo de dependências |
 | `artifacts/run_meta.json` | Metadados iniciais |
-| `artifacts/run_summary.json` | Stats + tokens ao final |
+| `artifacts/run_summary.json` | Stats + tokens + `run_profile` ao final |
+
+## Perfis de execução
+
+**Módulo:** `config/run_profiles.py`
+
+Quatro presets CLI (`--profile`) aplicam overrides temporários em `settings` durante a execução:
+
+| Perfil | `RAG_MODE` | Cache | Overrides extras |
+|---|---|---|---|
+| `sem-rag` | `none` | off | — |
+| `rag-limitado` | `limited` | off | `PROMPT_MAX_RAG_TOTAL_CHARS=600`, `RETRIEVER_TOP_K_FUNCTIONS=1`, … |
+| `rag-completo` | `full` | off | — |
+| `com-cache` | `full` | on | — |
+
+O perfil ativo é registrado em `pipeline.log` e em `run_summary.json` (`stats.run_profile`).
+
+Ver [CLI.md](CLI.md#perfis-de-teste---profile).
 
 ## Modos de operação
 
@@ -186,7 +221,7 @@ Cada execução cria `runs/<slug>/<timestamp>/`:
 
 | Modelo | Arquivo | Papel |
 |---|---|---|
-| `ExtractedSymbol` | `ingest/models/ExtractedSymbol.py` | Símbolo extraído do AST |
+| `ExtractedSymbol` | `parsers/source/models/ExtractedSymbol.py` | Símbolo extraído do AST |
 | `FunctionContext` | `schemas/context.py` | Entrada do gerador (código + RAG) |
 | `RetrievalContext` | `schemas/retrieval_context.py` | Contexto RAG híbrido |
 | `GeneratedTest` | `schemas/outputs.py` | Arquivo pytest estruturado |
@@ -200,6 +235,9 @@ Cada execução cria `runs/<slug>/<timestamp>/`:
 |---|---|
 | LLM | Implementar `BaseLLM`, registrar em `llm/factory.py` |
 | Embeddings | Implementar `BaseEmbedding`, registrar em `llm/factory.py` |
-| Coletores AST | Novos collectors em `ingest/collectors/` |
+| Coletores AST | Novos collectors em `parsers/source/collectors/` |
 | Score híbrido | Pesos em `RETRIEVER_*_WEIGHT` no `.env` |
 | Pipeline | Injetar dependências em `OrchestratorAgent(...)` |
+| Prompts LLM | Editar `prompts/templates/*.txt` |
+| Orçamento RAG | `prompts/rag.py` + variáveis `PROMPT_MAX_RAG_*` |
+| Parsing LLM | `parsers/llm/response.py` |

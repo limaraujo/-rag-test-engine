@@ -1,13 +1,13 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import ast
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from ingest.collectors.dependency_collector import DependencyCollector
-from ingest.import_resolver import ImportResolver, module_name_from_path
-from ingest.models.ExtractedSymbol import ExtractedSymbol
+from parsers.source.collectors.dependency_collector import DependencyCollector
+from parsers.source.import_resolver import ImportResolver, module_name_from_path
+from parsers.source.models.ExtractedSymbol import ExtractedSymbol
 
 CodeSymbol = ExtractedSymbol
 

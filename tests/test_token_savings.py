@@ -1,8 +1,8 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
-from ingest.models.ExtractedSymbol import ExtractedSymbol
-from ingest.symbol_filter import filter_symbols, should_generate_tests
-from schemas.prompt_utils import compact_rag_snippet
+from parsers.source.models.ExtractedSymbol import ExtractedSymbol
+from parsers.source.symbol_filter import filter_symbols, should_generate_tests
+from prompts.rag import compact_rag_snippet
 
 
 def _symbol(name: str, *, file_path: str = "mockes/exemplo.py") -> ExtractedSymbol:

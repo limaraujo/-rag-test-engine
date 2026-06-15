@@ -4,6 +4,8 @@ Referência por pacote.
 
 ## `agents/`
 
+Agentes LLM e serviços do pipeline de geração/reparo.
+
 | Arquivo | Descrição |
 |---|---|
 | `orchestrator.py` | `OrchestratorAgent` — pipeline completo |
@@ -11,19 +13,52 @@ Referência por pacote.
 | `repair.py` | `RepairAgent` — correção de testes falhos |
 | `import_utils.py` | Normalização de imports (`mockes.exemplo`, etc.) |
 
-## `config/`
+### `agents/policies/`
 
 | Arquivo | Descrição |
 |---|---|
-| `settings.py` | Configuração Pydantic + `.env` |
-| `run_workspace.py` | `RunWorkspace`, persistência de artefatos |
-| `logging_setup.py` | Logging console + arquivo |
+| `llm_budget.py` | Orçamento de chamadas LLM por símbolo e fingerprint de erros |
 
-## `ingest/`
+### `agents/services/`
+
+| Arquivo | Descrição |
+|---|---|
+| `generation_service.py` | Geração com cache persistente e salvamento de testes aprovados |
+| `repair_cycle.py` | Loop iterativo de reparo via LLM |
+| `coverage_cycle.py` | Loop de regeneração orientado por cobertura |
+| `pipeline_logging.py` | Logging estruturado e payloads de resumo da execução |
+
+## `prompts/`
+
+Templates e montagem de prompts enviados ao LLM.
+
+| Arquivo / pasta | Descrição |
+|---|---|
+| `loader.py` | Carrega templates de texto e aplica limites de configuração |
+| `rag.py` | Orçamento, deduplicação e seções RAG no prompt do usuário |
+| `rag_headers.yaml` | Cabeçalhos das seções RAG |
+| `templates/generator_system.txt` | System prompt do gerador de testes |
+| `templates/repair_system.txt` | System prompt do agente de reparo |
+
+## `parsers/`
+
+Parsing de código-fonte e de respostas do LLM.
+
+### `parsers/llm/`
+
+| Arquivo | Descrição |
+|---|---|
+| `response.py` | Normaliza, valida e estrutura a saída do LLM (`GeneratedTest`) |
+
+### `parsers/source/`
+
+Análise estática de repositórios Python (antigo `ingest/`).
 
 | Arquivo | Descrição |
 |---|---|
 | `scanner.py` | `RepositoryScanner` — varredura de `*.py` |
+| `path_filters.py` | Exclusões centralizadas de diretórios e globs na ingestão |
+| `symbol_filter.py` | Filtro de elegibilidade de símbolos para geração |
 | `parser.py` | `parse_repository_graphs()` — ponto de entrada do ingest |
 | `extract.py` | `SymbolExtractor` — extração via AST |
 | `ast_utils.py` | Parse de arquivo em AST |
@@ -36,6 +71,23 @@ Referência por pacote.
 | `collectors/imports.py` | Imports do arquivo |
 | `heuristics/edge_cases.py` | Casos de borda heurísticos |
 | `models/ExtractedSymbol.py` | Modelo do símbolo extraído |
+
+## `cache/`
+
+| Arquivo | Descrição |
+|---|---|
+| `generation_cache.py` | Cache JSON persistente de gerações aprovadas |
+
+## `config/`
+
+| Arquivo | Descrição |
+|---|---|
+| `settings.py` | Configuração Pydantic + `.env` |
+| `run_profiles.py` | Perfis CLI (`--profile`): RAG + cache de geração |
+| `run_workspace.py` | `RunWorkspace`, persistência de artefatos |
+| `logging_setup.py` | Logging console + arquivo |
+| `source_guard.py` | Validação de `source_dir` arriscado |
+| `security_paths.py` | Padrões de caminhos sensíveis e auditoria de segredos |
 
 ## `retrieval/`
 
@@ -52,8 +104,9 @@ Referência por pacote.
 | Arquivo | Descrição |
 |---|---|
 | `runner.py` | `TestRunner`, `RunResult` |
-| `coverage_analyzer.py` | `CoverageAnalyzer` — pytest-cov + análise de gaps/branches |
+| `coverage_analyzer.py` | `CoverageAnalyzer` — pytest-cov; métricas escopadas por símbolo alvo |
 | `coverage_format.py` | Formatação de intervalos de linhas (missing ranges) |
+| `pytest_support.py` | Montagem de PYTHONPATH e parsing de saída do pytest |
 
 ## `llm/`
 
@@ -67,8 +120,10 @@ Referência por pacote.
 | `mock_llm.py` | LLM mock (offline) |
 | `models.py` | `LLMRequest`, `LLMResponse`, `TokenUsage` |
 | `usage_tracker.py` | `UsageTracker` — acumula tokens |
-| `gemini.py` | Legado Gemini (não usado pelo factory) |
-| `gemini_embedding.py` | Legado Gemini embeddings |
+| `call_logger.py` | Log persistente de chamadas LLM/embedding |
+| `pricing.py` | Estimativa de custo por token |
+| `sanitize.py` | Mascaramento de segredos em logs |
+| `token_usage.py` | Parsing de usage da API OpenAI |
 
 ## `schemas/`
 
@@ -78,24 +133,37 @@ Referência por pacote.
 | `retrieval_context.py` | `RetrievalContext`, `RetrievalMetrics` |
 | `outputs.py` | `GeneratedTest` — saída do gerador |
 | `pipeline.py` | `PipelineStats`, `OrchestrationResult` |
+| `prompt_utils.py` | Reexport de compatibilidade → `prompts.rag` |
+
+## `scripts/`
+
+| Arquivo | Descrição |
+|---|---|
+| `run_all_profiles.py` | Executa os 4 perfis (`sem-rag` … `com-cache`) em sequência |
 
 ## `main.py`
 
 Entrypoint CLI fino. Não contém lógica de pipeline.
 
 ```python
-def main(source_dir: str = ".") -> OrchestrationResult:
-    orchestrator = OrchestratorAgent()
-    return orchestrator.run(source_dir)
+def main(
+    source_dir: str = ".",
+    *,
+    allow_risky_source: bool = False,
+    profile: str | None = None,
+) -> OrchestrationResult:
+    ...
 ```
 
 | Argumento CLI | Padrão | Descrição |
 |---|---|---|
 | `SOURCE_DIR` | `.` | Diretório Python a analisar |
+| `--profile` | — | `sem-rag`, `rag-limitado`, `rag-completo`, `com-cache` |
+| `--allow-risky-source` | `false` | Ignora avisos de `source_dir` arriscado |
 
 ```bash
+python main.py mockes --profile rag-completo
 python main.py --help
-python main.py mockes
 ```
 
 Ver [CLI.md](CLI.md).
@@ -103,7 +171,11 @@ Ver [CLI.md](CLI.md).
 | Responsabilidade | Onde fica |
 |---|---|
 | Parse de argumentos (`argparse`) | `main.py` |
+| Perfis de teste | `config/run_profiles.py` |
 | Pipeline completo | `agents/orchestrator.py` |
+| Templates LLM | `prompts/templates/` |
+| Parsing de resposta LLM | `parsers/llm/response.py` |
+| Análise estática (AST) | `parsers/source/` |
 | Configuração | `config/settings.py` |
 | Workspace + artefatos | `config/run_workspace.py` |
 
@@ -117,4 +189,5 @@ Código de exemplo (`exemplo.py`) para validar o pipeline:
 
 ```bash
 python main.py mockes
+python main.py mockes --profile sem-rag
 ```

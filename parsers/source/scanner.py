@@ -1,9 +1,9 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from collections.abc import Iterator
 from pathlib import Path
 
-from ingest.path_filters import ScanResult, scan_python_files
+from parsers.source.path_filters import ScanResult, scan_python_files
 
 
 class RepositoryScanner:

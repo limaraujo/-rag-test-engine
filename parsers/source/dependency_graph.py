@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import ast
 import json
@@ -6,8 +6,8 @@ from collections import deque
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from ingest.import_resolver import ImportResolver, module_name_from_path
-from ingest.path_filters import scan_python_files
+from parsers.source.import_resolver import ImportResolver, module_name_from_path
+from parsers.source.path_filters import scan_python_files
 
 
 @dataclass

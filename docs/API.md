@@ -7,15 +7,17 @@ Referência programática dos componentes principais.
 **Sintaxe:**
 
 ```bash
-uv run python main.py [SOURCE_DIR]
+uv run python main.py [SOURCE_DIR] [--profile PERFIL]
 uv run python main.py --help
 ```
 
 | Argumento | Padrão | Descrição |
 |---|---|---|
 | `SOURCE_DIR` | `.` | Diretório Python a analisar |
+| `--profile` | — | `sem-rag`, `rag-limitado`, `rag-completo`, `com-cache` |
+| `--allow-risky-source` | `false` | Ignora avisos de `source_dir` arriscado |
 
-Demais opções (modelo, Qdrant, `LOG_API_CALLS`, etc.) vêm do `.env` — ver [CLI.md](CLI.md) e [CONFIGURATION.md](CONFIGURATION.md).
+Demais opções (modelo, Qdrant, `LOG_API_CALLS`, RAG, cache) vêm do `.env` ou do perfil — ver [CLI.md](CLI.md) e [CONFIGURATION.md](CONFIGURATION.md).
 
 ## Entrypoint: `main()`
 
@@ -26,14 +28,25 @@ Ponto de entrada da CLI. Delega ao orquestrador e retorna o resultado.
 ```python
 from main import main
 
-result = main("mockes")          # str ou Path
-result = main()                  # diretório atual (".")
+result = main("mockes")                          # defaults do .env
+result = main("mockes", profile="rag-completo")  # perfil de teste
+result = main()                                  # diretório atual (".")
 
 assert result.stats.ok >= 0
 print(result.workspace.tests_dir)
 ```
 
-Equivalente direto:
+**Com perfil programático:**
+
+```python
+from config.run_profiles import apply_run_profile
+from agents.orchestrator import OrchestratorAgent
+
+with apply_run_profile("sem-rag"):
+    result = OrchestratorAgent().run("mockes")
+```
+
+Equivalente direto (sem perfil):
 
 ```python
 from agents.orchestrator import OrchestratorAgent
@@ -75,10 +88,36 @@ result.stats.failed            # testes descartados
 result.stats.skipped           # erros de geração
 result.stats.repaired          # salvos após reparo
 result.stats.coverage_boosted  # salvos após boost de cobertura
+result.generation_cache        # GenerationCacheStats (hits, misses, …)
 result.indexed                 # símbolos indexados no Qdrant
-result.cache_hits              # símbolos reutilizados do cache
+result.cache_hits              # símbolos reutilizados do cache de embeddings
 result.token_summary           # str com uso de tokens (ou None)
 ```
+
+`run_summary.json` inclui `stats.run_profile`, `stats.rag_mode` e `stats.generation_cache_enabled`.
+
+---
+
+## RunProfile
+
+**Arquivo:** `config/run_profiles.py`
+
+```python
+from config.run_profiles import apply_run_profile, PROFILES, describe_profiles
+
+print(describe_profiles())
+
+with apply_run_profile("rag-limitado"):
+    # settings.RAG_MODE == "limited" durante o bloco
+    ...
+```
+
+| Perfil | `rag_mode` | `generation_cache_enabled` |
+|---|---|---|
+| `sem-rag` | `none` | `False` |
+| `rag-limitado` | `limited` | `False` |
+| `rag-completo` | `full` | `False` |
+| `com-cache` | `full` | `True` |
 
 ---
 
@@ -86,7 +125,7 @@ result.token_summary           # str com uso de tokens (ou None)
 
 **Arquivo:** `agents/test_generator.py`
 
-Gera um arquivo pytest a partir de `FunctionContext`.
+Gera um arquivo pytest a partir de `FunctionContext`. Usa `prompts/loader.py` para o system prompt.
 
 ```python
 from agents.test_generator import TestGeneratorAgent
@@ -100,6 +139,8 @@ print(test.full_code)    # código completo com imports
 print(test.imports)      # linhas de import extraídas
 print(test.coverage_hints)
 ```
+
+O parsing da resposta LLM fica em `parsers/llm/response.py` (`parse_response`).
 
 ---
 
@@ -245,7 +286,21 @@ ctx = FunctionContext.from_symbol(symbol, project_root=ROOT)
 prompt = ctx.to_prompt_block()  # texto para o LLM
 ```
 
-Campos RAG (`related_functions`, `similar_tests`) são preenchidos pelo `Retriever`.
+Campos RAG (`related_functions`, `similar_tests`) são preenchidos pelo `Retriever` quando `RAG_MODE != "none"`.
+
+Montagem do bloco RAG no prompt: `prompts/rag.py` (`build_rag_prompt_sections`).
+
+---
+
+## parse_response (LLM)
+
+**Arquivo:** `parsers/llm/response.py`
+
+```python
+from parsers.llm.response import parse_response, normalize_code_response
+
+test = parse_response(raw_llm_output, ctx)
+```
 
 ---
 

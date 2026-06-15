@@ -1,10 +1,10 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from pathlib import Path
 
-from ingest.models.ExtractedSymbol import ExtractedSymbol
-from ingest.parser import parse_file_symbols
-from ingest.symbol_filter import filter_symbols
+from parsers.source.models.ExtractedSymbol import ExtractedSymbol
+from parsers.source.parser import parse_file_symbols
+from parsers.source.symbol_filter import filter_symbols
 
 
 def _symbol(

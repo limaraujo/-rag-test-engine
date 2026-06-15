@@ -1,15 +1,15 @@
-from dataclasses import dataclass
+﻿from dataclasses import dataclass
 import ast
 from pathlib import Path
 import sys
 from typing import Iterator
 
-from ingest.ast_utils import get_ast_from_file
-from ingest.call_graph import CallGraph, CallGraphBuilder
-from ingest.dependency_graph import DependencyGraph, DependencyGraphBuilder
-from ingest.extract import SymbolExtractor
-from ingest.models.ExtractedSymbol import ExtractedSymbol
-from ingest.scanner import RepositoryScanner
+from parsers.source.ast_utils import get_ast_from_file
+from parsers.source.call_graph import CallGraph, CallGraphBuilder
+from parsers.source.dependency_graph import DependencyGraph, DependencyGraphBuilder
+from parsers.source.extract import SymbolExtractor
+from parsers.source.models.ExtractedSymbol import ExtractedSymbol
+from parsers.source.scanner import RepositoryScanner
 
 
 @dataclass(frozen=True)

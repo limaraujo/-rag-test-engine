@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import json
 import subprocess
@@ -10,7 +10,7 @@ import pytest
 from config.security_paths import audit_tracked_files, is_sensitive_path
 from config.settings import ROOT, settings
 from config.source_guard import SourceDirBlockedError, ensure_source_dir_allowed, validate_source_dir
-from ingest.path_filters import scan_python_files
+from parsers.source.path_filters import scan_python_files
 from llm.call_logger import APICallLogger
 from llm.models import LLMRequest, LLMResponse
 from llm.sanitize import sanitize_text

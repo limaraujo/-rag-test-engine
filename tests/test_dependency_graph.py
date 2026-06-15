@@ -1,9 +1,9 @@
-import json
+﻿import json
 from textwrap import dedent
 
 import pytest
 
-from ingest.dependency_graph import (
+from parsers.source.dependency_graph import (
     DependencyGraph,
     DependencyGraphBuilder,
     DependencyNode,
@@ -241,7 +241,7 @@ def test_parse_repository_graphs_exposes_dependency_graph(tmp_path) -> None:
     _write(root / "pkg" / "mod.py", "import os")
     _write(root / "pkg" / "__init__.py", "")
 
-    from ingest.parser import parse_repository_graphs
+    from parsers.source.parser import parse_repository_graphs
 
     _, _, dependency_graph = parse_repository_graphs(str(root))
     assert "pkg.mod" in dependency_graph.nodes

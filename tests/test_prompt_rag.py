@@ -6,7 +6,7 @@ import pytest
 
 from config.settings import settings
 from schemas.context import FunctionContext
-from schemas.prompt_utils import (
+from prompts.rag import (
     RagCategory,
     RagItem,
     build_rag_prompt_sections,
@@ -144,7 +144,7 @@ def test_env_config_works(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_rag_metrics_logged(caplog: pytest.LogCaptureFixture) -> None:
     items = [RagItem(content="symbol: x\ndef x(): pass", category=RagCategory.CALLEE)]
-    with caplog.at_level(logging.INFO, logger="schemas.prompt_utils"):
+    with caplog.at_level(logging.INFO, logger="prompts.rag"):
         build_rag_prompt_sections(
             items,
             max_total_chars=500,

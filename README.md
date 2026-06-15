@@ -41,9 +41,18 @@ uv run python main.py
 
 # Testar a pasta de exemplos
 uv run python main.py mockes
+
+# Comparar modos: sem RAG, RAG limitado, RAG completo, com cache
+uv run python main.py mockes --profile sem-rag
+uv run python main.py mockes --profile rag-limitado
+uv run python main.py mockes --profile rag-completo
+uv run python main.py mockes --profile com-cache
+
+# Rodar os 4 perfis em sequência
+uv run python scripts/run_all_profiles.py mockes
 ```
 
-Referência completa dos argumentos: [docs/CLI.md](docs/CLI.md)
+Referência completa dos argumentos e perfis: [docs/CLI.md](docs/CLI.md)
 
 Equivalente em Python:
 
@@ -54,21 +63,20 @@ result = main("mockes")
 print(result.workspace.root)
 ```
 
-Cada execução cria um workspace isolado:
+Cada execução cria um workspace isolado (nome do repositório analisado na pasta):
 
 ```
-runs/<fonte>/<timestamp>/
+runs/<repo>/[<run_group>/]<profile>/[<timestamp>/]
 ├── tests/          # testes gerados que passaram
 ├── logs/
 │   ├── pipeline.log
-│   └── api_calls/  # metadados e tokens (LOG_API_CALLS=true; corpos só se LOG_API_CALL_BODIES=true)
+│   └── api_calls/  # metadados e tokens (LOG_API_CALLS=true)
 └── artifacts/
-    ├── symbols.json
-    ├── call_graph.json
-    ├── dependency_graph.json
-    ├── run_meta.json
-    └── run_summary.json
+    ├── run_summary.json   # token_usage + api_calls_log_match
+    └── ...
 ```
+
+Lote dos 4 perfis: `runs/mockes/20260615_143022/sem-rag/`, `.../rag-limitado/`, etc.
 
 ## Configuração
 
@@ -81,14 +89,34 @@ Copie `.env.example` para `.env`. Variáveis principais:
 | `OPENAI_EMBEDDING_MODEL` | `text-embedding-3-small` | Modelo de embeddings |
 | `AI_MODE` | `openai` | `openai` ou `offline` (sem API) |
 | `QDRANT_URL` | `http://localhost:6333` | URL do Qdrant |
-| `REINDEX_SYMBOLS` | `false` | `false` = cache incremental |
+| `REINDEX_SYMBOLS` | `false` | `false` = cache incremental de embeddings |
+| `RAG_MODE` | `full` | `none` / `limited` / `full` — ver perfis abaixo |
+| `GENERATION_CACHE_ENABLED` | `true` | Reutiliza testes aprovados antes de chamar o LLM |
 | `RUNS_DIR` | `runs` | Pasta raiz das execuções |
 | `LOG_API_CALLS` | `true` | Grava metadados de cada chamada LLM em `logs/api_calls/` |
 | `LOG_API_CALL_BODIES` | `false` | Prompts/respostas integrais (desativado por padrão por segurança) |
 
 **Segurança:** nunca aponte `SOURCE_DIR` para a raiz deste repositório em produção. Arquivos `.env`, chaves e diretórios `secrets/` são ignorados na varredura. Se uma chave foi exposta, rotacione-a no provedor — ver [docs/CONFIGURATION.md](docs/CONFIGURATION.md#rotação-de-chaves).
 
-Documentação completa: [docs/CONFIGURATION.md](docs/CONFIGURATION.md) · CLI: [docs/CLI.md](docs/CLI.md)
+Documentação completa: [docs/CONFIGURATION.md](docs/CONFIGURATION.md) · CLI e perfis: [docs/CLI.md](docs/CLI.md)
+
+## Perfis de teste
+
+Quatro presets via `--profile` para comparar RAG e cache sem editar o `.env`:
+
+| Perfil | RAG | Cache | Quando usar |
+|---|---|---|---|
+| `sem-rag` | Desligado | Desligado | Baseline mínimo (sem Qdrant no prompt) |
+| `rag-limitado` | Orçamento reduzido | Desligado | RAG enxuto para economizar tokens |
+| `rag-completo` | Defaults do `.env` | Desligado | RAG completo, sempre gera via LLM |
+| `com-cache` | Defaults do `.env` | Ligado | Reutiliza testes já aprovados |
+
+```bash
+uv run python main.py mockes --profile rag-completo
+uv run python scripts/run_all_profiles.py mockes
+```
+
+Detalhes: [docs/CLI.md](docs/CLI.md#perfis-de-teste---profile)
 
 ## Pipeline
 
@@ -96,13 +124,14 @@ Documentação completa: [docs/CONFIGURATION.md](docs/CONFIGURATION.md) · CLI: 
 Ingestão → Indexação → Geração → Execução → Reparo → Cobertura → Salvamento
 ```
 
-1. **Ingestão** — varre `SOURCE_DIR`, extrai símbolos, call graph e dependency graph
-2. **Indexação** — embeddings no Qdrant (com cache se `REINDEX_SYMBOLS=false`)
-3. **Geração** — LLM gera pytest por símbolo, com contexto RAG
-4. **Execução** — roda pytest em subprocesso
-5. **Reparo** — até 2 tentativas de correção via LLM se falhar
-6. **Cobertura** — regenera se cobertura < `COVERAGE_THRESHOLD`
-7. **Salvamento** — grava em `runs/.../tests/`
+1. **Ingestão** — `parsers/source/` varre `SOURCE_DIR`, extrai símbolos e grafos
+2. **Indexação** — embeddings no Qdrant (pulada se `RAG_MODE=none`)
+3. **Enriquecimento** — busca híbrida RAG (pulada se `RAG_MODE=none`)
+4. **Geração** — LLM gera pytest (`prompts/` + `parsers/llm/`)
+5. **Execução** — roda pytest em subprocesso
+6. **Reparo** — até `MAX_REPAIRS` tentativas de correção via LLM
+7. **Cobertura** — regenera se cobertura < `COVERAGE_THRESHOLD` (`MAX_COVERAGE_ROUNDS > 0`)
+8. **Salvamento** — grava em `runs/.../tests/` e opcionalmente no cache persistente
 
 Detalhes: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
@@ -113,10 +142,10 @@ Detalhes: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 ```python
 from main import main
 
-result = main("mockes")
+result = main("mockes", profile="rag-completo")
 ```
 
-**Via orquestrador diretamente:**
+**Via orquestrador com perfil:**
 
 ```python
 from agents.orchestrator import OrchestratorAgent
@@ -141,9 +170,6 @@ API completa: [docs/API.md](docs/API.md)
 # Suíte unitária
 uv run pytest
 
-# Testes gerados manualmente (legado)
-uv run pytest generated_tests -v
-
 # Testes de uma execução em runs/
 uv run pytest runs/mockes -v
 ```
@@ -153,9 +179,12 @@ uv run pytest runs/mockes -v
 ```
 main.py        # entrypoint CLI → OrchestratorAgent.run()
 agents/        # OrchestratorAgent, TestGeneratorAgent, RepairAgent
-config/        # settings, logging, run workspace
+prompts/       # templates LLM e montagem RAG
+parsers/       # parsing de respostas LLM e código-fonte (AST/grafos)
+cache/         # cache persistente de gerações aprovadas
+config/        # settings, run_profiles, logging, run workspace
+scripts/       # run_all_profiles.py (comparar os 4 perfis)
 execution/     # TestRunner, CoverageAnalyzer
-ingest/        # parser AST, grafos, ExtractedSymbol
 llm/           # OpenAI, embeddings, usage tracker
 retrieval/     # Qdrant, Retriever, busca híbrida
 schemas/       # FunctionContext, GeneratedTest, OrchestrationResult
@@ -172,13 +201,13 @@ docs/          # documentação técnica
 Análise dos logs em `runs/.../logs/api_calls/_index.jsonl` mostra que **saída do LLM**
 (`completion_tokens`) costuma ser 3–5× maior que a entrada. Prioridades:
 
-1. **`MAX_COVERAGE_ROUNDS=0`** — elimina regenerações por cobertura (maior economia)
-2. **`LLM_MAX_OUTPUT_TOKENS=2048`** — limita testes verbosos (já é o padrão)
-3. **`INGEST_SKIP_FUNCTION_NAMES=main`** — ignora `main()` de scripts (já é o padrão)
-4. **`INGEST_SKIP_FILE_GLOBS=*_demo.py`** — ignora arquivos demo (já é o padrão)
+1. **`MAX_COVERAGE_ROUNDS=0`** — elimina regenerações por cobertura (já é o padrão)
+2. **`--profile rag-limitado`** ou `RAG_MODE=limited` — RAG com orçamento reduzido
+3. **`--profile sem-rag`** — desliga indexação e enriquecimento RAG
+4. **`INGEST_SKIP_FUNCTION_NAMES=main`** — ignora `main()` de scripts (já é o padrão)
 5. **`MAX_REPAIRS=1`** — menos tentativas de reparo (já é o padrão)
 6. **`REINDEX_SYMBOLS=false`** + Qdrant persistente → evita re-embedar
-7. Reduzir `RETRIEVER_TOP_K*` para prompts menores
+7. **`GENERATION_CACHE_ENABLED=true`** ou `--profile com-cache` → reutiliza testes aprovados
 
 Perfil completo: [docs/CONFIGURATION.md](docs/CONFIGURATION.md#perfil-econômico-sugerido)
 

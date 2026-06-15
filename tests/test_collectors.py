@@ -1,11 +1,11 @@
-import ast
+﻿import ast
 from textwrap import dedent
 
-from ingest.collectors.branches import BranchCollector
-from ingest.collectors.dependency_collector import DependencyCollector
-from ingest.collectors.exceptions import ExceptionCollector
-from ingest.collectors.imports import ImportCollector
-from ingest.heuristics.edge_cases import EdgeCaseInferer
+from parsers.source.collectors.branches import BranchCollector
+from parsers.source.collectors.dependency_collector import DependencyCollector
+from parsers.source.collectors.exceptions import ExceptionCollector
+from parsers.source.collectors.imports import ImportCollector
+from parsers.source.heuristics.edge_cases import EdgeCaseInferer
 
 
 def test_import_collector_collects_imports() -> None:

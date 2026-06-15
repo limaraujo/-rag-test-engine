@@ -4,9 +4,6 @@ openai
 # Vector DB
 qdrant-client
 
-# Parsing de código
-tree-sitter
-
 # Estrutura e validação
 pydantic
 pydantic-settings
@@ -18,5 +15,4 @@ coverage
 
 # Utilidades
 python-dotenv
-tqdm
 

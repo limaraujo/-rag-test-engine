@@ -1,12 +1,12 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import logging
 from pathlib import Path
 
-from ingest.call_graph import CallGraph
-from ingest.dependency_graph import DependencyGraph
-from ingest.import_resolver import module_name_from_path
-from ingest.models.ExtractedSymbol import ExtractedSymbol
+from parsers.source.call_graph import CallGraph
+from parsers.source.dependency_graph import DependencyGraph
+from parsers.source.import_resolver import module_name_from_path
+from parsers.source.models.ExtractedSymbol import ExtractedSymbol
 from llm.base import BaseEmbedding
 from llm.factory import get_embedder
 from llm.models import LLMEmbeddingRequest

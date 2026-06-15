@@ -173,6 +173,40 @@ class UsageTracker:
                 total._has_cost = True
         return total
 
+    def _sum_buckets(self, store: dict[str, UsageBucket]) -> UsageBucket:
+        total = UsageBucket()
+        for bucket in store.values():
+            total.prompt_tokens += bucket.prompt_tokens
+            total.completion_tokens += bucket.completion_tokens
+            total.total_tokens += bucket.total_tokens
+            total.calls += bucket.calls
+            if bucket._has_reasoning:
+                total.reasoning_tokens += bucket.reasoning_tokens
+                total._has_reasoning = True
+            if bucket._has_cached:
+                total.cached_prompt_tokens += bucket.cached_prompt_tokens
+                total._has_cached = True
+            if bucket._has_cost:
+                total.estimated_cost += bucket.estimated_cost
+                total._has_cost = True
+        return total
+
+    def reconciliation(self) -> dict[str, Any]:
+        """Verifica se agregações por fase/operação batem com o total."""
+        totals = self.totals()
+        by_phase = self._sum_buckets(self.by_phase)
+        by_operation = self._sum_buckets(self.by_operation)
+        consistent = (
+            totals.total_tokens == by_phase.total_tokens == by_operation.total_tokens
+            and totals.calls == by_phase.calls == by_operation.calls
+        )
+        return {
+            "consistent": consistent,
+            "totals": totals.to_dict(),
+            "by_phase_sum": by_phase.to_dict(),
+            "by_operation_sum": by_operation.to_dict(),
+        }
+
     def build_summary(
         self,
         *,
@@ -180,6 +214,7 @@ class UsageTracker:
         generation_cache_hits: int = 0,
         llm_calls_avoided: int = 0,
         ignored_symbols: list[dict[str, Any]] | None = None,
+        api_calls_log_totals: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         totals = self.totals()
         summary: dict[str, Any] = {
@@ -189,12 +224,22 @@ class UsageTracker:
             "by_agent": {key: bucket.to_dict() for key, bucket in sorted(self.by_agent.items())},
             "by_model": {key: bucket.to_dict() for key, bucket in sorted(self.by_model.items())},
             "totals": totals.to_dict(),
+            "reconciliation": self.reconciliation(),
             "cache": {
                 "embedding_hits": embedding_cache_hits,
                 "generation_hits": generation_cache_hits,
                 "llm_calls_avoided": llm_calls_avoided,
             },
         }
+        if api_calls_log_totals is not None:
+            summary["api_calls_log_totals"] = api_calls_log_totals
+            tracker_calls = totals.calls
+            log_calls = int(api_calls_log_totals.get("calls", 0))
+            tracker_total = totals.total_tokens
+            log_total = int(api_calls_log_totals.get("total_tokens", 0))
+            summary["api_calls_log_match"] = (
+                tracker_calls == log_calls and tracker_total == log_total
+            )
         if ignored_symbols:
             summary["ignored_symbols"] = ignored_symbols
         return summary

@@ -238,3 +238,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Artefatos locais do projeto
+.cache/
+saida.json
+embedding_records.json
+generated_tests/

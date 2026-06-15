@@ -6,6 +6,22 @@ from llm.models import TokenUsage
 from llm.pricing import estimate_cost
 
 
+def _coerce_total_tokens(prompt_tokens: int, completion_tokens: int, total_tokens: int) -> int:
+    """
+    Garante total coerente com entrada/saída.
+
+    A API costuma retornar ``total_tokens = prompt + completion``; quando ausente
+    ou subestimado, derivamos do somatório.
+    """
+    if total_tokens > 0:
+        if completion_tokens > 0 and total_tokens < prompt_tokens + completion_tokens:
+            return prompt_tokens + completion_tokens
+        return total_tokens
+    if prompt_tokens or completion_tokens:
+        return prompt_tokens + completion_tokens
+    return 0
+
+
 def parse_label(label: str | None) -> tuple[str | None, str | None]:
     """
     Extrai ``(symbol, operation)`` de rótulos como ``pkg.func::generate``.
@@ -63,8 +79,7 @@ def token_usage_from_openai(usage_obj: Any, *, model: str) -> TokenUsage | None:
     prompt_tokens = int(getattr(usage_obj, "prompt_tokens", 0) or 0)
     completion_tokens = int(getattr(usage_obj, "completion_tokens", 0) or 0)
     total_tokens = int(getattr(usage_obj, "total_tokens", 0) or 0)
-    if total_tokens == 0 and prompt_tokens:
-        total_tokens = prompt_tokens + completion_tokens
+    total_tokens = _coerce_total_tokens(prompt_tokens, completion_tokens, total_tokens)
 
     usage = TokenUsage(
         prompt_tokens=prompt_tokens,

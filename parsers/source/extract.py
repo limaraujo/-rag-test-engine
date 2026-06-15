@@ -1,12 +1,12 @@
-import ast
+﻿import ast
 from pathlib import Path
 
-from ingest.collectors.branches import BranchCollector
-from ingest.collectors.dependency_collector import DependencyCollector
-from ingest.collectors.exceptions import ExceptionCollector
-from ingest.collectors.imports import ImportCollector
-from ingest.heuristics.edge_cases import EdgeCaseInferer
-from ingest.models.ExtractedSymbol import ExtractedSymbol
+from parsers.source.collectors.branches import BranchCollector
+from parsers.source.collectors.dependency_collector import DependencyCollector
+from parsers.source.collectors.exceptions import ExceptionCollector
+from parsers.source.collectors.imports import ImportCollector
+from parsers.source.heuristics.edge_cases import EdgeCaseInferer
+from parsers.source.models.ExtractedSymbol import ExtractedSymbol
 
 
 class SymbolExtractor(ast.NodeVisitor):

@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import logging
 from pathlib import Path
@@ -21,13 +21,13 @@ from config.run_workspace import RunWorkspace, save_ingest_artifacts, save_run_s
 from config.settings import ROOT, settings
 from config.source_guard import ensure_source_dir_allowed
 from execution.runner import SuiteValidationResult, TestRunner
-from ingest.call_graph import CallGraph
-from ingest.dependency_graph import DependencyGraph
-from ingest.models.ExtractedSymbol import ExtractedSymbol
-from ingest.symbol_filter import SymbolFilterStats, filter_symbols
-from ingest.path_filters import ScanResult, emit_scan_warnings, scan_python_files
-from ingest.parser import parse_repository_graphs
-from llm.call_logger import setup_api_call_logging
+from parsers.source.call_graph import CallGraph
+from parsers.source.dependency_graph import DependencyGraph
+from parsers.source.models.ExtractedSymbol import ExtractedSymbol
+from parsers.source.symbol_filter import SymbolFilterStats, filter_symbols
+from parsers.source.path_filters import ScanResult, emit_scan_warnings, scan_python_files
+from parsers.source.parser import parse_repository_graphs
+from llm.call_logger import setup_api_call_logging, summarize_api_calls_log
 from llm.usage_tracker import get_tracker, reset_tracker
 from retrieval.retriever import Retriever
 from schemas.context import FunctionContext
@@ -84,6 +84,7 @@ class OrchestratorAgent:
         source_dir: str | Path = ".",
         *,
         allow_risky: bool = False,
+        run_group: str | None = None,
     ) -> OrchestrationResult:
         src = Path(source_dir).resolve()
         scan_result = scan_python_files(src)
@@ -92,10 +93,26 @@ class OrchestratorAgent:
             allow_risky=allow_risky,
             scan_result=scan_result,
         )
-        workspace = RunWorkspace.create(src)
+
+        from config.run_profiles import get_active_profile
+
+        profile = get_active_profile()
+        profile_name = profile.name if profile is not None else None
+        workspace = RunWorkspace.create(
+            src,
+            profile=profile_name,
+            run_group=run_group,
+        )
 
         log_file = setup_logging(workspace.logs_dir / "pipeline.log")
         logger.info("Workspace: %s", workspace.root)
+        logger.info("Repositório: %s (%s)", workspace.source_slug, workspace.source_dir)
+        if profile is not None:
+            logger.info("[profile] %s — %s", profile.name, profile.label)
+        elif settings.RAG_MODE == "none":
+            logger.info("[profile] RAG_MODE=none (sem enriquecimento RAG)")
+        if workspace.run_group:
+            logger.info("[run_group] %s", workspace.run_group)
         logger.info("Log: %s", log_file)
 
         api_calls_dir = workspace.logs_dir / "api_calls"
@@ -127,13 +144,27 @@ class OrchestratorAgent:
         token_summary_text = None
         if settings.AI_MODE != "offline":
             tracker = get_tracker()
+            api_calls_totals = summarize_api_calls_log(workspace.logs_dir / "api_calls")
             token_usage_payload = tracker.build_summary(
                 embedding_cache_hits=cache_hits,
                 generation_cache_hits=stats.generation_cache.hits,
                 llm_calls_avoided=stats.generation_cache.llm_calls_avoided,
                 ignored_symbols=collect_ignored_symbols(filter_stats, stats),
+                api_calls_log_totals=api_calls_totals,
             )
             token_summary_text = tracker.format_summary()
+            reconciliation = token_usage_payload.get("reconciliation", {})
+            if reconciliation and not reconciliation.get("consistent", True):
+                logger.warning(
+                    "token reconciliation mismatch: %s",
+                    reconciliation,
+                )
+            if api_calls_totals and not token_usage_payload.get("api_calls_log_match", True):
+                logger.warning(
+                    "tracker vs api_calls log mismatch tracker=%s log=%s",
+                    token_usage_payload["totals"],
+                    api_calls_totals,
+                )
 
         save_run_summary(
             workspace,
@@ -147,6 +178,9 @@ class OrchestratorAgent:
                 "generation_cache": stats.generation_cache.to_dict(),
                 "embedding_cache_hits": cache_hits,
                 "symbol_runs": [record.to_dict() for record in stats.symbol_runs],
+                "run_profile": profile.to_dict() if profile else None,
+                "rag_mode": settings.RAG_MODE,
+                "generation_cache_enabled": settings.GENERATION_CACHE_ENABLED,
             },
             token_usage=token_usage_payload,
             validation=validation_payload(validation),
@@ -217,6 +251,10 @@ class OrchestratorAgent:
         return all_symbols, test_symbols, call_graph, dependency_graph, filter_stats
 
     def _index(self, symbols: list[ExtractedSymbol]) -> tuple[int, int]:
+        if settings.RAG_MODE == "none":
+            logger.info("[index] skipped — RAG desligado (RAG_MODE=none)")
+            return 0, 0
+
         if settings.REINDEX_SYMBOLS:
             logger.info("[index] reindexando todos os símbolos no Qdrant …")
         else:
@@ -272,14 +310,15 @@ class OrchestratorAgent:
         logger.info("[gen] %s", qname)
 
         ctx = FunctionContext.from_symbol(symbol, project_root=ROOT)
-        ctx = self._retriever.enrich(
-            ctx,
-            symbol,
-            call_graph=call_graph,
-            dependency_graph=dependency_graph,
-            symbols_by_name=symbols_by_name,
-            project_root=source_dir,
-        )
+        if settings.RAG_MODE != "none":
+            ctx = self._retriever.enrich(
+                ctx,
+                symbol,
+                call_graph=call_graph,
+                dependency_graph=dependency_graph,
+                symbols_by_name=symbols_by_name,
+                project_root=source_dir,
+            )
 
         try:
             try:

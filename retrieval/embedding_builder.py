@@ -1,6 +1,6 @@
-import hashlib
+﻿import hashlib
 
-from ingest.models.ExtractedSymbol import ExtractedSymbol
+from parsers.source.models.ExtractedSymbol import ExtractedSymbol
 
 
 def content_hash(text: str) -> str:

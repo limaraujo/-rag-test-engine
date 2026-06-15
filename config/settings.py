@@ -79,6 +79,15 @@ class Settings(BaseSettings):
         description="Versão do schema JSON das entradas do cache de geração.",
     )
 
+    # none = sem enriquecimento RAG; limited = orçamento reduzido; full = defaults.
+    RAG_MODE: str = Field(
+        default="full",
+        description=(
+            "Modo RAG: none (desligado), limited (orçamento reduzido) ou full (completo). "
+            "Perfis CLI (--profile) sobrescrevem este valor durante a execução."
+        ),
+    )
+
     RUNS_DIR: str = Field(
         default="runs",
         description="Raiz das pastas de execução (runs/<fonte>/<timestamp>/).",
@@ -215,7 +224,7 @@ class Settings(BaseSettings):
     )
 
     GENERATION_MAX_LINES: int = Field(
-        default=80,
+        default=400,
         description="Máximo de linhas no arquivo de teste gerado.",
     )
 

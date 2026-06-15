@@ -61,6 +61,24 @@ def test_token_usage_from_embedding_usage() -> None:
     assert usage.total_tokens == 42
 
 
+def test_token_usage_coerces_missing_total() -> None:
+    usage = token_usage_from_openai(
+        SimpleNamespace(prompt_tokens=100, completion_tokens=50, total_tokens=0),
+        model="gpt-5-nano",
+    )
+    assert usage is not None
+    assert usage.total_tokens == 150
+
+
+def test_token_usage_coerces_underreported_total() -> None:
+    usage = token_usage_from_openai(
+        SimpleNamespace(prompt_tokens=100, completion_tokens=50, total_tokens=120),
+        model="gpt-5-nano",
+    )
+    assert usage is not None
+    assert usage.total_tokens == 150
+
+
 def test_token_usage_without_reasoning_tokens() -> None:
     usage = token_usage_from_openai(_openai_usage(), model="gpt-5-nano")
     assert usage is not None
@@ -135,6 +153,37 @@ def test_usage_aggregation_by_operation(
     assert summary["by_model"]["mock"]["calls"] == 3
     assert summary["totals"]["calls"] == 3
     assert summary["totals"]["avg_per_call"]["total_tokens"] == round(64 / 3, 2)
+    assert summary["reconciliation"]["consistent"] is True
+
+
+def test_summarize_api_calls_log_matches_tracker(tmp_path: Path) -> None:
+    from llm.call_logger import APICallLogger, summarize_api_calls_log
+
+    log_dir = tmp_path / "api_calls"
+    logger = APICallLogger()
+    logger.configure(log_dir)
+
+    request = LLMRequest(system_prompt="s", user_prompt="u", agent="test_generator")
+    response = LLMResponse(
+        content="code",
+        model="mock",
+        usage=TokenUsage(prompt_tokens=10, completion_tokens=5, total_tokens=15),
+    )
+    logger.log_llm(request, response, model="mock")
+
+    logged = summarize_api_calls_log(log_dir)
+    assert logged is not None
+    assert logged["calls"] == 1
+    assert logged["total_tokens"] == 15
+
+    tracker = UsageTracker()
+    tracker.record_llm(
+        response.usage,
+        agent="test_generator",
+        model="mock",
+    )
+    summary = tracker.build_summary(api_calls_log_totals=logged)
+    assert summary["api_calls_log_match"] is True
 
 
 def test_load_old_call_log_format(tmp_path: Path) -> None:
@@ -233,6 +282,9 @@ def test_run_summary_contains_separate_cache_hits(tmp_path: Path) -> None:
     workspace = RunWorkspace(
         root=tmp_path,
         source_dir=tmp_path / "src",
+        source_slug="src",
+        profile=None,
+        run_group=None,
         tests_dir=tmp_path / "tests",
         logs_dir=tmp_path / "logs",
         artifacts_dir=tmp_path / "artifacts",

@@ -1,11 +1,11 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
 from pathlib import Path
 
 from config.settings import ROOT, settings
-from ingest.path_filters import ScanResult, scan_python_files
+from parsers.source.path_filters import ScanResult, scan_python_files
 
 logger = logging.getLogger(__name__)
 

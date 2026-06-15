@@ -63,9 +63,24 @@ def test_index_functions_class_methods() -> None:
                 return a * b
     """)
     spans = _index_functions(source)
-    assert len(spans) == 1
-    assert spans[0].name == "Calc.multiply"
-    assert spans[0].start_line == 2
+    names = [s.name for s in spans]
+    assert names == ["Calc", "Calc.multiply"]
+    method = next(s for s in spans if s.name == "Calc.multiply")
+    assert method.start_line == 2
+
+
+def test_index_functions_class_span_covers_body() -> None:
+    source = dedent("""\
+        class Box:
+            DEFAULT = 1
+
+            def value(self):
+                return self.DEFAULT
+    """)
+    spans = _index_functions(source)
+    class_span = next(s for s in spans if s.name == "Box")
+    assert class_span.start_line == 1
+    assert class_span.end_line >= 5
 
 
 def test_function_at_line() -> None:
@@ -236,6 +251,71 @@ def test_branch_coverage_scoped_to_target_function(tmp_path) -> None:
     assert summary["branch_coverage_percent"] == 50.0
     assert len(summary["uncovered_branches"]) == 1
     assert summary["uncovered_branches"][0]["function_name"] == "covered"
+
+
+def test_line_coverage_scoped_to_target_function(tmp_path) -> None:
+    mod = tmp_path / "mod.py"
+    mod.write_text(dedent("""\
+        def covered(a, b):
+            return a + b
+
+        def other():
+            return 99
+    """), encoding="utf-8")
+
+    test = _make_test(dedent("""\
+        from mod import covered
+
+        def test_covered():
+            assert covered(1, 2) == 3
+    """), target="covered")
+
+    analyzer = CoverageAnalyzer(
+        test,
+        str(mod),
+        target_function="covered",
+        pythonpath=[str(tmp_path)],
+        threshold=100.0,
+    )
+    analyzer.run()
+    summary = analyzer.generate_summary()
+
+    assert summary["line_coverage_percent"] == 100.0
+    assert summary["meets_threshold"] is True
+    assert summary["missing_lines"] == []
+    assert summary["gaps"] == []
+
+
+def test_line_coverage_class_target(tmp_path) -> None:
+    mod = tmp_path / "mod.py"
+    mod.write_text(dedent("""\
+        class Widget:
+            LIMIT = 10
+
+            def within(self, value):
+                return value <= self.LIMIT
+    """), encoding="utf-8")
+
+    test = _make_test(dedent("""\
+        from mod import Widget
+
+        def test_within():
+            assert Widget().within(5) is True
+    """), target="Widget")
+
+    analyzer = CoverageAnalyzer(
+        test,
+        str(mod),
+        target_function="Widget",
+        pythonpath=[str(tmp_path)],
+        threshold=100.0,
+    )
+    analyzer.run()
+    summary = analyzer.generate_summary()
+
+    assert summary["line_coverage_percent"] == 100.0
+    assert summary["meets_threshold"] is True
+    assert summary["gaps"] == []
 
 
 def test_generate_summary_json_valid(partial_coverage_module) -> None:
