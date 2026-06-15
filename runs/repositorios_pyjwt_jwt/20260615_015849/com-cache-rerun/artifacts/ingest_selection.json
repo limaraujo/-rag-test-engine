@@ -1,0 +1,900 @@
+{
+  "files": {
+    "total_py_found": 12,
+    "included_count": 12,
+    "excluded_count": 0,
+    "included": [
+      "__init__.py",
+      "algorithms.py",
+      "api_jwk.py",
+      "api_jws.py",
+      "api_jwt.py",
+      "exceptions.py",
+      "help.py",
+      "jwk_set_cache.py",
+      "jwks_client.py",
+      "types.py",
+      "utils.py",
+      "warnings.py"
+    ],
+    "excluded": []
+  },
+  "symbols": {
+    "extracted_total": 165,
+    "selected_count": 126,
+    "filtered_count": 39,
+    "filter_stats": {
+      "extracted_total": 165,
+      "filtered_total": 39,
+      "removed_container_class": 15
+    },
+    "selected": [
+      {
+        "qualified_name": "get_default_algorithms",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "Algorithm.compute_hash_digest",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "Algorithm.check_crypto_key_type",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "Algorithm.prepare_key",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "Algorithm.sign",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "Algorithm.verify",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "Algorithm.to_jwk",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "Algorithm.to_jwk",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "Algorithm.to_jwk",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "Algorithm.from_jwk",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "Algorithm.check_key_length",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "NoneAlgorithm.prepare_key",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "NoneAlgorithm.sign",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "NoneAlgorithm.verify",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "NoneAlgorithm.to_jwk",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "NoneAlgorithm.from_jwk",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "HMACAlgorithm.__init__",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "HMACAlgorithm.prepare_key",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "HMACAlgorithm.to_jwk",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "HMACAlgorithm.to_jwk",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "HMACAlgorithm.to_jwk",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "HMACAlgorithm.from_jwk",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "HMACAlgorithm.check_key_length",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "HMACAlgorithm.sign",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "HMACAlgorithm.verify",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "RSAAlgorithm.__init__",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "RSAAlgorithm.check_key_length",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "RSAAlgorithm.prepare_key",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "RSAAlgorithm.to_jwk",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "RSAAlgorithm.to_jwk",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "RSAAlgorithm.to_jwk",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "RSAAlgorithm.from_jwk",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "RSAAlgorithm.sign",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "RSAAlgorithm.verify",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "ECAlgorithm.__init__",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "ECAlgorithm._validate_curve",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "ECAlgorithm.prepare_key",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "ECAlgorithm.sign",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "ECAlgorithm.verify",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "ECAlgorithm.to_jwk",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "ECAlgorithm.to_jwk",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "ECAlgorithm.to_jwk",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "ECAlgorithm.from_jwk",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "RSAPSSAlgorithm.sign",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "RSAPSSAlgorithm.verify",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "OKPAlgorithm.__init__",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "OKPAlgorithm.prepare_key",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "OKPAlgorithm.sign",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "OKPAlgorithm.verify",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "OKPAlgorithm.to_jwk",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "OKPAlgorithm.to_jwk",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "OKPAlgorithm.to_jwk",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "OKPAlgorithm.from_jwk",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py"
+      },
+      {
+        "qualified_name": "PyJWK.__init__",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwk.py"
+      },
+      {
+        "qualified_name": "PyJWK.from_dict",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwk.py"
+      },
+      {
+        "qualified_name": "PyJWK.from_json",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwk.py"
+      },
+      {
+        "qualified_name": "PyJWK.key_type",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwk.py"
+      },
+      {
+        "qualified_name": "PyJWK.key_id",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwk.py"
+      },
+      {
+        "qualified_name": "PyJWK.public_key_use",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwk.py"
+      },
+      {
+        "qualified_name": "PyJWKSet.__init__",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwk.py"
+      },
+      {
+        "qualified_name": "PyJWKSet.from_dict",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwk.py"
+      },
+      {
+        "qualified_name": "PyJWKSet.from_json",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwk.py"
+      },
+      {
+        "qualified_name": "PyJWKSet.__getitem__",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwk.py"
+      },
+      {
+        "qualified_name": "PyJWKSet.__iter__",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwk.py"
+      },
+      {
+        "qualified_name": "PyJWTSetWithTimestamp.__init__",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwk.py"
+      },
+      {
+        "qualified_name": "PyJWTSetWithTimestamp.get_jwk_set",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwk.py"
+      },
+      {
+        "qualified_name": "PyJWTSetWithTimestamp.get_timestamp",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwk.py"
+      },
+      {
+        "qualified_name": "PyJWS.__init__",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jws.py"
+      },
+      {
+        "qualified_name": "PyJWS._get_default_options",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jws.py"
+      },
+      {
+        "qualified_name": "PyJWS.register_algorithm",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jws.py"
+      },
+      {
+        "qualified_name": "PyJWS.unregister_algorithm",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jws.py"
+      },
+      {
+        "qualified_name": "PyJWS.get_algorithms",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jws.py"
+      },
+      {
+        "qualified_name": "PyJWS.get_algorithm_by_name",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jws.py"
+      },
+      {
+        "qualified_name": "PyJWS.encode",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jws.py"
+      },
+      {
+        "qualified_name": "PyJWS.decode_complete",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jws.py"
+      },
+      {
+        "qualified_name": "PyJWS.decode",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jws.py"
+      },
+      {
+        "qualified_name": "PyJWS.get_unverified_header",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jws.py"
+      },
+      {
+        "qualified_name": "PyJWS._load",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jws.py"
+      },
+      {
+        "qualified_name": "PyJWS._verify_signature",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jws.py"
+      },
+      {
+        "qualified_name": "PyJWS._validate_headers",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jws.py"
+      },
+      {
+        "qualified_name": "PyJWS._validate_kid",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jws.py"
+      },
+      {
+        "qualified_name": "PyJWS._validate_crit",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jws.py"
+      },
+      {
+        "qualified_name": "PyJWT.__init__",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwt.py"
+      },
+      {
+        "qualified_name": "PyJWT._get_default_options",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwt.py"
+      },
+      {
+        "qualified_name": "PyJWT._get_sig_options",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwt.py"
+      },
+      {
+        "qualified_name": "PyJWT._merge_options",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwt.py"
+      },
+      {
+        "qualified_name": "PyJWT.encode",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwt.py"
+      },
+      {
+        "qualified_name": "PyJWT._encode_payload",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwt.py"
+      },
+      {
+        "qualified_name": "PyJWT.decode_complete",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwt.py"
+      },
+      {
+        "qualified_name": "PyJWT._decode_payload",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwt.py"
+      },
+      {
+        "qualified_name": "PyJWT.decode",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwt.py"
+      },
+      {
+        "qualified_name": "PyJWT._validate_claims",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwt.py"
+      },
+      {
+        "qualified_name": "PyJWT._validate_required_claims",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwt.py"
+      },
+      {
+        "qualified_name": "PyJWT._validate_sub",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwt.py"
+      },
+      {
+        "qualified_name": "PyJWT._validate_jti",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwt.py"
+      },
+      {
+        "qualified_name": "PyJWT._validate_iat",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwt.py"
+      },
+      {
+        "qualified_name": "PyJWT._validate_nbf",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwt.py"
+      },
+      {
+        "qualified_name": "PyJWT._validate_exp",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwt.py"
+      },
+      {
+        "qualified_name": "PyJWT._validate_aud",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwt.py"
+      },
+      {
+        "qualified_name": "PyJWT._validate_iss",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwt.py"
+      },
+      {
+        "qualified_name": "MissingRequiredClaimError.__init__",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/exceptions.py"
+      },
+      {
+        "qualified_name": "MissingRequiredClaimError.__str__",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/exceptions.py"
+      },
+      {
+        "qualified_name": "info",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/help.py"
+      },
+      {
+        "qualified_name": "JWKSetCache.__init__",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/jwk_set_cache.py"
+      },
+      {
+        "qualified_name": "JWKSetCache.put",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/jwk_set_cache.py"
+      },
+      {
+        "qualified_name": "JWKSetCache.get",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/jwk_set_cache.py"
+      },
+      {
+        "qualified_name": "JWKSetCache.is_expired",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/jwk_set_cache.py"
+      },
+      {
+        "qualified_name": "PyJWKClient.__init__",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/jwks_client.py"
+      },
+      {
+        "qualified_name": "PyJWKClient.fetch_data",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/jwks_client.py"
+      },
+      {
+        "qualified_name": "PyJWKClient.get_jwk_set",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/jwks_client.py"
+      },
+      {
+        "qualified_name": "PyJWKClient.get_signing_keys",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/jwks_client.py"
+      },
+      {
+        "qualified_name": "PyJWKClient.get_signing_key",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/jwks_client.py"
+      },
+      {
+        "qualified_name": "PyJWKClient.get_signing_key_from_jwt",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/jwks_client.py"
+      },
+      {
+        "qualified_name": "PyJWKClient.match_kid",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/jwks_client.py"
+      },
+      {
+        "qualified_name": "force_bytes",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/utils.py"
+      },
+      {
+        "qualified_name": "base64url_decode",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/utils.py"
+      },
+      {
+        "qualified_name": "base64url_encode",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/utils.py"
+      },
+      {
+        "qualified_name": "to_base64url_uint",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/utils.py"
+      },
+      {
+        "qualified_name": "from_base64url_uint",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/utils.py"
+      },
+      {
+        "qualified_name": "number_to_bytes",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/utils.py"
+      },
+      {
+        "qualified_name": "bytes_to_number",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/utils.py"
+      },
+      {
+        "qualified_name": "bytes_from_int",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/utils.py"
+      },
+      {
+        "qualified_name": "der_to_raw_signature",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/utils.py"
+      },
+      {
+        "qualified_name": "raw_to_der_signature",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/utils.py"
+      },
+      {
+        "qualified_name": "is_pem_format",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/utils.py"
+      },
+      {
+        "qualified_name": "is_ssh_key",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/utils.py"
+      }
+    ],
+    "filtered": [
+      {
+        "qualified_name": "Algorithm",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py",
+        "reason": "container_class"
+      },
+      {
+        "qualified_name": "NoneAlgorithm",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py",
+        "reason": "container_class"
+      },
+      {
+        "qualified_name": "HMACAlgorithm",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py",
+        "reason": "container_class"
+      },
+      {
+        "qualified_name": "RSAAlgorithm",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py",
+        "reason": "container_class"
+      },
+      {
+        "qualified_name": "ECAlgorithm",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py",
+        "reason": "container_class"
+      },
+      {
+        "qualified_name": "RSAPSSAlgorithm",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py",
+        "reason": "container_class"
+      },
+      {
+        "qualified_name": "OKPAlgorithm",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/algorithms.py",
+        "reason": "container_class"
+      },
+      {
+        "qualified_name": "PyJWK",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwk.py",
+        "reason": "container_class"
+      },
+      {
+        "qualified_name": "PyJWKSet",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwk.py",
+        "reason": "container_class"
+      },
+      {
+        "qualified_name": "PyJWTSetWithTimestamp",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwk.py",
+        "reason": "container_class"
+      },
+      {
+        "qualified_name": "PyJWS",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jws.py",
+        "reason": "container_class"
+      },
+      {
+        "qualified_name": "PyJWT",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/api_jwt.py",
+        "reason": "container_class"
+      },
+      {
+        "qualified_name": "PyJWTError",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/exceptions.py",
+        "reason": "class_no_executable_behavior"
+      },
+      {
+        "qualified_name": "InvalidTokenError",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/exceptions.py",
+        "reason": "class_no_executable_behavior"
+      },
+      {
+        "qualified_name": "DecodeError",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/exceptions.py",
+        "reason": "class_no_executable_behavior"
+      },
+      {
+        "qualified_name": "InvalidSignatureError",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/exceptions.py",
+        "reason": "class_no_executable_behavior"
+      },
+      {
+        "qualified_name": "ExpiredSignatureError",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/exceptions.py",
+        "reason": "class_no_executable_behavior"
+      },
+      {
+        "qualified_name": "InvalidAudienceError",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/exceptions.py",
+        "reason": "class_no_executable_behavior"
+      },
+      {
+        "qualified_name": "InvalidIssuerError",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/exceptions.py",
+        "reason": "class_no_executable_behavior"
+      },
+      {
+        "qualified_name": "InvalidIssuedAtError",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/exceptions.py",
+        "reason": "class_no_executable_behavior"
+      },
+      {
+        "qualified_name": "ImmatureSignatureError",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/exceptions.py",
+        "reason": "class_no_executable_behavior"
+      },
+      {
+        "qualified_name": "InvalidKeyError",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/exceptions.py",
+        "reason": "class_no_executable_behavior"
+      },
+      {
+        "qualified_name": "InvalidAlgorithmError",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/exceptions.py",
+        "reason": "class_no_executable_behavior"
+      },
+      {
+        "qualified_name": "MissingRequiredClaimError",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/exceptions.py",
+        "reason": "container_class"
+      },
+      {
+        "qualified_name": "PyJWKError",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/exceptions.py",
+        "reason": "class_no_executable_behavior"
+      },
+      {
+        "qualified_name": "MissingCryptographyError",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/exceptions.py",
+        "reason": "class_no_executable_behavior"
+      },
+      {
+        "qualified_name": "PyJWKSetError",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/exceptions.py",
+        "reason": "class_no_executable_behavior"
+      },
+      {
+        "qualified_name": "PyJWKClientError",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/exceptions.py",
+        "reason": "class_no_executable_behavior"
+      },
+      {
+        "qualified_name": "PyJWKClientConnectionError",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/exceptions.py",
+        "reason": "class_no_executable_behavior"
+      },
+      {
+        "qualified_name": "InvalidSubjectError",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/exceptions.py",
+        "reason": "class_no_executable_behavior"
+      },
+      {
+        "qualified_name": "InvalidJTIError",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/exceptions.py",
+        "reason": "class_no_executable_behavior"
+      },
+      {
+        "qualified_name": "main",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/help.py",
+        "reason": "skip_function_name:main"
+      },
+      {
+        "qualified_name": "JWKSetCache",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/jwk_set_cache.py",
+        "reason": "container_class"
+      },
+      {
+        "qualified_name": "PyJWKClient",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/jwks_client.py",
+        "reason": "container_class"
+      },
+      {
+        "qualified_name": "SigOptions",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/types.py",
+        "reason": "class_no_executable_behavior"
+      },
+      {
+        "qualified_name": "Options",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/types.py",
+        "reason": "class_no_executable_behavior"
+      },
+      {
+        "qualified_name": "FullOptions",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/types.py",
+        "reason": "class_no_executable_behavior"
+      },
+      {
+        "qualified_name": "RemovedInPyjwt3Warning",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/warnings.py",
+        "reason": "class_no_executable_behavior"
+      },
+      {
+        "qualified_name": "InsecureKeyLengthWarning",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/pyjwt/jwt/warnings.py",
+        "reason": "class_no_executable_behavior"
+      }
+    ]
+  }
+}

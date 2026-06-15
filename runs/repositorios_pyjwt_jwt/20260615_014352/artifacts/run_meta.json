@@ -1,0 +1,14 @@
+{
+  "source_dir": "C:\\Users\\Araújo Notebook\\Documents\\GitHub\\-rag-test-engine\\repositorios\\pyjwt\\jwt",
+  "source_slug": "repositorios_pyjwt_jwt",
+  "profile": null,
+  "run_group": null,
+  "workspace": "runs\\repositorios_pyjwt_jwt\\20260615_014352",
+  "tests_dir": "runs\\repositorios_pyjwt_jwt\\20260615_014352\\tests",
+  "logs_dir": "runs\\repositorios_pyjwt_jwt\\20260615_014352\\logs",
+  "artifacts_dir": "runs\\repositorios_pyjwt_jwt\\20260615_014352\\artifacts",
+  "symbol_count": 165,
+  "call_graph_nodes": 117,
+  "dependency_graph_nodes": 46,
+  "started_at": "2026-06-15T01:43:53"
+}

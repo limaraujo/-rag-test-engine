@@ -1,0 +1,154 @@
+{
+  "alt_case": {
+    "qualified_name": "alt_case",
+    "dependencies": []
+  },
+  "autocomplete": {
+    "qualified_name": "autocomplete",
+    "dependencies": [
+      "trietree",
+      "trietree.Trie"
+    ]
+  },
+  "autocomplete.Autocomplete": {
+    "qualified_name": "autocomplete.Autocomplete",
+    "dependencies": [
+      "object",
+      "trietree.Trie"
+    ]
+  },
+  "convert": {
+    "qualified_name": "convert",
+    "dependencies": []
+  },
+  "disemvowel": {
+    "qualified_name": "disemvowel",
+    "dependencies": []
+  },
+  "even_odd": {
+    "qualified_name": "even_odd",
+    "dependencies": []
+  },
+  "fatcat": {
+    "qualified_name": "fatcat",
+    "dependencies": []
+  },
+  "flight_graph": {
+    "qualified_name": "flight_graph",
+    "dependencies": []
+  },
+  "flight_graph.Graph": {
+    "qualified_name": "flight_graph.Graph",
+    "dependencies": []
+  },
+  "flight_paths": {
+    "qualified_name": "flight_paths",
+    "dependencies": [
+      "flight_graph",
+      "flight_graph.Graph",
+      "json",
+      "os"
+    ]
+  },
+  "forbes": {
+    "qualified_name": "forbes",
+    "dependencies": [
+      "json"
+    ]
+  },
+  "get_grade": {
+    "qualified_name": "get_grade",
+    "dependencies": []
+  },
+  "jenny": {
+    "qualified_name": "jenny",
+    "dependencies": []
+  },
+  "minmax": {
+    "qualified_name": "minmax",
+    "dependencies": []
+  },
+  "monkey": {
+    "qualified_name": "monkey",
+    "dependencies": []
+  },
+  "next_sq": {
+    "qualified_name": "next_sq",
+    "dependencies": [
+      "math"
+    ]
+  },
+  "parenthetics": {
+    "qualified_name": "parenthetics",
+    "dependencies": []
+  },
+  "parenthetics.Node": {
+    "qualified_name": "parenthetics.Node",
+    "dependencies": [
+      "object"
+    ]
+  },
+  "parenthetics.DoubleLink": {
+    "qualified_name": "parenthetics.DoubleLink",
+    "dependencies": [
+      "object"
+    ]
+  },
+  "return_negative": {
+    "qualified_name": "return_negative",
+    "dependencies": []
+  },
+  "reverse": {
+    "qualified_name": "reverse",
+    "dependencies": []
+  },
+  "sort_bylength": {
+    "qualified_name": "sort_bylength",
+    "dependencies": []
+  },
+  "sort_cards": {
+    "qualified_name": "sort_cards",
+    "dependencies": []
+  },
+  "string2num": {
+    "qualified_name": "string2num",
+    "dependencies": []
+  },
+  "string_pyramid": {
+    "qualified_name": "string_pyramid",
+    "dependencies": []
+  },
+  "sum_highlow": {
+    "qualified_name": "sum_highlow",
+    "dependencies": []
+  },
+  "sum_of_nth_terms": {
+    "qualified_name": "sum_of_nth_terms",
+    "dependencies": []
+  },
+  "sum_positive": {
+    "qualified_name": "sum_positive",
+    "dependencies": []
+  },
+  "trietree": {
+    "qualified_name": "trietree",
+    "dependencies": [
+      "collections",
+      "collections.OrderedDict"
+    ]
+  },
+  "trietree.TrieNode": {
+    "qualified_name": "trietree.TrieNode",
+    "dependencies": [
+      "collections.OrderedDict",
+      "object"
+    ]
+  },
+  "trietree.Trie": {
+    "qualified_name": "trietree.Trie",
+    "dependencies": [
+      "TrieNode",
+      "object"
+    ]
+  }
+}
