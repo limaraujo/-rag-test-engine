@@ -146,6 +146,7 @@ def log_run_summary(
     *,
     validation: SuiteValidationResult | None = None,
     filter_stats: SymbolFilterStats | None = None,
+    suite_metrics_text: str | None = None,
 ) -> None:
     logger.info("")
     logger.info("=" * 52)
@@ -217,6 +218,10 @@ def log_run_summary(
                 avg_line,
                 len(measured),
             )
+    if suite_metrics_text:
+        logger.info("  Métricas da suíte gerada (referência inicial 0%%)")
+        for line in suite_metrics_text.splitlines():
+            logger.info(line)
     if token_summary:
         logger.info("  Uso de tokens (OpenAI)")
         for line in token_summary.splitlines():

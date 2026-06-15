@@ -22,6 +22,7 @@ class SymbolState(str, Enum):
 @dataclass
 class SymbolRunRecord:
     qualified_name: str
+    file_path: str = ""
     state: SymbolState = SymbolState.GENERATED
     llm_calls: int = 0
     stop_reason: str | None = None
@@ -33,6 +34,10 @@ class SymbolRunRecord:
     pytest_num_passed: int | None = None
     pytest_num_failed: int | None = None
     pytest_num_errors: int | None = None
+    tests_collected: int = 0
+    suite_executable: bool = False
+    first_generation_passed: bool = False
+    duration_seconds: float = 0.0
     repaired: bool = False
     coverage_boosted: bool = False
     passed: bool = False
@@ -45,6 +50,7 @@ class SymbolRunRecord:
         self.pytest_num_passed = result.num_passed
         self.pytest_num_failed = result.num_failed
         self.pytest_num_errors = result.num_errors
+        self.tests_collected = result.num_passed + result.num_failed
 
     def record_coverage_summary(self, summary: dict) -> None:
         if self.current_coverage_percent is not None:
@@ -57,6 +63,7 @@ class SymbolRunRecord:
     def to_dict(self) -> dict:
         return {
             "qualified_name": self.qualified_name,
+            "file_path": self.file_path,
             "state": self.state.value,
             "llm_calls": self.llm_calls,
             "stop_reason": self.stop_reason,
@@ -68,6 +75,10 @@ class SymbolRunRecord:
             "pytest_num_passed": self.pytest_num_passed,
             "pytest_num_failed": self.pytest_num_failed,
             "pytest_num_errors": self.pytest_num_errors,
+            "tests_collected": self.tests_collected,
+            "suite_executable": self.suite_executable,
+            "first_generation_passed": self.first_generation_passed,
+            "duration_seconds": self.duration_seconds,
             "repaired": self.repaired,
             "coverage_boosted": self.coverage_boosted,
             "passed": self.passed,
@@ -118,3 +129,4 @@ class OrchestrationResult:
     token_usage: dict | None = None
     validation: SuiteValidationResult | None = None
     generation_cache: GenerationCacheStats | None = None
+    suite_metrics: dict | None = None

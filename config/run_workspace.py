@@ -185,6 +185,7 @@ def save_run_summary(
     stats: dict,
     token_usage: dict | str | None = None,
     validation: dict | None = None,
+    suite_metrics: dict | None = None,
 ) -> None:
     """Grava resumo final da execução em ``artifacts/run_summary.json``."""
     payload: dict = {
@@ -194,6 +195,8 @@ def save_run_summary(
     }
     if token_usage is not None:
         payload["token_usage"] = token_usage
+    if suite_metrics is not None:
+        payload["suite_metrics"] = suite_metrics
     if settings.LOG_API_CALLS:
         payload["api_calls_dir"] = str(workspace.logs_dir / "api_calls")
     if validation:
@@ -203,6 +206,11 @@ def save_run_summary(
         json.dumps(payload, indent=2, ensure_ascii=False),
         encoding="utf-8",
     )
+    if suite_metrics is not None:
+        (workspace.artifacts_dir / "suite_metrics.json").write_text(
+            json.dumps(suite_metrics, indent=2, ensure_ascii=False),
+            encoding="utf-8",
+        )
 
 
 def build_ingest_selection_payload(

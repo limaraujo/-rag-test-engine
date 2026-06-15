@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from pathlib import Path
 
 from agents.policies.llm_budget import LLMBudget, LLMBudgetExhausted, _LLMBudget, _error_fingerprint
@@ -15,6 +16,7 @@ from agents.services.pipeline_logging import (
     validation_payload,
 )
 from agents.services.repair_cycle import run_repair_loop
+from agents.services.suite_metrics import build_suite_metrics, format_suite_metrics_table, is_suite_executable
 from agents.test_generator import TestGeneratorAgent
 from cache.generation_cache import GenerationCache
 from config.logging_setup import setup_logging
@@ -167,6 +169,14 @@ class OrchestratorAgent:
                     api_calls_totals,
                 )
 
+        suite_metrics_payload = build_suite_metrics(
+            stats,
+            filter_stats=filter_stats,
+            token_usage=token_usage_payload,
+            validation=validation,
+        )
+        suite_metrics_text = format_suite_metrics_table(suite_metrics_payload)
+
         save_run_summary(
             workspace,
             stats={
@@ -185,6 +195,7 @@ class OrchestratorAgent:
             },
             token_usage=token_usage_payload,
             validation=validation_payload(validation),
+            suite_metrics=suite_metrics_payload,
         )
         log_run_summary(
             workspace,
@@ -192,6 +203,7 @@ class OrchestratorAgent:
             token_summary_text,
             validation=validation,
             filter_stats=filter_stats,
+            suite_metrics_text=suite_metrics_text,
         )
 
         return OrchestrationResult(
@@ -203,6 +215,7 @@ class OrchestratorAgent:
             token_usage=token_usage_payload,
             validation=validation,
             generation_cache=stats.generation_cache,
+            suite_metrics=suite_metrics_payload,
         )
 
     def _ingest(
@@ -309,7 +322,8 @@ class OrchestratorAgent:
         stats: PipelineStats,
     ) -> None:
         qname = symbol.qualified_name
-        record = SymbolRunRecord(qualified_name=qname)
+        start = time.perf_counter()
+        record = SymbolRunRecord(qualified_name=qname, file_path=symbol.file_path)
         budget = LLMBudget(settings.MAX_LLM_CALLS_PER_SYMBOL)
         logger.info("[gen] %s", qname)
 
@@ -324,6 +338,8 @@ class OrchestratorAgent:
                 project_root=source_dir,
             )
 
+        result = None
+        skipped = False
         try:
             try:
                 test, from_cache, cached_result = generate_with_cache(
@@ -345,6 +361,7 @@ class OrchestratorAgent:
             if from_cache and cached_result is not None:
                 result = cached_result
                 record.record_pytest_result(result)
+                record.first_generation_passed = result.passed
                 log_pytest_result(result)
                 if result.passed:
                     record.set_state(SymbolState.PASSED)
@@ -354,6 +371,7 @@ class OrchestratorAgent:
                 record.set_state(SymbolState.GENERATED)
                 result = self._runner.run(test, pythonpath=pythonpath)
                 record.record_pytest_result(result)
+                record.first_generation_passed = result.passed
                 log_pytest_result(result)
                 if result.passed:
                     record.set_state(SymbolState.PASSED)
@@ -419,10 +437,17 @@ class OrchestratorAgent:
                 )
                 stats.failed += 1
         except Exception as exc:
+            skipped = True
             record.stop_reason = f"error:{exc}"
             logger.warning("  [skip] erro no símbolo %s: %s", qname, exc)
             stats.skipped += 1
         finally:
+            record.duration_seconds = round(time.perf_counter() - start, 3)
+            record.suite_executable = is_suite_executable(
+                result,
+                skipped=skipped,
+                stop_reason=record.stop_reason,
+            )
             record.set_state(SymbolState.COMPLETED)
             stats.symbol_runs.append(record)
 
