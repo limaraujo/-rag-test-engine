@@ -104,6 +104,18 @@ def test_exclusions_reduce_file_count(sample_project: Path) -> None:
     assert result.total_py_found > result.included
     assert result.excluded >= 5
     assert result.included == 3
+    assert len(result.excluded_files) == result.excluded
+    assert all(item.reason for item in result.excluded_files)
+    excluded_names = {item.path for item in result.excluded_files}
+    assert "test_alpha.py" in excluded_names
+
+
+def test_excluded_files_include_reason(sample_project: Path) -> None:
+    result = scan_python_files(sample_project)
+    test_entry = next(
+        item for item in result.excluded_files if item.path == "test_alpha.py"
+    )
+    assert test_entry.reason == "glob:test_*.py"
 
 
 def test_configurable_skip_dirs_respected(

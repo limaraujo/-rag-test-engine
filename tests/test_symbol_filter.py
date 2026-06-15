@@ -88,6 +88,9 @@ def test_class_with_three_methods_filters_container_class() -> None:
     assert result.stats.removed_container_class == 1
     assert result.stats.extracted_total == 4
     assert result.stats.filtered_total == 1
+    assert len(result.filtered) == 1
+    assert result.filtered[0].qualified_name == "Calculadora"
+    assert result.filtered[0].reason == "container_class"
 
 
 def test_top_level_function_stays_eligible() -> None:

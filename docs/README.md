@@ -21,7 +21,7 @@ python main.py mockes --profile rag-completo
        ▼
 main() → apply_run_profile (opcional) → OrchestratorAgent.run()
        │
-       ├── parsers/source  → artifacts/symbols.json, call_graph.json, …
+       ├── parsers/source  → artifacts/symbols.json, ingest_selection.json, …
        ├── index           → Qdrant (pulado se RAG_MODE=none)
        ├── enrich          → Retriever (pulado se RAG_MODE=none)
        ├── gen             → TestGeneratorAgent + prompts/
@@ -45,6 +45,7 @@ Quatro presets para comparar RAG e cache — ver [CLI.md](CLI.md#perfis-de-teste
 
 ```bash
 uv run python main.py mockes --profile sem-rag
+uv run python scripts/ingest_only.py mockes          # só parser (sem LLM)
 uv run python scripts/run_all_profiles.py mockes   # os 4 em sequência
 ```
 
@@ -60,21 +61,25 @@ retrieval/     # Qdrant, busca híbrida
 execution/     # pytest, cobertura
 llm/           # OpenAI, embeddings, telemetria
 schemas/       # modelos Pydantic
-scripts/       # utilitários CLI (run_all_profiles.py)
+scripts/       # ingest_only.py, run_all_profiles.py
+repositorios/  # clones opcionais (ex.: code_katas)
 ```
 
 ## Estrutura de saída
 
 ```
-runs/<repo>/[<run_group>/]<profile>/[<timestamp>/]
+runs/<slug>/[<run_group>/]<profile>/[<timestamp>/]
 ├── tests/              # testes aprovados
 ├── logs/
-│   ├── pipeline.log    # log da execução (perfil + repo)
+│   ├── pipeline.log    # execução + [arquivo +/-] [símbolo +/-] na ingestão
 │   └── api_calls/      # tokens por chamada (_index.jsonl)
 └── artifacts/
-    ├── run_summary.json   # token_usage.reconciliation + api_calls_log_match
+    ├── ingest_selection.json  # arquivos/símbolos incluídos e ignorados
+    ├── run_summary.json       # token_usage.reconciliation + api_calls_log_match
     └── ...
 ```
+
+`<slug>` = caminho relativo de `SOURCE_DIR` (ex.: `repositorios/code_katas/src` → `repositorios_code_katas_src`).
 
 Lote dos 4 perfis: `runs/mockes/<run_group>/sem-rag/`, `.../rag-limitado/`, etc.
 

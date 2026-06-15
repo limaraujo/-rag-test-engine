@@ -162,6 +162,8 @@ Os padrões fixos **não são removidos** ao definir essas variáveis — apenas
 
 Código em `src/`, `app/`, `lib/` e pacotes do projeto permanece incluído; somente segmentos de caminho com nome exato de diretório ignorado são excluídos.
 
+**Auditoria:** cada execução grava `artifacts/ingest_selection.json` (lista completa com motivos) e espelha no `logs/pipeline.log` linhas `[arquivo +]`, `[arquivo -]`, `[símbolo +]`, `[símbolo -]`. Ver [CLI.md](CLI.md#exclusões-na-ingestão-arquivos).
+
 ## Economia de tokens (LLM)
 
 | Variável | Padrão | Descrição |

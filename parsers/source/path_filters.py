@@ -84,21 +84,51 @@ def should_skip_python_file(
     skip_globs: tuple[str, ...] | None = None,
 ) -> bool:
     """True se o arquivo Python deve ser ignorado na ingestão."""
+    return python_file_skip_reason(
+        path,
+        root,
+        skip_dirs=skip_dirs,
+        skip_globs=skip_globs,
+    ) is not None
+
+
+def python_file_skip_reason(
+    path: Path,
+    root: Path,
+    *,
+    skip_dirs: frozenset[str] | None = None,
+    skip_globs: tuple[str, ...] | None = None,
+) -> str | None:
+    """Retorna o motivo da exclusão ou ``None`` se o arquivo deve ser incluído."""
     skip_dirs = skip_dirs if skip_dirs is not None else get_skip_dirs()
     skip_globs = skip_globs if skip_globs is not None else get_skip_file_globs()
 
     rel_parts = _relative_parts(path, root)
     if not rel_parts:
-        return True
+        return "empty_relative_path"
 
     dir_parts = rel_parts[:-1]
-    if any(_part_matches_skip(part, skip_dirs) for part in dir_parts):
-        return True
+    for part in dir_parts:
+        if _part_matches_skip(part, skip_dirs):
+            return f"skip_dir:{part}"
 
     file_name = rel_parts[-1]
-    if is_sensitive_file_name(file_name) or is_sensitive_path(path, root):
-        return True
-    return any(fnmatch.fnmatch(file_name, pattern) for pattern in skip_globs)
+    if is_sensitive_file_name(file_name):
+        return "sensitive_filename"
+    if is_sensitive_path(path, root):
+        return "sensitive_path"
+
+    for pattern in skip_globs:
+        if fnmatch.fnmatch(file_name, pattern):
+            return f"glob:{pattern}"
+
+    return None
+
+
+@dataclass(frozen=True)
+class ExcludedPythonFile:
+    path: str
+    reason: str
 
 
 @dataclass(frozen=True)
@@ -106,6 +136,7 @@ class ScanResult:
     files: tuple[Path, ...]
     total_py_found: int
     excluded: int
+    excluded_files: tuple[ExcludedPythonFile, ...] = ()
 
     @property
     def included(self) -> int:
@@ -119,22 +150,28 @@ def scan_python_files(root: str | Path) -> ScanResult:
     skip_globs = get_skip_file_globs()
 
     included: list[Path] = []
+    excluded_files: list[ExcludedPythonFile] = []
     total = 0
     for path in root_path.rglob("*.py"):
         total += 1
-        if should_skip_python_file(
+        reason = python_file_skip_reason(
             path,
             root_path,
             skip_dirs=skip_dirs,
             skip_globs=skip_globs,
-        ):
+        )
+        if reason is not None:
+            rel = path.resolve().relative_to(root_path).as_posix()
+            excluded_files.append(ExcludedPythonFile(path=rel, reason=reason))
             continue
         included.append(path)
 
+    excluded_files.sort(key=lambda item: item.path)
     return ScanResult(
         files=tuple(sorted(included)),
         total_py_found=total,
-        excluded=total - len(included),
+        excluded=len(excluded_files),
+        excluded_files=tuple(excluded_files),
     )
 
 

@@ -10,14 +10,46 @@ from config.settings import settings
 from parsers.source.call_graph import CallGraph
 from parsers.source.dependency_graph import DependencyGraph
 from parsers.source.models.ExtractedSymbol import ExtractedSymbol
+from parsers.source.path_filters import ScanResult
+from parsers.source.symbol_filter import SymbolFilterResult
 
 
-def source_slug(source_dir: Path) -> str:
-    """Nome seguro do repositório/diretório analisado para paths em ``runs/``."""
-    name = source_dir.name
-    if name in (".", ""):
-        name = source_dir.resolve().name or "root"
-    return re.sub(r"[^a-zA-Z0-9_-]", "_", name)
+def _sanitize_slug(text: str) -> str:
+    slug = re.sub(r"[^a-zA-Z0-9_-]", "_", text)
+    slug = re.sub(r"_+", "_", slug).strip("_")
+    return slug or "root"
+
+
+def _path_to_slug(path: Path) -> str:
+    return _sanitize_slug(path.as_posix().replace("/", "_"))
+
+
+def source_slug(source_dir: Path, *, project_root: Path | None = None) -> str:
+    """
+    Nome seguro do diretório analisado para paths em ``runs/``.
+
+    Usa o caminho relativo à raiz do engine quando possível, para que
+    ``repositorios/code_katas/src`` vire ``repositorios_code_katas_src``
+    em vez de apenas ``src``.
+    """
+    from config.settings import ROOT as engine_root
+
+    resolved = source_dir.resolve()
+    base = (project_root or engine_root).resolve()
+
+    try:
+        rel = resolved.relative_to(base)
+        if rel in (Path("."), Path("")):
+            return _sanitize_slug(resolved.name or "root")
+        return _path_to_slug(rel)
+    except ValueError:
+        pass
+
+    name = resolved.name
+    if name and name not in (".", ""):
+        return _sanitize_slug(name)
+
+    return _sanitize_slug(resolved.parts[-1] if resolved.parts else "root")
 
 
 def resolve_workspace_root(
@@ -171,3 +203,72 @@ def save_run_summary(
         json.dumps(payload, indent=2, ensure_ascii=False),
         encoding="utf-8",
     )
+
+
+def build_ingest_selection_payload(
+    source_dir: Path,
+    *,
+    scan_result: ScanResult,
+    filter_result: SymbolFilterResult,
+) -> dict:
+    """Monta JSON com arquivos e símbolos incluídos/excluídos na ingestão."""
+    root = source_dir.resolve()
+    included_files = [
+        path.resolve().relative_to(root).as_posix()
+        for path in scan_result.files
+    ]
+    return {
+        "files": {
+            "total_py_found": scan_result.total_py_found,
+            "included_count": scan_result.included,
+            "excluded_count": scan_result.excluded,
+            "included": included_files,
+            "excluded": [
+                {"path": item.path, "reason": item.reason}
+                for item in scan_result.excluded_files
+            ],
+        },
+        "symbols": {
+            "extracted_total": filter_result.stats.extracted_total,
+            "selected_count": len(filter_result.kept),
+            "filtered_count": filter_result.stats.filtered_total,
+            "filter_stats": filter_result.stats.to_dict(),
+            "selected": [
+                {
+                    "qualified_name": symbol.qualified_name,
+                    "symbol_type": symbol.symbol_type,
+                    "file_path": symbol.file_path,
+                }
+                for symbol in filter_result.kept
+            ],
+            "filtered": [
+                {
+                    "qualified_name": item.qualified_name,
+                    "symbol_type": item.symbol_type,
+                    "file_path": item.file_path,
+                    "reason": item.reason,
+                }
+                for item in filter_result.filtered
+            ],
+        },
+    }
+
+
+def save_ingest_selection(
+    workspace: RunWorkspace,
+    *,
+    scan_result: ScanResult,
+    filter_result: SymbolFilterResult,
+) -> Path:
+    """Persiste arquivos/símbolos selecionados e ignorados em ``ingest_selection.json``."""
+    payload = build_ingest_selection_payload(
+        workspace.source_dir,
+        scan_result=scan_result,
+        filter_result=filter_result,
+    )
+    path = workspace.artifacts_dir / "ingest_selection.json"
+    path.write_text(
+        json.dumps(payload, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    return path

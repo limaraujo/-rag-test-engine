@@ -10,13 +10,25 @@ from config.run_workspace import RunWorkspace, resolve_workspace_root, source_sl
 def test_source_slug_from_named_dir(tmp_path: Path) -> None:
     repo = tmp_path / "meu-projeto"
     repo.mkdir()
-    assert source_slug(repo) == "meu-projeto"
+    assert source_slug(repo, project_root=tmp_path) == "meu-projeto"
 
 
 def test_source_slug_from_dot_uses_resolved_name(tmp_path: Path) -> None:
     child = tmp_path / "child-repo"
     child.mkdir()
-    assert source_slug(child / ".") == "child-repo"
+    assert source_slug(child / ".", project_root=tmp_path) == "child-repo"
+
+
+def test_source_slug_uses_relative_path_under_project_root(tmp_path: Path) -> None:
+    nested = tmp_path / "repositorios" / "code_katas" / "src"
+    nested.mkdir(parents=True)
+    assert source_slug(nested, project_root=tmp_path) == "repositorios_code_katas_src"
+
+
+def test_source_slug_single_segment_under_root(tmp_path: Path) -> None:
+    mockes = tmp_path / "mockes"
+    mockes.mkdir()
+    assert source_slug(mockes, project_root=tmp_path) == "mockes"
 
 
 def test_resolve_workspace_without_profile(tmp_path: Path) -> None:

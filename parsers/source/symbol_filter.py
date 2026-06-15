@@ -25,9 +25,18 @@ class SymbolFilterStats:
 
 
 @dataclass(frozen=True)
+class FilteredSymbol:
+    qualified_name: str
+    symbol_type: str
+    file_path: str
+    reason: str
+
+
+@dataclass(frozen=True)
 class SymbolFilterResult:
     kept: list[ExtractedSymbol]
     stats: SymbolFilterStats
+    filtered: tuple[FilteredSymbol, ...] = ()
 
 
 def _csv_set(value: str) -> set[str]:
@@ -85,27 +94,40 @@ def should_generate_tests(
     classes_with_methods: set[tuple[str, str]] | None = None,
 ) -> bool:
     """Retorna False para símbolos que não devem gerar testes."""
+    return symbol_skip_reason(
+        symbol,
+        classes_with_methods=classes_with_methods,
+    ) is None
+
+
+def symbol_skip_reason(
+    symbol: ExtractedSymbol,
+    *,
+    classes_with_methods: set[tuple[str, str]] | None = None,
+) -> str | None:
+    """Retorna o motivo de exclusão na geração ou ``None`` se elegível."""
     skip_names = _csv_set(settings.INGEST_SKIP_FUNCTION_NAMES)
     skip_globs = get_skip_file_globs()
 
     file_name = Path(symbol.file_path).name
-    if any(fnmatch.fnmatch(file_name, pattern) for pattern in skip_globs):
-        return False
+    for pattern in skip_globs:
+        if fnmatch.fnmatch(file_name, pattern):
+            return f"glob:{pattern}"
 
     if (
         symbol.symbol_type == "function"
         and symbol.class_name is None
         and symbol.name in skip_names
     ):
-        return False
+        return f"skip_function_name:{symbol.name}"
 
     if symbol.symbol_type == "class":
         if classes_with_methods and (symbol.file_path, symbol.name) in classes_with_methods:
-            return False
+            return "container_class"
         if not _class_has_own_executable_behavior(symbol):
-            return False
+            return "class_no_executable_behavior"
 
-    return True
+    return None
 
 
 def filter_symbols(symbols: list[ExtractedSymbol]) -> SymbolFilterResult:
@@ -114,18 +136,25 @@ def filter_symbols(symbols: list[ExtractedSymbol]) -> SymbolFilterResult:
     classes_with_methods = _classes_with_extracted_methods(symbols)
 
     kept: list[ExtractedSymbol] = []
+    filtered: list[FilteredSymbol] = []
     removed_container_class = 0
 
     for symbol in symbols:
-        if not should_generate_tests(
+        reason = symbol_skip_reason(
             symbol,
             classes_with_methods=classes_with_methods,
-        ):
-            if (
-                symbol.symbol_type == "class"
-                and (symbol.file_path, symbol.name) in classes_with_methods
-            ):
+        )
+        if reason is not None:
+            if reason == "container_class":
                 removed_container_class += 1
+            filtered.append(
+                FilteredSymbol(
+                    qualified_name=symbol.qualified_name,
+                    symbol_type=symbol.symbol_type,
+                    file_path=symbol.file_path,
+                    reason=reason,
+                )
+            )
             continue
         kept.append(symbol)
 
@@ -137,6 +166,7 @@ def filter_symbols(symbols: list[ExtractedSymbol]) -> SymbolFilterResult:
             filtered_total=filtered_total,
             removed_container_class=removed_container_class,
         ),
+        filtered=tuple(filtered),
     )
 
 

@@ -63,18 +63,21 @@ result = main("mockes")
 print(result.workspace.root)
 ```
 
-Cada execução cria um workspace isolado (nome do repositório analisado na pasta):
+Cada execução cria um workspace isolado. O nome da pasta em `runs/` (`<slug>`) segue o **caminho relativo** de `SOURCE_DIR` (ex.: `repositorios/code_katas/src` → `repositorios_code_katas_src`).
 
 ```
-runs/<repo>/[<run_group>/]<profile>/[<timestamp>/]
+runs/<slug>/[<run_group>/]<profile>/[<timestamp>/]
 ├── tests/          # testes gerados que passaram
 ├── logs/
-│   ├── pipeline.log
-│   └── api_calls/  # metadados e tokens (LOG_API_CALLS=true)
+│   ├── pipeline.log       # inclui [arquivo +/-] e [símbolo +/-] na ingestão
+│   └── api_calls/         # metadados e tokens (LOG_API_CALLS=true)
 └── artifacts/
-    ├── run_summary.json   # token_usage + api_calls_log_match
+    ├── ingest_selection.json  # arquivos/símbolos incluídos e ignorados
+    ├── run_summary.json       # token_usage + api_calls_log_match
     └── ...
 ```
+
+Ingestão isolada (sem LLM): `uv run python scripts/ingest_only.py [SOURCE_DIR]`
 
 Lote dos 4 perfis: `runs/mockes/20260615_143022/sem-rag/`, `.../rag-limitado/`, etc.
 
@@ -124,7 +127,7 @@ Detalhes: [docs/CLI.md](docs/CLI.md#perfis-de-teste---profile)
 Ingestão → Indexação → Geração → Execução → Reparo → Cobertura → Salvamento
 ```
 
-1. **Ingestão** — `parsers/source/` varre `SOURCE_DIR`, extrai símbolos e grafos
+1. **Ingestão** — `parsers/source/` varre `SOURCE_DIR`, extrai símbolos e grafos; grava `ingest_selection.json` e log de seleção
 2. **Indexação** — embeddings no Qdrant (pulada se `RAG_MODE=none`)
 3. **Enriquecimento** — busca híbrida RAG (pulada se `RAG_MODE=none`)
 4. **Geração** — LLM gera pytest (`prompts/` + `parsers/llm/`)

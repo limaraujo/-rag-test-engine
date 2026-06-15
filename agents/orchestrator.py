@@ -9,6 +9,7 @@ from agents.services.coverage_cycle import run_coverage_loop
 from agents.services.generation_service import generate_with_cache, save_approved_test
 from agents.services.pipeline_logging import (
     collect_ignored_symbols,
+    log_ingest_selection,
     log_pytest_result,
     log_run_summary,
     validation_payload,
@@ -17,7 +18,7 @@ from agents.services.repair_cycle import run_repair_loop
 from agents.test_generator import TestGeneratorAgent
 from cache.generation_cache import GenerationCache
 from config.logging_setup import setup_logging
-from config.run_workspace import RunWorkspace, save_ingest_artifacts, save_run_summary
+from config.run_workspace import RunWorkspace, save_ingest_artifacts, save_ingest_selection, save_run_summary
 from config.settings import ROOT, settings
 from config.source_guard import ensure_source_dir_allowed
 from execution.runner import SuiteValidationResult, TestRunner
@@ -237,16 +238,19 @@ class OrchestratorAgent:
         logger.info("[ingest] artefatos salvos em %s", workspace.artifacts_dir)
 
         filter_result = filter_symbols(all_symbols)
+        selection_path = save_ingest_selection(
+            workspace,
+            scan_result=scan_result,
+            filter_result=filter_result,
+        )
+        log_ingest_selection(
+            src,
+            scan_result,
+            filter_result,
+            selection_artifact=selection_path,
+        )
         test_symbols = filter_result.kept
         filter_stats = filter_result.stats
-        if filter_stats.filtered_total:
-            logger.info(
-                "[ingest] %d símbolo(s) filtrado(s) para geração "
-                "(%d container_class, %d elegíveis)",
-                filter_stats.filtered_total,
-                filter_stats.removed_container_class,
-                len(test_symbols),
-            )
 
         return all_symbols, test_symbols, call_graph, dependency_graph, filter_stats
 

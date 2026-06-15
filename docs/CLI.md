@@ -50,9 +50,11 @@ O perfil ativo aparece em `logs/pipeline.log` e em `artifacts/run_summary.json` 
 
 | Cenário | Caminho |
 |---|---|
-| Execução normal | `runs/<repo>/<timestamp>/` |
-| Com `--profile` | `runs/<repo>/<profile>/<timestamp>/` |
-| Lote dos 4 perfis (`scripts/run_all_profiles.py`) | `runs/<repo>/<run_group>/<profile>/` |
+| Execução normal | `runs/<slug>/<timestamp>/` |
+| Com `--profile` | `runs/<slug>/<profile>/<timestamp>/` |
+| Lote dos 4 perfis (`scripts/run_all_profiles.py`) | `runs/<slug>/<run_group>/<profile>/` |
+
+O `<slug>` deriva do **caminho relativo** de `SOURCE_DIR` à raiz do engine, com `/` trocado por `_` (ex.: `repositorios/code_katas/src` → `repositorios_code_katas_src`; `mockes` → `mockes`).
 
 Exemplo do lote:
 
@@ -62,6 +64,15 @@ runs/mockes/20260615_143022/
 ├── rag-limitado/logs/pipeline.log
 ├── rag-completo/logs/pipeline.log
 └── com-cache/logs/pipeline.log
+```
+
+Exemplo com repositório externo clonado:
+
+```
+runs/repositorios_code_katas_src/sem-rag/20260614_223744/
+├── logs/pipeline.log
+├── tests/
+└── artifacts/
 ```
 
 Cada pasta de perfil contém `logs/`, `tests/` e `artifacts/` (incluindo `run_summary.json` com `token_usage` e conferência `api_calls_log_match`).
@@ -91,36 +102,69 @@ uv run python main.py mockes
 # Caminho absoluto (Windows)
 uv run python main.py "C:\projetos\meu-app\src"
 
-# Caminho relativo
-uv run python main.py ./src
+# Caminho relativo aninhado
+uv run python main.py repositorios/code_katas/src --profile sem-rag
 ```
+
+Repositórios externos podem ficar em `repositorios/` na raiz do engine (clone manual ou script).
 
 ## O que acontece na execução
 
-1. Cria um workspace em `runs/<nome_fonte>/<timestamp>/`
-2. Varre recursivamente `SOURCE_DIR` por arquivos `.py`
+1. Cria um workspace em `runs/<slug>/<timestamp>/` (ou com subpasta de perfil)
+2. Varre recursivamente `SOURCE_DIR` por arquivos `.py` (respeitando exclusões — ver abaixo)
 3. Executa o pipeline completo (ingestão → indexação → geração → pytest → reparo → cobertura)
 4. Grava testes aprovados, logs e artefatos no workspace
 
-O `<nome_fonte>` deriva do nome da pasta em `SOURCE_DIR` (ex.: `mockes` → `runs/mockes/...`).
+Na **ingestão**, o orchestrator registra em `logs/pipeline.log` quais arquivos e símbolos foram incluídos (`[arquivo +]`, `[símbolo +]`) ou ignorados (`[arquivo -]`, `[símbolo -]`), com motivo. O detalhe completo fica em `artifacts/ingest_selection.json`.
+
+Para rodar **só a ingestão** (parser + grafos, sem LLM):
+
+```bash
+uv run python scripts/ingest_only.py repositorios/code_katas/src
+```
 
 ## Saída gerada
 
 ```
-runs/<fonte>/<timestamp>/
+runs/<slug>/[<profile>/]<timestamp>/
 ├── tests/                      # testes pytest que passaram
 ├── logs/
-│   ├── pipeline.log            # log textual da execução
+│   ├── pipeline.log            # log textual (inclui seleção de arquivos/símbolos)
 │   └── api_calls/              # se LOG_API_CALLS=true (padrão)
 │       ├── _index.jsonl        # índice resumido (tokens por chamada)
 │       └── 0001_....json       # entrada/saída de cada chamada LLM/embedding
 └── artifacts/
-    ├── symbols.json
+    ├── symbols.json            # todos os símbolos extraídos
     ├── call_graph.json
     ├── dependency_graph.json
+    ├── ingest_selection.json   # arquivos/símbolos incluídos e ignorados (+ motivos)
     ├── run_meta.json
     └── run_summary.json        # stats, token_usage, api_calls_dir
 ```
+
+### Exclusões na ingestão (arquivos)
+
+Por padrão são **ignorados** (não parseados):
+
+| Tipo | Exemplos |
+|---|---|
+| Diretórios | `.git`, `__pycache__`, `.venv`, `tests`, `runs`, `logs`, … |
+| Globs de arquivo | `test_*.py`, `*_test.py`, `conftest.py`, `*_demo.py` |
+
+Extras via `.env`: `INGEST_SKIP_DIRS`, `INGEST_SKIP_FILE_GLOBS` ([CONFIGURATION.md](CONFIGURATION.md)).
+
+### Filtro de símbolos (geração de testes)
+
+Após o parse, alguns símbolos são **filtrados** antes da geração:
+
+| Motivo | Significado |
+|---|---|
+| `container_class` | Classe que só agrupa métodos já extraídos |
+| `class_no_executable_behavior` | Classe sem corpo executável próprio |
+| `skip_function_name:…` | Nome em `INGEST_SKIP_FUNCTION_NAMES` (padrão: `main`) |
+| `glob:…` | Arquivo do símbolo bate com glob de exclusão |
+
+Listados em `ingest_selection.json` → `symbols.filtered` e no `pipeline.log` como `[símbolo -]`.
 
 ## Variáveis de ambiente relevantes
 
@@ -167,6 +211,7 @@ Ver também: [API.md](API.md).
 
 | Script | Comando | Descrição |
 |---|---|---|
+| Ingestão só parser | `uv run python scripts/ingest_only.py [SOURCE_DIR]` | Parser + grafos + `ingest_selection.json`; sem LLM/Qdrant |
 | Comparar 4 perfis | `uv run python scripts/run_all_profiles.py mockes` | Roda `sem-rag` → `com-cache` em sequência |
 | Parser AST (sem API) | `uv run python mockes/exemplo.py` | Só `parsers/source`, sem LLM |
 

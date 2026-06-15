@@ -26,7 +26,7 @@ Agentes LLM e serviços do pipeline de geração/reparo.
 | `generation_service.py` | Geração com cache persistente e salvamento de testes aprovados |
 | `repair_cycle.py` | Loop iterativo de reparo via LLM |
 | `coverage_cycle.py` | Loop de regeneração orientado por cobertura |
-| `pipeline_logging.py` | Logging estruturado e payloads de resumo da execução |
+| `pipeline_logging.py` | Logging estruturado, `log_ingest_selection()`, payloads de resumo |
 
 ## `prompts/`
 
@@ -57,11 +57,12 @@ Análise estática de repositórios Python (antigo `ingest/`).
 | Arquivo | Descrição |
 |---|---|
 | `scanner.py` | `RepositoryScanner` — varredura de `*.py` |
-| `path_filters.py` | Exclusões centralizadas de diretórios e globs na ingestão |
-| `symbol_filter.py` | Filtro de elegibilidade de símbolos para geração |
+| `path_filters.py` | Exclusões centralizadas; `scan_python_files()`, `python_file_skip_reason()` |
+| `symbol_filter.py` | Filtro de elegibilidade; `filter_symbols()`, `symbol_skip_reason()` |
 | `parser.py` | `parse_repository_graphs()` — ponto de entrada do ingest |
-| `extract.py` | `SymbolExtractor` — extração via AST |
-| `ast_utils.py` | Parse de arquivo em AST |
+| `extract.py` | `SymbolExtractor` — extração via AST; dicas para `@dataclass` |
+| `ast_utils.py` | Parse de arquivo em AST (UTF-8 com/sem BOM) |
+| `text_utils.py` | `read_source_text()`, `strip_utf8_bom()` |
 | `call_graph.py` | `CallGraph`, `CallGraphBuilder` |
 | `dependency_graph.py` | `DependencyGraph`, `DependencyGraphBuilder` |
 | `import_resolver.py` | `module_name_from_path()` — caminho → módulo Python |
@@ -84,7 +85,7 @@ Análise estática de repositórios Python (antigo `ingest/`).
 |---|---|
 | `settings.py` | Configuração Pydantic + `.env` |
 | `run_profiles.py` | Perfis CLI (`--profile`): RAG + cache de geração |
-| `run_workspace.py` | `RunWorkspace`, persistência de artefatos |
+| `run_workspace.py` | `RunWorkspace`, `source_slug()`, `save_ingest_artifacts()`, `save_ingest_selection()` |
 | `logging_setup.py` | Logging console + arquivo |
 | `source_guard.py` | Validação de `source_dir` arriscado |
 | `security_paths.py` | Padrões de caminhos sensíveis e auditoria de segredos |
@@ -119,7 +120,7 @@ Análise estática de repositórios Python (antigo `ingest/`).
 | `local_embedding.py` | Embeddings determinísticos (offline) |
 | `mock_llm.py` | LLM mock (offline) |
 | `models.py` | `LLMRequest`, `LLMResponse`, `TokenUsage` |
-| `usage_tracker.py` | `UsageTracker` — acumula tokens |
+| `usage_tracker.py` | `UsageTracker` — acumula tokens; `reconciliation` inclui `entrada + saída` |
 | `call_logger.py` | Log persistente de chamadas LLM/embedding |
 | `pricing.py` | Estimativa de custo por token |
 | `sanitize.py` | Mascaramento de segredos em logs |
@@ -139,7 +140,19 @@ Análise estática de repositórios Python (antigo `ingest/`).
 
 | Arquivo | Descrição |
 |---|---|
+| `ingest_only.py` | Ingestão estática (parser + grafos + `ingest_selection.json`) |
 | `run_all_profiles.py` | Executa os 4 perfis (`sem-rag` … `com-cache`) em sequência |
+
+## `repositorios/`
+
+Pasta opcional na raiz do engine para clones de projetos externos (ex.: `repositorios/code_katas/`). Aponte o pipeline para o subdiretório com código Python:
+
+```bash
+python scripts/ingest_only.py repositorios/code_katas/src
+python main.py repositorios/code_katas/src --profile sem-rag
+```
+
+O slug em `runs/` será `repositorios_code_katas_src`.
 
 ## `main.py`
 

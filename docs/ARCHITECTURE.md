@@ -80,15 +80,27 @@ flowchart TB
 
 **Entrada:** caminho do diretório fonte (`SOURCE_DIR`)
 
-**Módulos:** `parsers/source/scanner.py`, `parsers/source/parser.py`, `parsers/source/extract.py`
+**Módulos:** `parsers/source/scanner.py`, `parsers/source/path_filters.py`, `parsers/source/parser.py`, `parsers/source/extract.py`, `parsers/source/symbol_filter.py`
 
-1. `RepositoryScanner` varre `*.py`, ignorando `.git`, `__pycache__`, `venv`, etc.
-2. Cada arquivo é parseado em AST (`ast_utils.py`).
+1. `scan_python_files()` varre `*.py`, ignorando diretórios e globs configurados (`.git`, `test_*.py`, etc.).
+2. Cada arquivo **incluído** é parseado em AST (`ast_utils.py`, tolerante a BOM UTF-8).
 3. `SymbolExtractor` produz `ExtractedSymbol` (função, método ou classe).
-4. Coletores AST extraem imports, branches, exceções e dependências.
+4. Coletores AST extraem imports, branches, exceções e dependências; classes `@dataclass` geram dicas de instanciação.
 5. `CallGraphBuilder` e `DependencyGraphBuilder` constroem grafos estruturais.
+6. `filter_symbols()` separa símbolos **elegíveis para geração** dos filtrados (ex.: `container_class`).
 
-**Saída:** lista de símbolos + grafos, persistidos em `artifacts/`.
+**Saída:**
+
+| Destino | Conteúdo |
+|---|---|
+| `artifacts/symbols.json` | Todos os símbolos extraídos |
+| `artifacts/call_graph.json`, `dependency_graph.json` | Grafos |
+| `artifacts/ingest_selection.json` | Arquivos e símbolos incluídos/ignorados + motivos |
+| `logs/pipeline.log` | Linhas `[arquivo +/-]` e `[símbolo +/-]` via `log_ingest_selection()` |
+
+**Slug do workspace:** caminho relativo de `SOURCE_DIR` à raiz do engine (`repositorios/code_katas/src` → `repositorios_code_katas_src`).
+
+**Script isolado:** `scripts/ingest_only.py` executa só esta fase.
 
 ### 2. Indexação
 
@@ -134,7 +146,7 @@ score = 0.5 × similaridade_vetorial
 1. `prompts/templates/generator_system.txt` fornece o system prompt (limites via `settings`).
 2. `FunctionContext.to_prompt_block()` formata o user prompt com contexto estático + RAG.
 3. `TestGeneratorAgent` envia system + user prompt ao LLM.
-4. `parsers/llm/response.parse_response()` normaliza a saída: remove markdown, valida sintaxe.
+4. `parsers/llm/response.parse_response()` normaliza a saída: remove markdown e BOM (`\ufeff`), valida sintaxe.
 5. `agents/import_utils.normalize_test_imports()` corrige caminhos de importação.
 
 **Cache de geração:** se `GENERATION_CACHE_ENABLED=true` (perfil `com-cache` ou `.env`),
@@ -174,15 +186,16 @@ Se o teste passou e `MAX_COVERAGE_ROUNDS > 0`:
 
 **Módulo:** `config/run_workspace.py`
 
-Cada execução cria `runs/<slug>/<timestamp>/`:
+Cada execução cria `runs/<slug>/[<profile>/]<timestamp>/`:
 
 | Pasta/arquivo | Conteúdo |
 |---|---|
 | `tests/` | Arquivos `test_<symbol>.py` aprovados |
-| `logs/pipeline.log` | Log com timestamp |
+| `logs/pipeline.log` | Log com timestamp; seleção de ingestão; resumo final |
 | `artifacts/symbols.json` | Símbolos extraídos |
 | `artifacts/call_graph.json` | Grafo de chamadas |
 | `artifacts/dependency_graph.json` | Grafo de dependências |
+| `artifacts/ingest_selection.json` | Arquivos/símbolos incluídos e ignorados |
 | `artifacts/run_meta.json` | Metadados iniciais |
 | `artifacts/run_summary.json` | Stats + tokens + `run_profile` ao final |
 
@@ -209,7 +222,7 @@ Ver [CLI.md](CLI.md#perfis-de-teste---profile).
 
 - LLM: `OpenAILLM` (`gpt-5-nano` por padrão)
 - Embeddings: `OpenAIEmbedding` (`text-embedding-3-small`)
-- Rastreamento de tokens via `UsageTracker`
+- Rastreamento de tokens via `UsageTracker` (`total = entrada + saída`; raciocínio e cache prompt são subconjuntos informativos)
 
 ### `AI_MODE=offline`
 

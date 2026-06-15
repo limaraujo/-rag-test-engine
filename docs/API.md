@@ -252,6 +252,18 @@ reset_tracker()
 print(get_tracker().format_summary())
 ```
 
+Contagem (modelo OpenAI):
+
+| Campo | Significado |
+|---|---|
+| `entrada` / `prompt_tokens` | Tokens de input |
+| `saída` / `completion_tokens` | Tokens de output (inclui raciocínio interno) |
+| `total` | `entrada + saída` |
+| `reasoning_tokens` | Subconjunto da saída (modelos de raciocínio) |
+| `cached_prompt_tokens` | Subconjunto da entrada servida do cache da API |
+
+`run_summary.json` → `token_usage.reconciliation` verifica consistência (`total_matches_prompt_plus_completion`).
+
 Cada `LLMResponse` e `LLMEmbeddingResponse` expõe `.usage` (`TokenUsage`).
 
 Com `LOG_API_CALLS=true` (padrão), cada chamada também é gravada em
@@ -264,12 +276,29 @@ Com `LOG_API_CALLS=true` (padrão), cada chamada também é gravada em
 **Arquivo:** `config/run_workspace.py`
 
 ```python
-from config.run_workspace import RunWorkspace, save_ingest_artifacts
+from pathlib import Path
+from config.run_workspace import (
+    RunWorkspace,
+    save_ingest_artifacts,
+    save_ingest_selection,
+    source_slug,
+)
 
-workspace = RunWorkspace.create(Path("mockes"))
-# workspace.root, .tests_dir, .logs_dir, .artifacts_dir
+source = Path("repositorios/code_katas/src")
+print(source_slug(source))  # repositorios_code_katas_src
 
+workspace = RunWorkspace.create(source)
 save_ingest_artifacts(workspace, symbols=..., call_graph=..., dependency_graph=...)
+# save_ingest_selection(workspace, scan_result=..., filter_result=...)  # feito pelo orchestrator
+```
+
+`ingest_selection.json` (via `save_ingest_selection`):
+
+```json
+{
+  "files": { "included": ["..."], "excluded": [{"path": "...", "reason": "glob:test_*.py"}] },
+  "symbols": { "selected": [...], "filtered": [{"qualified_name": "...", "reason": "container_class"}] }
+}
 ```
 
 ---
@@ -299,8 +328,23 @@ Montagem do bloco RAG no prompt: `prompts/rag.py` (`build_rag_prompt_sections`).
 ```python
 from parsers.llm.response import parse_response, normalize_code_response
 
-test = parse_response(raw_llm_output, ctx)
+test = parse_response(raw_llm_output, ctx)  # strip de BOM e markdown; valida sintaxe
 ```
+
+---
+
+## Ingestão isolada
+
+**Arquivo:** `scripts/ingest_only.py`
+
+```python
+from scripts.ingest_only import run_ingest
+
+workspace = run_ingest("repositorios/code_katas/src")
+print(workspace.artifacts_dir / "ingest_selection.json")
+```
+
+Equivalente CLI: `python scripts/ingest_only.py [SOURCE_DIR] [--allow-risky-source]`
 
 ---
 

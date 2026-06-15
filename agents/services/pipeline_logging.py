@@ -1,14 +1,60 @@
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 
 from config.run_workspace import RunWorkspace
 from config.settings import settings
 from execution.runner import RunResult, SuiteValidationResult
-from parsers.source.symbol_filter import SymbolFilterStats
+from parsers.source.path_filters import ScanResult
+from parsers.source.symbol_filter import SymbolFilterResult, SymbolFilterStats
 from schemas.pipeline import PipelineStats, SymbolRunRecord
 
 logger = logging.getLogger(__name__)
+
+
+def log_ingest_selection(
+    source_dir: Path,
+    scan_result: ScanResult,
+    filter_result: SymbolFilterResult,
+    *,
+    selection_artifact: Path | None = None,
+) -> None:
+    """Registra no log quais arquivos e símbolos entraram ou ficaram de fora."""
+    root = source_dir.resolve()
+
+    logger.info(
+        "[ingest] arquivos: %d incluído(s), %d ignorado(s)",
+        scan_result.included,
+        scan_result.excluded,
+    )
+    for path in scan_result.files:
+        rel = path.resolve().relative_to(root).as_posix()
+        logger.info("  [arquivo +] %s", rel)
+    for item in scan_result.excluded_files:
+        logger.info("  [arquivo -] %s (%s)", item.path, item.reason)
+
+    logger.info(
+        "[ingest] símbolos: %d elegíveis para testes, %d filtrados",
+        len(filter_result.kept),
+        filter_result.stats.filtered_total,
+    )
+    for symbol in filter_result.kept:
+        logger.info(
+            "  [símbolo +] %s (%s)",
+            symbol.qualified_name,
+            symbol.symbol_type,
+        )
+    for item in filter_result.filtered:
+        logger.info(
+            "  [símbolo -] %s (%s) — %s",
+            item.qualified_name,
+            item.symbol_type,
+            item.reason,
+        )
+
+    if selection_artifact is not None:
+        logger.info("[ingest] seleção completa em %s", selection_artifact)
 
 
 def log_pytest_result(result: RunResult, *, label: str = "pytest") -> None:
