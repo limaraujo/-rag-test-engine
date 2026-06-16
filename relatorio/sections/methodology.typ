@@ -61,7 +61,7 @@
   == Seleção da Amostra e Dados Usados
   Para garantir a validade externa do experimento, o sistema não é testado em fragmentos de código isolados, mas sim em repositórios open-source consolidados no ecossistema Python.
 
-  Estes dados representam cenários do mundo real, contendo dependências inter-módulos, classes aninhadas e regras de negócio complexas, essenciais para testar o limite da janela de contexto do LLM. A amostra foi gerada através do módulo parser.py, que filtrou o repositório utilizando critérios baseados em AST. Foram excluídos métodos triviais (como `__init__` simples ou getters/setters) e selecionados métodos com complexidade ciclomática moderada a alta. O experimento utilizará um conjunto de [X] métodos alvo, extraídos de [X] repositórios distintos, gerando um volume de testes suficiente para análise estatística.
+  Estes dados representam cenários do mundo real, contendo dependências inter-módulos, classes aninhadas e regras de negócio complexas, essenciais para testar o limite da janela de contexto do LLM. A amostra foi gerada através do módulo parser.py, que filtrou o repositório utilizando critérios baseados em AST. Foram excluídos métodos triviais (como `__init__` simples ou getters/setters) e selecionados métodos com complexidade ciclomática moderada a alta. O experimento utilizou um conjunto de 184 métodos alvo, extraídos de 2 repositórios distintos, gerando um volume de testes suficiente para análise estatística.
 
   == Métricas de Avaliação
   As métricas foram selecionadas para avaliar tanto a qualidade do produto gerado quanto o esforço computacional da ferramenta. Os resultados extraídos pelo main.py serão submetidos às seguintes equações:
