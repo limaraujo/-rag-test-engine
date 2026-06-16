@@ -10,6 +10,7 @@
 | [REPOSITORY_TESTING.md](REPOSITORY_TESTING.md) | Clonar repo externo e testar nos 4 perfis |
 | [CLI.md](CLI.md) | Argumentos de linha de comando e perfis (`--profile`) |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Arquitetura, fases do pipeline, diagramas |
+| [FLOWCHARTS.md](FLOWCHARTS.md) | Fluxogramas da arquitetura e diferença entre experimentos |
 | [RAG_TUNING.md](RAG_TUNING.md) | Ajuste do RAG, gating, protocolo de avaliação |
 | [PROMPTS_AND_TECHNIQUES.md](PROMPTS_AND_TECHNIQUES.md) | System/user prompts, técnicas RAG e pós-processamento |
 | [CONFIGURATION.md](CONFIGURATION.md) | Variáveis de ambiente (`.env`) |
