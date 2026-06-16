@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from ingest.call_graph import CallGraph, CallGraphNode
-from ingest.dependency_graph import DependencyGraph, DependencyNode
+from parsers.source.call_graph import CallGraph, CallGraphNode
+from parsers.source.dependency_graph import DependencyGraph, DependencyNode
 from retrieval.hybrid import HybridCandidate, compute_hybrid_score, rerank_candidates
 from retrieval.retriever import Retriever
 from schemas.context import FunctionContext
@@ -27,7 +27,7 @@ def test_compute_hybrid_score_formula(monkeypatch) -> None:
 
 
 def test_rerank_prioritizes_graph_boosted_candidate(monkeypatch) -> None:
-    monkeypatch.setattr("config.settings.settings.RETRIEVER_TOP_K", 2)
+    monkeypatch.setattr("config.settings.settings.RETRIEVER_TOP_K_FUNCTIONS", 2)
 
     candidates = [
         HybridCandidate("low_vector", "def low(): pass", vector_similarity=0.9),
@@ -44,7 +44,7 @@ def test_rerank_prioritizes_graph_boosted_candidate(monkeypatch) -> None:
 
 
 def test_rerank_respects_top_k(monkeypatch) -> None:
-    monkeypatch.setattr("config.settings.settings.RETRIEVER_TOP_K", 2)
+    monkeypatch.setattr("config.settings.settings.RETRIEVER_TOP_K_FUNCTIONS", 2)
     candidates = [
         HybridCandidate(f"f{i}", f"def f{i}(): pass", vector_similarity=i / 10)
         for i in range(5)
@@ -65,10 +65,16 @@ def retriever(store, fake_embedder):
     return Retriever(store=store, embedder=fake_embedder)
 
 
+@pytest.fixture(autouse=True)
+def _disable_rag_gating_in_tests(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("config.settings.settings.RAG_SKIP_ISOLATED_SYMBOLS", False)
+    monkeypatch.setattr("config.settings.settings.RAG_MIN_HYBRID_SCORE", 0.0)
+
+
 def test_enrich_populates_retrieval_context(retriever, store, fake_embedder, monkeypatch) -> None:
     from retrieval.embeddings import embed_symbol
 
-    monkeypatch.setattr("config.settings.settings.RETRIEVER_TOP_K", 3)
+    monkeypatch.setattr("config.settings.settings.RETRIEVER_TOP_K_FUNCTIONS", 3)
     monkeypatch.setattr("config.settings.settings.RETRIEVER_SCORE_THRESHOLD", None)
 
     target = make_symbol("target", "def target(): return 1")
@@ -104,7 +110,7 @@ def test_enrich_excludes_self(retriever, store, fake_embedder, monkeypatch) -> N
 def test_enrich_with_call_graph_boosts_neighbors(
     retriever, store, fake_embedder, monkeypatch, tmp_path
 ) -> None:
-    monkeypatch.setattr("config.settings.settings.RETRIEVER_TOP_K", 1)
+    monkeypatch.setattr("config.settings.settings.RETRIEVER_TOP_K_FUNCTIONS", 1)
     monkeypatch.setattr("config.settings.settings.RETRIEVER_SCORE_THRESHOLD", None)
 
     target = make_symbol("process", "def process(): helper()")
@@ -126,10 +132,9 @@ def test_enrich_with_call_graph_boosts_neighbors(
         }
     )
 
-    distant_vec = [1.0] + [0.0] * (TEST_DIM - 1)
-    helper_vec = [0.0] * TEST_DIM
-    _upsert_symbol(store, "distant", distant_vec, "def distant(): pass")
+    helper_vec = [1.0] + [0.0] * (TEST_DIM - 1)
     _upsert_symbol(store, "helper", helper_vec, "def helper(): pass")
+    # distant fica fora do índice vetorial para não superar o vizinho do call graph
 
     ctx = FunctionContext.from_symbol(target)
     enriched = retriever.enrich(
@@ -145,8 +150,8 @@ def test_enrich_with_call_graph_boosts_neighbors(
     )
 
     assert enriched.retrieval_context is not None
-    assert enriched.retrieval_context.callee_functions == ["def helper(): pass"]
-    assert enriched.retrieval_context.related_functions == ["def helper(): pass"]
+    assert enriched.retrieval_context.callee_functions == ["symbol: helper\ndef helper(): pass"]
+    assert enriched.retrieval_context.related_functions == []
 
 
 def test_enrich_with_dependency_graph(
@@ -190,11 +195,11 @@ def test_enrich_with_dependency_graph(
     )
 
     assert enriched.retrieval_context is not None
-    assert enriched.retrieval_context.dependency_functions == ["def format(): pass"]
+    assert enriched.retrieval_context.dependency_functions == ["symbol: format\ndef format(): pass"]
 
 
-def test_enrich_returns_top_10(retriever, store, monkeypatch) -> None:
-    monkeypatch.setattr("config.settings.settings.RETRIEVER_TOP_K", 10)
+def test_enrich_returns_top_k(retriever, store, monkeypatch) -> None:
+    monkeypatch.setattr("config.settings.settings.RETRIEVER_TOP_K_FUNCTIONS", 3)
     monkeypatch.setattr("config.settings.settings.RETRIEVER_SCORE_THRESHOLD", None)
 
     target = make_symbol("target", "def target(): pass")
@@ -211,7 +216,7 @@ def test_enrich_returns_top_10(retriever, store, monkeypatch) -> None:
     enriched = retriever.enrich(ctx, target, symbols_by_name=symbols_by_name)
 
     assert enriched.retrieval_context is not None
-    assert len(enriched.retrieval_context.related_functions) == 10
+    assert len(enriched.retrieval_context.related_functions) == 3
 
 
 def test_enrich_graceful_without_collection(retriever) -> None:

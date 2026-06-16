@@ -2,6 +2,61 @@
 
 Referência programática dos componentes principais.
 
+## CLI: `main.py`
+
+**Sintaxe:**
+
+```bash
+uv run python main.py [SOURCE_DIR] [--profile PERFIL]
+uv run python main.py --help
+```
+
+| Argumento | Padrão | Descrição |
+|---|---|---|
+| `SOURCE_DIR` | `.` | Diretório Python a analisar |
+| `--profile` | — | `sem-rag`, `rag-limitado`, `rag-completo`, `com-cache` |
+| `--allow-risky-source` | `false` | Ignora avisos de `source_dir` arriscado |
+
+Demais opções (modelo, Qdrant, `LOG_API_CALLS`, RAG, cache) vêm do `.env` ou do perfil — ver [CLI.md](CLI.md) e [CONFIGURATION.md](CONFIGURATION.md).
+
+## Entrypoint: `main()`
+
+**Arquivo:** `main.py`
+
+Ponto de entrada da CLI. Delega ao orquestrador e retorna o resultado.
+
+```python
+from main import main
+
+result = main("mockes")                          # defaults do .env
+result = main("mockes", profile="rag-completo")  # perfil de teste
+result = main()                                  # diretório atual (".")
+
+assert result.stats.ok >= 0
+print(result.workspace.tests_dir)
+```
+
+**Com perfil programático:**
+
+```python
+from config.run_profiles import apply_run_profile
+from agents.orchestrator import OrchestratorAgent
+
+with apply_run_profile("sem-rag"):
+    result = OrchestratorAgent().run("mockes")
+```
+
+Equivalente direto (sem perfil):
+
+```python
+from agents.orchestrator import OrchestratorAgent
+
+orchestrator = OrchestratorAgent()
+result = orchestrator.run("mockes")
+```
+
+---
+
 ## OrchestratorAgent
 
 **Arquivo:** `agents/orchestrator.py`
@@ -33,10 +88,36 @@ result.stats.failed            # testes descartados
 result.stats.skipped           # erros de geração
 result.stats.repaired          # salvos após reparo
 result.stats.coverage_boosted  # salvos após boost de cobertura
+result.generation_cache        # GenerationCacheStats (hits, misses, …)
 result.indexed                 # símbolos indexados no Qdrant
-result.cache_hits              # símbolos reutilizados do cache
+result.cache_hits              # símbolos reutilizados do cache de embeddings
 result.token_summary           # str com uso de tokens (ou None)
 ```
+
+`run_summary.json` inclui `stats.run_profile`, `stats.rag_mode` e `stats.generation_cache_enabled`.
+
+---
+
+## RunProfile
+
+**Arquivo:** `config/run_profiles.py`
+
+```python
+from config.run_profiles import apply_run_profile, PROFILES, describe_profiles
+
+print(describe_profiles())
+
+with apply_run_profile("rag-limitado"):
+    # settings.RAG_MODE == "limited" durante o bloco
+    ...
+```
+
+| Perfil | `rag_mode` | `generation_cache_enabled` |
+|---|---|---|
+| `sem-rag` | `none` | `False` |
+| `rag-limitado` | `limited` | `False` |
+| `rag-completo` | `full` | `False` |
+| `com-cache` | `full` | `True` |
 
 ---
 
@@ -44,7 +125,7 @@ result.token_summary           # str com uso de tokens (ou None)
 
 **Arquivo:** `agents/test_generator.py`
 
-Gera um arquivo pytest a partir de `FunctionContext`.
+Gera um arquivo pytest a partir de `FunctionContext`. Usa `prompts/loader.py` para o system prompt.
 
 ```python
 from agents.test_generator import TestGeneratorAgent
@@ -58,6 +139,8 @@ print(test.full_code)    # código completo com imports
 print(test.imports)      # linhas de import extraídas
 print(test.coverage_hints)
 ```
+
+O parsing da resposta LLM fica em `parsers/llm/response.py` (`parse_response`).
 
 ---
 
@@ -169,7 +252,22 @@ reset_tracker()
 print(get_tracker().format_summary())
 ```
 
+Contagem (modelo OpenAI):
+
+| Campo | Significado |
+|---|---|
+| `entrada` / `prompt_tokens` | Tokens de input |
+| `saída` / `completion_tokens` | Tokens de output (inclui raciocínio interno) |
+| `total` | `entrada + saída` |
+| `reasoning_tokens` | Subconjunto da saída (modelos de raciocínio) |
+| `cached_prompt_tokens` | Subconjunto da entrada servida do cache da API |
+
+`run_summary.json` → `token_usage.reconciliation` verifica consistência (`total_matches_prompt_plus_completion`).
+
 Cada `LLMResponse` e `LLMEmbeddingResponse` expõe `.usage` (`TokenUsage`).
+
+Com `LOG_API_CALLS=true` (padrão), cada chamada também é gravada em
+`runs/.../logs/api_calls/` — ver [CLI.md](CLI.md).
 
 ---
 
@@ -178,12 +276,29 @@ Cada `LLMResponse` e `LLMEmbeddingResponse` expõe `.usage` (`TokenUsage`).
 **Arquivo:** `config/run_workspace.py`
 
 ```python
-from config.run_workspace import RunWorkspace, save_ingest_artifacts
+from pathlib import Path
+from config.run_workspace import (
+    RunWorkspace,
+    save_ingest_artifacts,
+    save_ingest_selection,
+    source_slug,
+)
 
-workspace = RunWorkspace.create(Path("mockes"))
-# workspace.root, .tests_dir, .logs_dir, .artifacts_dir
+source = Path("repositorios/code_katas/src")
+print(source_slug(source))  # repositorios_code_katas_src
 
+workspace = RunWorkspace.create(source)
 save_ingest_artifacts(workspace, symbols=..., call_graph=..., dependency_graph=...)
+# save_ingest_selection(workspace, scan_result=..., filter_result=...)  # feito pelo orchestrator
+```
+
+`ingest_selection.json` (via `save_ingest_selection`):
+
+```json
+{
+  "files": { "included": ["..."], "excluded": [{"path": "...", "reason": "glob:test_*.py"}] },
+  "symbols": { "selected": [...], "filtered": [{"qualified_name": "...", "reason": "container_class"}] }
+}
 ```
 
 ---
@@ -200,7 +315,36 @@ ctx = FunctionContext.from_symbol(symbol, project_root=ROOT)
 prompt = ctx.to_prompt_block()  # texto para o LLM
 ```
 
-Campos RAG (`related_functions`, `similar_tests`) são preenchidos pelo `Retriever`.
+Campos RAG (`related_functions`, `similar_tests`) são preenchidos pelo `Retriever` quando `RAG_MODE != "none"`.
+
+Montagem do bloco RAG no prompt: `prompts/rag.py` (`build_rag_prompt_sections`).
+
+---
+
+## parse_response (LLM)
+
+**Arquivo:** `parsers/llm/response.py`
+
+```python
+from parsers.llm.response import parse_response, normalize_code_response
+
+test = parse_response(raw_llm_output, ctx)  # strip de BOM e markdown; valida sintaxe
+```
+
+---
+
+## Ingestão isolada
+
+**Arquivo:** `scripts/ingest_only.py`
+
+```python
+from scripts.ingest_only import run_ingest
+
+workspace = run_ingest("repositorios/code_katas/src")
+print(workspace.artifacts_dir / "ingest_selection.json")
+```
+
+Equivalente CLI: `python scripts/ingest_only.py [SOURCE_DIR] [--allow-risky-source]`
 
 ---
 

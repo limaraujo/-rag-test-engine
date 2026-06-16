@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from ingest.import_resolver import module_name_from_path
+from parsers.source.import_resolver import module_name_from_path
 from schemas.context import FunctionContext
 
 

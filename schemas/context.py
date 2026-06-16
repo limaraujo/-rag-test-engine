@@ -4,9 +4,12 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
-from ingest.import_resolver import module_name_from_path
-from ingest.models.ExtractedSymbol import ExtractedSymbol
+from parsers.source.import_resolver import module_name_from_path
+from parsers.source.models.ExtractedSymbol import ExtractedSymbol
+from prompts.rag import build_rag_prompt_sections, rag_items_from_lists
 from schemas.retrieval_context import RetrievalContext
+
+from config.settings import settings
 
 
 class FunctionContext(BaseModel):
@@ -115,7 +118,7 @@ class FunctionContext(BaseModel):
     coverage_gaps: list[dict] = Field(
         default_factory=list,
         description=(
-            "Lacunas de cobertura detectadas por coverage.py: "
+            "Lacunas de cobertura detectadas por pytest-cov: "
             "file_path, function_name, uncovered_lines."
         ),
     )
@@ -167,7 +170,7 @@ class FunctionContext(BaseModel):
             edge_cases=symbol.edge_cases,
         )
 
-    def to_prompt_block(self) -> str:
+    def to_prompt_block(self, *, compact: bool = False) -> str:
         """
         Formata o contexto como bloco de texto estruturado para o prompt do LLM.
 
@@ -176,6 +179,7 @@ class FunctionContext(BaseModel):
         para gerar testes mais precisos e contextualizados.
 
         Seções omitidas quando vazias para não poluir o prompt.
+        Com ``compact=True`` (reparo), omite contexto RAG e metadados extras.
 
         Exemplo de uso no test_generator:
             user_prompt = context.to_prompt_block()
@@ -214,8 +218,22 @@ class FunctionContext(BaseModel):
         if self.imports:
             parts.append(f"\n## Imports disponíveis no arquivo\n{bullet(self.imports)}")
 
-        if self.dependencies:
+        if self.dependencies and not compact:
             parts.append(f"\n## Dependências chamadas\n{bullet(self.dependencies)}")
+
+        if compact and self.retrieval_context:
+            rc = self.retrieval_context
+            hints: list[str] = []
+            for label, items in (
+                ("Chamadas pelo alvo", rc.callee_functions),
+                ("Chamadores do alvo", rc.caller_functions),
+            ):
+                if items:
+                    hints.append(f"{label}:\n" + "\n".join(f"  - {i[:200]}" for i in items[:2]))
+            if hints:
+                parts.append(
+                    "\n## Contexto estrutural (reparo)\n" + "\n".join(hints)
+                )
 
         if self.exceptions:
             parts.append(f"\n## Exceções relevantes\n{bullet(self.exceptions)}")
@@ -229,32 +247,21 @@ class FunctionContext(BaseModel):
                 f"  {self.branches} branch(es) — cubra ao menos um cenário por branch"
             )
 
-        rc = self.retrieval_context
-        if rc and rc.caller_functions:
-            parts.append(
-                f"\n## Funções chamadoras (call graph)\n{bullet(rc.caller_functions)}"
+        if not compact:
+            rc = self.retrieval_context
+            rag_items = rag_items_from_lists(
+                dependency_functions=rc.dependency_functions if rc else None,
+                callee_functions=rc.callee_functions if rc else None,
+                caller_functions=rc.caller_functions if rc else None,
+                related_functions=self.related_functions or None,
+                similar_tests=self.similar_tests or None,
             )
-
-        if rc and rc.callee_functions:
-            parts.append(
-                f"\n## Funções chamadas (call graph)\n{bullet(rc.callee_functions)}"
+            rag_sections, _ = build_rag_prompt_sections(
+                rag_items,
+                max_total_chars=settings.PROMPT_MAX_RAG_TOTAL_CHARS,
+                max_snippet_chars=settings.PROMPT_MAX_RAG_SNIPPET_CHARS,
             )
-
-        if rc and rc.dependency_functions:
-            parts.append(
-                f"\n## Dependências estruturais (dependency graph)\n"
-                f"{bullet(rc.dependency_functions)}"
-            )
-
-        if self.related_functions:
-            parts.append(
-                f"\n## Funções relacionadas (busca híbrida)\n{bullet(self.related_functions)}"
-            )
-
-        if self.similar_tests:
-            parts.append(
-                f"\n## Testes similares existentes\n{bullet(self.similar_tests)}"
-            )
+            parts.extend(rag_sections)
 
         if self.coverage_gaps:
             gap_lines = []
@@ -272,10 +279,16 @@ class FunctionContext(BaseModel):
 
         if self.coverage_summary and not self.coverage_summary.get("meets_threshold"):
             pct = self.coverage_summary.get("line_coverage_percent", 0)
+            branch_pct = self.coverage_summary.get("branch_coverage_percent")
             threshold = self.coverage_summary.get("threshold_percent", 80)
+            branch_note = (
+                f", branches: {branch_pct}%"
+                if branch_pct is not None
+                else ""
+            )
             parts.append(
                 f"\n## Cobertura atual\n"
-                f"  {pct}% (mínimo exigido: {threshold}%)"
+                f"  linhas: {pct}%{branch_note} (mínimo exigido: {threshold}%)"
             )
             branches = self.coverage_summary.get("uncovered_branches", [])
             if branches:

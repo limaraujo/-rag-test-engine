@@ -5,6 +5,14 @@ from datetime import datetime
 from pathlib import Path
 
 from config.settings import settings
+from llm.sanitize import sanitize_text
+
+
+class SanitizingFormatter(logging.Formatter):
+    """Mascara segredos em mensagens de log persistidas."""
+
+    def format(self, record: logging.LogRecord) -> str:
+        return sanitize_text(super().format(record))
 
 
 def setup_logging(log_file: Path | None = None) -> Path:
@@ -21,7 +29,7 @@ def setup_logging(log_file: Path | None = None) -> Path:
     root.setLevel(getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO))
     root.handlers.clear()
 
-    file_fmt = logging.Formatter(
+    file_fmt = SanitizingFormatter(
         "%(asctime)s %(levelname)s %(name)s — %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )

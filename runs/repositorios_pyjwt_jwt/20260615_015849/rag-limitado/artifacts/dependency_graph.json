@@ -1,0 +1,473 @@
+{
+  "": {
+    "qualified_name": "",
+    "dependencies": [
+      "api_jwk",
+      "api_jwk.PyJWK",
+      "api_jwk.PyJWKSet",
+      "api_jws",
+      "api_jws.PyJWS",
+      "api_jws.get_algorithm_by_name",
+      "api_jws.get_unverified_header",
+      "api_jws.register_algorithm",
+      "api_jws.unregister_algorithm",
+      "api_jwt",
+      "api_jwt.PyJWT",
+      "api_jwt.decode",
+      "api_jwt.decode_complete",
+      "api_jwt.encode",
+      "exceptions",
+      "exceptions.DecodeError",
+      "exceptions.ExpiredSignatureError",
+      "exceptions.ImmatureSignatureError",
+      "exceptions.InvalidAlgorithmError",
+      "exceptions.InvalidAudienceError",
+      "exceptions.InvalidIssuedAtError",
+      "exceptions.InvalidIssuerError",
+      "exceptions.InvalidKeyError",
+      "exceptions.InvalidSignatureError",
+      "exceptions.InvalidTokenError",
+      "exceptions.MissingRequiredClaimError",
+      "exceptions.PyJWKClientConnectionError",
+      "exceptions.PyJWKClientError",
+      "exceptions.PyJWKError",
+      "exceptions.PyJWKSetError",
+      "exceptions.PyJWTError",
+      "jwks_client",
+      "jwks_client.PyJWKClient",
+      "warnings",
+      "warnings.InsecureKeyLengthWarning"
+    ]
+  },
+  "algorithms": {
+    "qualified_name": "algorithms",
+    "dependencies": [
+      "__future__",
+      "__future__.annotations",
+      "abc",
+      "abc.ABC",
+      "abc.abstractmethod",
+      "exceptions",
+      "exceptions.InvalidKeyError",
+      "hashlib",
+      "hmac",
+      "json",
+      "os",
+      "sys",
+      "types",
+      "types.HashlibHash",
+      "types.JWKDict",
+      "typing",
+      "typing.Any",
+      "typing.ClassVar",
+      "typing.Literal",
+      "typing.NoReturn",
+      "typing.TYPE_CHECKING",
+      "typing.Union",
+      "typing.cast",
+      "typing.get_args",
+      "typing.overload",
+      "utils",
+      "utils.base64url_decode",
+      "utils.base64url_encode",
+      "utils.der_to_raw_signature",
+      "utils.force_bytes",
+      "utils.from_base64url_uint",
+      "utils.is_pem_format",
+      "utils.is_ssh_key",
+      "utils.raw_to_der_signature",
+      "utils.to_base64url_uint"
+    ]
+  },
+  "algorithms.Algorithm": {
+    "qualified_name": "algorithms.Algorithm",
+    "dependencies": [
+      "abc.ABC"
+    ]
+  },
+  "algorithms.NoneAlgorithm": {
+    "qualified_name": "algorithms.NoneAlgorithm",
+    "dependencies": [
+      "Algorithm"
+    ]
+  },
+  "algorithms.HMACAlgorithm": {
+    "qualified_name": "algorithms.HMACAlgorithm",
+    "dependencies": [
+      "Algorithm",
+      "typing.ClassVar"
+    ]
+  },
+  "api_jwk": {
+    "qualified_name": "api_jwk",
+    "dependencies": [
+      "__future__",
+      "__future__.annotations",
+      "algorithms",
+      "algorithms.get_default_algorithms",
+      "algorithms.has_crypto",
+      "algorithms.requires_cryptography",
+      "collections.abc",
+      "collections.abc.Iterator",
+      "exceptions",
+      "exceptions.InvalidKeyError",
+      "exceptions.MissingCryptographyError",
+      "exceptions.PyJWKError",
+      "exceptions.PyJWKSetError",
+      "exceptions.PyJWTError",
+      "json",
+      "time",
+      "types",
+      "types.JWKDict",
+      "typing",
+      "typing.Any"
+    ]
+  },
+  "api_jwk.PyJWK": {
+    "qualified_name": "api_jwk.PyJWK",
+    "dependencies": [
+      "self.Algorithm.from_jwk",
+      "self._jwk_data.get"
+    ]
+  },
+  "api_jwk.PyJWKSet": {
+    "qualified_name": "api_jwk.PyJWKSet",
+    "dependencies": [
+      "list"
+    ]
+  },
+  "api_jwk.PyJWTSetWithTimestamp": {
+    "qualified_name": "api_jwk.PyJWTSetWithTimestamp",
+    "dependencies": [
+      "time.monotonic"
+    ]
+  },
+  "api_jws": {
+    "qualified_name": "api_jws",
+    "dependencies": [
+      "__future__",
+      "__future__.annotations",
+      "algorithms",
+      "algorithms.Algorithm",
+      "algorithms.get_default_algorithms",
+      "algorithms.has_crypto",
+      "algorithms.requires_cryptography",
+      "api_jwk",
+      "api_jwk.PyJWK",
+      "binascii",
+      "collections.abc",
+      "collections.abc.Sequence",
+      "exceptions",
+      "exceptions.DecodeError",
+      "exceptions.InvalidAlgorithmError",
+      "exceptions.InvalidKeyError",
+      "exceptions.InvalidSignatureError",
+      "exceptions.InvalidTokenError",
+      "json",
+      "typing",
+      "typing.Any",
+      "typing.TYPE_CHECKING",
+      "utils",
+      "utils.base64url_decode",
+      "utils.base64url_encode",
+      "warnings",
+      "warnings.InsecureKeyLengthWarning",
+      "warnings.RemovedInPyjwt3Warning"
+    ]
+  },
+  "api_jws.PyJWS": {
+    "qualified_name": "api_jws.PyJWS",
+    "dependencies": [
+      "SigOptions",
+      "algorithms.get_default_algorithms",
+      "set"
+    ]
+  },
+  "api_jwt": {
+    "qualified_name": "api_jwt",
+    "dependencies": [
+      "__future__",
+      "__future__.annotations",
+      "api_jws",
+      "api_jws.PyJWS",
+      "api_jws._ALGORITHM_UNSET",
+      "api_jws._jws_global_obj",
+      "calendar",
+      "calendar.timegm",
+      "collections.abc",
+      "collections.abc.Container",
+      "collections.abc.Iterable",
+      "collections.abc.Sequence",
+      "datetime",
+      "datetime.datetime",
+      "datetime.timedelta",
+      "datetime.timezone",
+      "exceptions",
+      "exceptions.DecodeError",
+      "exceptions.ExpiredSignatureError",
+      "exceptions.ImmatureSignatureError",
+      "exceptions.InvalidAudienceError",
+      "exceptions.InvalidIssuedAtError",
+      "exceptions.InvalidIssuerError",
+      "exceptions.InvalidJTIError",
+      "exceptions.InvalidSubjectError",
+      "exceptions.MissingRequiredClaimError",
+      "json",
+      "os",
+      "typing",
+      "typing.Any",
+      "typing.TYPE_CHECKING",
+      "typing.Union",
+      "typing.cast",
+      "warnings",
+      "warnings.RemovedInPyjwt3Warning"
+    ]
+  },
+  "api_jwt.PyJWT": {
+    "qualified_name": "api_jwt.PyJWT",
+    "dependencies": [
+      "FullOptions",
+      "api_jws.PyJWS",
+      "self._get_default_options"
+    ]
+  },
+  "exceptions": {
+    "qualified_name": "exceptions",
+    "dependencies": []
+  },
+  "exceptions.PyJWTError": {
+    "qualified_name": "exceptions.PyJWTError",
+    "dependencies": [
+      "Exception"
+    ]
+  },
+  "exceptions.InvalidTokenError": {
+    "qualified_name": "exceptions.InvalidTokenError",
+    "dependencies": [
+      "PyJWTError"
+    ]
+  },
+  "exceptions.DecodeError": {
+    "qualified_name": "exceptions.DecodeError",
+    "dependencies": [
+      "InvalidTokenError"
+    ]
+  },
+  "exceptions.InvalidSignatureError": {
+    "qualified_name": "exceptions.InvalidSignatureError",
+    "dependencies": [
+      "DecodeError"
+    ]
+  },
+  "exceptions.ExpiredSignatureError": {
+    "qualified_name": "exceptions.ExpiredSignatureError",
+    "dependencies": [
+      "InvalidTokenError"
+    ]
+  },
+  "exceptions.InvalidAudienceError": {
+    "qualified_name": "exceptions.InvalidAudienceError",
+    "dependencies": [
+      "InvalidTokenError"
+    ]
+  },
+  "exceptions.InvalidIssuerError": {
+    "qualified_name": "exceptions.InvalidIssuerError",
+    "dependencies": [
+      "InvalidTokenError"
+    ]
+  },
+  "exceptions.InvalidIssuedAtError": {
+    "qualified_name": "exceptions.InvalidIssuedAtError",
+    "dependencies": [
+      "InvalidTokenError"
+    ]
+  },
+  "exceptions.ImmatureSignatureError": {
+    "qualified_name": "exceptions.ImmatureSignatureError",
+    "dependencies": [
+      "InvalidTokenError"
+    ]
+  },
+  "exceptions.InvalidKeyError": {
+    "qualified_name": "exceptions.InvalidKeyError",
+    "dependencies": [
+      "PyJWTError"
+    ]
+  },
+  "exceptions.InvalidAlgorithmError": {
+    "qualified_name": "exceptions.InvalidAlgorithmError",
+    "dependencies": [
+      "InvalidTokenError"
+    ]
+  },
+  "exceptions.MissingRequiredClaimError": {
+    "qualified_name": "exceptions.MissingRequiredClaimError",
+    "dependencies": [
+      "InvalidTokenError"
+    ]
+  },
+  "exceptions.PyJWKError": {
+    "qualified_name": "exceptions.PyJWKError",
+    "dependencies": [
+      "PyJWTError"
+    ]
+  },
+  "exceptions.MissingCryptographyError": {
+    "qualified_name": "exceptions.MissingCryptographyError",
+    "dependencies": [
+      "PyJWKError"
+    ]
+  },
+  "exceptions.PyJWKSetError": {
+    "qualified_name": "exceptions.PyJWKSetError",
+    "dependencies": [
+      "PyJWTError"
+    ]
+  },
+  "exceptions.PyJWKClientError": {
+    "qualified_name": "exceptions.PyJWKClientError",
+    "dependencies": [
+      "PyJWTError"
+    ]
+  },
+  "exceptions.PyJWKClientConnectionError": {
+    "qualified_name": "exceptions.PyJWKClientConnectionError",
+    "dependencies": [
+      "PyJWKClientError"
+    ]
+  },
+  "exceptions.InvalidSubjectError": {
+    "qualified_name": "exceptions.InvalidSubjectError",
+    "dependencies": [
+      "InvalidTokenError"
+    ]
+  },
+  "exceptions.InvalidJTIError": {
+    "qualified_name": "exceptions.InvalidJTIError",
+    "dependencies": [
+      "InvalidTokenError"
+    ]
+  },
+  "help": {
+    "qualified_name": "help",
+    "dependencies": [
+      "__version__",
+      "json",
+      "platform",
+      "sys"
+    ]
+  },
+  "jwk_set_cache": {
+    "qualified_name": "jwk_set_cache",
+    "dependencies": [
+      "api_jwk",
+      "api_jwk.PyJWKSet",
+      "api_jwk.PyJWTSetWithTimestamp",
+      "time",
+      "typing",
+      "typing.Optional"
+    ]
+  },
+  "jwk_set_cache.JWKSetCache": {
+    "qualified_name": "jwk_set_cache.JWKSetCache",
+    "dependencies": [
+      "typing.Optional"
+    ]
+  },
+  "jwks_client": {
+    "qualified_name": "jwks_client",
+    "dependencies": [
+      "__future__",
+      "__future__.annotations",
+      "api_jwk",
+      "api_jwk.PyJWK",
+      "api_jwk.PyJWKSet",
+      "api_jwt",
+      "api_jwt.decode_complete",
+      "exceptions",
+      "exceptions.PyJWKClientConnectionError",
+      "exceptions.PyJWKClientError",
+      "functools",
+      "functools.lru_cache",
+      "json",
+      "jwk_set_cache",
+      "jwk_set_cache.JWKSetCache",
+      "ssl",
+      "ssl.SSLContext",
+      "typing",
+      "typing.Any",
+      "urllib.error",
+      "urllib.error.HTTPError",
+      "urllib.error.URLError",
+      "urllib.parse",
+      "urllib.parse.urlparse",
+      "urllib.request"
+    ]
+  },
+  "jwks_client.PyJWKClient": {
+    "qualified_name": "jwks_client.PyJWKClient",
+    "dependencies": [
+      "urllib.parse.urlparse.scheme.lower"
+    ]
+  },
+  "types": {
+    "qualified_name": "types",
+    "dependencies": [
+      "typing",
+      "typing.Any",
+      "typing.Callable",
+      "typing.TypedDict"
+    ]
+  },
+  "types.SigOptions": {
+    "qualified_name": "types.SigOptions",
+    "dependencies": [
+      "bool",
+      "typing.TypedDict"
+    ]
+  },
+  "types.Options": {
+    "qualified_name": "types.Options",
+    "dependencies": [
+      "bool",
+      "list",
+      "typing.TypedDict"
+    ]
+  },
+  "types.FullOptions": {
+    "qualified_name": "types.FullOptions",
+    "dependencies": [
+      "bool",
+      "list",
+      "typing.TypedDict"
+    ]
+  },
+  "utils": {
+    "qualified_name": "utils",
+    "dependencies": [
+      "base64",
+      "binascii",
+      "re",
+      "typing",
+      "typing.Optional",
+      "typing.Union"
+    ]
+  },
+  "warnings": {
+    "qualified_name": "warnings",
+    "dependencies": []
+  },
+  "warnings.RemovedInPyjwt3Warning": {
+    "qualified_name": "warnings.RemovedInPyjwt3Warning",
+    "dependencies": [
+      "DeprecationWarning"
+    ]
+  },
+  "warnings.InsecureKeyLengthWarning": {
+    "qualified_name": "warnings.InsecureKeyLengthWarning",
+    "dependencies": [
+      "UserWarning"
+    ]
+  }
+}

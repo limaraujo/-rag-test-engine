@@ -2,7 +2,9 @@ from openai import OpenAI
 
 from config.settings import settings
 from llm.base import BaseEmbedding
-from llm.models import LLMEmbeddingRequest, LLMEmbeddingResponse, TokenUsage
+from llm.call_logger import get_call_logger
+from llm.models import LLMEmbeddingRequest, LLMEmbeddingResponse
+from llm.token_usage import token_usage_from_openai
 from llm.usage_tracker import get_tracker
 
 
@@ -26,18 +28,20 @@ class OpenAIEmbedding(BaseEmbedding):
 
         vector = response.data[0].embedding
 
-        usage = None
-        if response.usage:
-            usage = TokenUsage(
-                prompt_tokens=response.usage.prompt_tokens,
-                completion_tokens=0,
-                total_tokens=response.usage.total_tokens,
+        usage = token_usage_from_openai(response.usage, model=model)
+        if usage:
+            get_tracker().record_embedding(
+                usage,
+                model=model,
+                label=request.label,
+                symbol=request.symbol,
             )
-            get_tracker().record_embedding(usage)
 
-        return LLMEmbeddingResponse(
+        embedding_response = LLMEmbeddingResponse(
             embedding=vector,
             model=model,
             dimensions=len(vector),
             usage=usage,
         )
+        get_call_logger().log_embedding(request, embedding_response, model=model)
+        return embedding_response

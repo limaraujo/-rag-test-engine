@@ -1,6 +1,6 @@
 from collections.abc import Iterable
 
-from ingest.models.ExtractedSymbol import ExtractedSymbol
+from parsers.source.models.ExtractedSymbol import ExtractedSymbol
 from llm.base import BaseEmbedding
 from llm.factory import get_embedder
 from llm.models import LLMEmbeddingRequest
@@ -16,7 +16,8 @@ def embed_symbol(
 	text, metadata = to_embedding_doc(symbol)
 	request = LLMEmbeddingRequest(
 		input=text,
-		model=embedder.model
+		model=embedder.model,
+		label=symbol.qualified_name,
 	)
 	response = embedder.generate_embedding(request)
 

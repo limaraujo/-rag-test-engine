@@ -1,0 +1,1214 @@
+[
+  {
+    "symbol_type": "function",
+    "name": "to_alternating_case",
+    "qualified_name": "to_alternating_case",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/alt_case.py",
+    "source_code": "def to_alternating_case(string):\n    \"\"\"Input a string, return string with case swapped\"\"\"\n    return \"\".join([s.swapcase() for s in string])",
+    "imports": [],
+    "dependencies": [
+      "join",
+      "s.swapcase"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Input a string, return string with case swapped",
+    "branches": 0,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "class",
+    "name": "Autocomplete",
+    "qualified_name": "Autocomplete",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/autocomplete.py",
+    "source_code": "class Autocomplete(object):\n    \"\"\"\n    Class based Autocomplete per class instructions.\n\n    insert() adds a list of vocabulary words into the trie.\n\n    autocomplete() traverses the trie and returns all words starting with the\n    input string, limited by the number of max completions allowed by the user.\n    \"\"\"\n\n    def __init__(self, vocabulary, max_completions=5):\n        \"\"\"Create a new trie instance.\"\"\"\n        self._trie = Trie()\n        self.vocabulary = vocabulary\n        self.max_completions = max_completions\n        self.word_list = []\n\n        for word in self.vocabulary:\n            self._trie.insert(word)\n\n    def autocomplete(self, start=None):\n        \"\"\"\n        Return a list of words in the subtree starting with the input\n        string. The list will be limited by the number of max completions.\n        \"\"\"\n        self.word_list = []\n        current = self._trie.root\n        if start:\n            for letter in start:\n                if letter in current.children:\n                    current = current.children[letter]\n                else:\n                    return\n        self._autocomplete(current)\n        return self.word_list[:self.max_completions]\n\n    def _autocomplete(self, node):\n        \"\"\"Hidden method to traverse the trie.\"\"\"\n        if not node.children:\n            return node\n        for key, value in node.children.items():\n            if key == '$':\n                if value not in self.word_list:\n                    self.word_list.append(value)\n                else:\n                    continue\n            else:\n                self._autocomplete(value)\n        return self.word_list",
+    "imports": [
+      "trietree.Trie"
+    ],
+    "dependencies": [
+      "Trie",
+      "node.children.items",
+      "self._autocomplete",
+      "self._trie.insert",
+      "self.word_list.append"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Class based Autocomplete per class instructions.\n\ninsert() adds a list of vocabulary words into the trie.\n\nautocomplete() traverses the trie and returns all words starting with the\ninput string, limited by the number of max completions allowed by the user.",
+    "branches": 8,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "method",
+    "name": "__init__",
+    "qualified_name": "Autocomplete.__init__",
+    "class_name": "Autocomplete",
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/autocomplete.py",
+    "source_code": "def __init__(self, vocabulary, max_completions=5):\n        \"\"\"Create a new trie instance.\"\"\"\n        self._trie = Trie()\n        self.vocabulary = vocabulary\n        self.max_completions = max_completions\n        self.word_list = []\n\n        for word in self.vocabulary:\n            self._trie.insert(word)",
+    "imports": [
+      "trietree.Trie"
+    ],
+    "dependencies": [
+      "Trie",
+      "self._trie.insert"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Create a new trie instance.",
+    "branches": 1,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "method",
+    "name": "autocomplete",
+    "qualified_name": "Autocomplete.autocomplete",
+    "class_name": "Autocomplete",
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/autocomplete.py",
+    "source_code": "def autocomplete(self, start=None):\n        \"\"\"\n        Return a list of words in the subtree starting with the input\n        string. The list will be limited by the number of max completions.\n        \"\"\"\n        self.word_list = []\n        current = self._trie.root\n        if start:\n            for letter in start:\n                if letter in current.children:\n                    current = current.children[letter]\n                else:\n                    return\n        self._autocomplete(current)\n        return self.word_list[:self.max_completions]",
+    "imports": [
+      "trietree.Trie"
+    ],
+    "dependencies": [
+      "self._autocomplete"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Return a list of words in the subtree starting with the input\nstring. The list will be limited by the number of max completions.",
+    "branches": 3,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "method",
+    "name": "_autocomplete",
+    "qualified_name": "Autocomplete._autocomplete",
+    "class_name": "Autocomplete",
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/autocomplete.py",
+    "source_code": "def _autocomplete(self, node):\n        \"\"\"Hidden method to traverse the trie.\"\"\"\n        if not node.children:\n            return node\n        for key, value in node.children.items():\n            if key == '$':\n                if value not in self.word_list:\n                    self.word_list.append(value)\n                else:\n                    continue\n            else:\n                self._autocomplete(value)\n        return self.word_list",
+    "imports": [
+      "trietree.Trie"
+    ],
+    "dependencies": [
+      "node.children.items",
+      "self._autocomplete",
+      "self.word_list.append"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Hidden method to traverse the trie.",
+    "branches": 4,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "function",
+    "name": "digitize",
+    "qualified_name": "digitize",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/convert.py",
+    "source_code": "def digitize(n):\n    \"\"\"Convert integer to reversed list of digits.\"\"\"\n    stringy = str(n)\n    return [int(s) for s in stringy[::-1]]",
+    "imports": [],
+    "dependencies": [],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Convert integer to reversed list of digits.",
+    "branches": 0,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "function",
+    "name": "disemvowel",
+    "qualified_name": "disemvowel",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/disemvowel.py",
+    "source_code": "def disemvowel(string):\n    \"\"\"Return string with vowels removed\"\"\"\n    vowels = 'aeiouAEIOU'\n    return \"\".join([c for c in string if c not in vowels])",
+    "imports": [],
+    "dependencies": [
+      "join"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Return string with vowels removed",
+    "branches": 0,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "function",
+    "name": "even_or_odd",
+    "qualified_name": "even_or_odd",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/even_odd.py",
+    "source_code": "def even_or_odd(number):\n    \"\"\"Return 'Even' or 'Odd' if number is even or odd.\"\"\"\n    if number % 2 == 0:\n        return \"Even\"\n    return \"Odd\"",
+    "imports": [],
+    "dependencies": [],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Return 'Even' or 'Odd' if number is even or odd.",
+    "branches": 1,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "function",
+    "name": "bonus_time",
+    "qualified_name": "bonus_time",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/fatcat.py",
+    "source_code": "def bonus_time(salary, bonus):\n    \"\"\"Check to see if bonus, and return salary accordingly.\"\"\"\n    return \"${}\".format(salary * 10) if bonus else \"${}\".format(salary)",
+    "imports": [],
+    "dependencies": [],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Check to see if bonus, and return salary accordingly.",
+    "branches": 0,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "class",
+    "name": "Graph",
+    "qualified_name": "Graph",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_graph.py",
+    "source_code": "class Graph():\n    \"\"\"\n    Create an unweighted, directed graph instance with the following methods.\n\n    nodes(): returns a list of all nodes in the graph.\n\n    edges(): returns a list of all edges in the graph.\n\n    add_node(n): adds a new node, n, to the graph.\n\n    add_edge(n1, n2): adds n1 and n2 if they don't exist, and adds an edge connecting them.\n\n    del_node(n): deletes node n from the graph.\n\n    del_edge(n1, n2): deletes the edge connecting n1 and n2.\n\n    has_node(n): Returns True if node n is contained in the graph.\n\n    neighbors(n): Returns a list of all nodes connected to n by edges.\n\n    adjacent(n1, n2): returns True if n1 and n2 are connceted by an edge.\n    \"\"\"\n\n    def __init__(self):\n        \"\"\"Instantiate a new graph instance.\"\"\"\n        self.graph = {}\n\n    def add_node(self, node):\n        \"\"\"Add a node to the graph.\"\"\"\n        if node in list(self.graph.keys()):\n            raise KeyError(\"Node already in graph.\")\n        self.graph[node] = {}\n\n    def add_edge(self, node1, node2, weight=0):\n        \"\"\"Add an edge from node1 to node2 in the graph.\"\"\"\n        if node1 not in list(self.graph.keys()):\n            self.add_node(node1)\n        if node2 not in list(self.graph.keys()):\n            self.add_node(node2)\n        if node2 not in list(self.graph[node1].keys()):\n            self.graph[node1][node2] = weight\n\n    def nodes(self):\n        \"\"\"Return a list of all nodes in the graph.\"\"\"\n        node_list = []\n        for node in list(self.graph.keys()):\n            node_list.append(node)\n        return node_list\n\n    def edges(self):\n        \"\"\"Return a list of all edges in the graph.\"\"\"\n        edge_list = []\n        for node in list(self.graph.keys()):\n            edge_list.append(\"{}: {}\".format(node, list(self.graph[node].keys())))\n        return edge_list\n\n    def del_node(self, node):\n        \"\"\"Delete node n from the graph, raises error if does not exist.\"\"\"\n        if node not in list(self.graph.keys()):\n            raise KeyError(\"You can't delete a node that does not exist.\")\n        del self.graph[node]\n        for key in list(self.graph.keys()):\n            if node in list(self.graph[key].keys()):\n                del self.graph[key][node]\n\n    def del_edge(self, node1, node2):\n        \"\"\"Delete the edge connecting n1 and n2.\"\"\"\n        if node2 in list(self.graph[node1].keys()) and self.graph[node2]:\n            del self.graph[node1][node2]\n        elif node1 not in list(self.graph.keys()) or node2 not in list(self.graph.keys()):\n            raise KeyError(\"That node is not in the graph.\")\n        else:\n            raise ValueError(\"That edge is not in the graph.\")\n\n    def has_node(self, node):\n        \"\"\"Return True if node n is contained in the graph.\"\"\"\n        return node in list(self.graph.keys())\n\n    def neighbors(self, node):\n        \"\"\"Return a list of all nodes connected to n by edges.\"\"\"\n        if node not in list(self.graph.keys()):\n            raise KeyError(\"Not in graph.\")\n        return self.graph[node]\n\n    def adjacent(self, node1, node2):\n        \"\"\"Return True if n1 and n2 are connected by an edge.\"\"\"\n        if node1 not in list(self.graph.keys()):\n            raise KeyError(\"{} is not in the graph.\".format(node1))\n        elif node2 not in list(self.graph.keys()):\n            raise KeyError(\"{} is not in the graph.\".format(node2))\n        return node1 in list(self.graph[node2].keys()) or node2 in list(self.graph[node1].keys())\n\n    def depth_traversal(self, start, checked=None):\n        \"\"\"Traverse the graph by depth.\"\"\"\n        if start not in list(self.graph.keys()):\n            raise KeyError(\"{} not in graph.\".format(start))\n        if checked is None:\n            checked = []\n        checked.extend([start])\n        for edge in list(self.graph[start].keys()):\n            if edge not in checked:\n                self.depth_traversal(edge, checked)\n        return checked\n\n    def breadth_traversal(self, start):\n        \"\"\"Traverse the graph by breadth.\"\"\"\n        checked, node_list = [], [start]\n        while node_list:\n            vertex = node_list.pop(0)\n            if vertex not in checked:\n                checked.append(vertex)\n                [node_list.append(edge) for edge in list(self.graph[vertex].keys())\n                    if edge not in checked]\n        return checked\n\n    def dijkstra(self, start, finish):\n        \"\"\"Return the shortest path between two nodes.\"\"\"\n        visited = {start: 0}\n        path = {}\n        unvisited_nodes = self.nodes()\n        while unvisited_nodes:\n            min_node = None\n            for node in unvisited_nodes:\n                if node in visited:\n                    if min_node is None:\n                        min_node = node\n                    elif visited[node] < visited[min_node]:\n                        min_node = node\n            if min_node is None:\n                break\n\n            unvisited_nodes.remove(min_node)\n            current_weight = visited[min_node]\n\n            for edge in self.graph[min_node]:\n                weight = current_weight + self.graph[min_node][edge]\n                if edge not in visited or weight < visited[edge]:\n                    visited[edge] = weight\n                    path[edge] = min_node\n\n            if min_node == finish:\n                path_node = finish\n                journey = [finish]\n                while path_node != start:\n                    journey.append(path[path_node])\n                    path_node = path[path_node]\n                return {visited[finish]: journey[::-1]}",
+    "imports": [],
+    "dependencies": [
+      "checked.append",
+      "checked.extend",
+      "edge_list.append",
+      "journey.append",
+      "node_list.append",
+      "node_list.pop",
+      "self.add_node",
+      "self.depth_traversal",
+      "self.graph.keys",
+      "self.nodes",
+      "unvisited_nodes.remove"
+    ],
+    "exceptions": [
+      "KeyError",
+      "ValueError"
+    ],
+    "decorators": [],
+    "docstring": "Create an unweighted, directed graph instance with the following methods.\n\nnodes(): returns a list of all nodes in the graph.\n\nedges(): returns a list of all edges in the graph.\n\nadd_node(n): adds a new node, n, to the graph.\n\nadd_edge(n1, n2): adds n1 and n2 if they don't exist, and adds an edge connecting them.\n\ndel_node(n): deletes node n from the graph.\n\ndel_edge(n1, n2): deletes the edge connecting n1 and n2.\n\nhas_node(n): Returns True if node n is contained in the graph.\n\nneighbors(n): Returns a list of all nodes connected to n by edges.\n\nadjacent(n1, n2): returns True if n1 and n2 are connceted by an edge.",
+    "branches": 30,
+    "edge_cases": [
+      "invalid_input",
+      "missing_key"
+    ]
+  },
+  {
+    "symbol_type": "method",
+    "name": "__init__",
+    "qualified_name": "Graph.__init__",
+    "class_name": "Graph",
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_graph.py",
+    "source_code": "def __init__(self):\n        \"\"\"Instantiate a new graph instance.\"\"\"\n        self.graph = {}",
+    "imports": [],
+    "dependencies": [],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Instantiate a new graph instance.",
+    "branches": 0,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "method",
+    "name": "add_node",
+    "qualified_name": "Graph.add_node",
+    "class_name": "Graph",
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_graph.py",
+    "source_code": "def add_node(self, node):\n        \"\"\"Add a node to the graph.\"\"\"\n        if node in list(self.graph.keys()):\n            raise KeyError(\"Node already in graph.\")\n        self.graph[node] = {}",
+    "imports": [],
+    "dependencies": [
+      "self.graph.keys"
+    ],
+    "exceptions": [
+      "KeyError"
+    ],
+    "decorators": [],
+    "docstring": "Add a node to the graph.",
+    "branches": 1,
+    "edge_cases": [
+      "missing_key"
+    ]
+  },
+  {
+    "symbol_type": "method",
+    "name": "add_edge",
+    "qualified_name": "Graph.add_edge",
+    "class_name": "Graph",
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_graph.py",
+    "source_code": "def add_edge(self, node1, node2, weight=0):\n        \"\"\"Add an edge from node1 to node2 in the graph.\"\"\"\n        if node1 not in list(self.graph.keys()):\n            self.add_node(node1)\n        if node2 not in list(self.graph.keys()):\n            self.add_node(node2)\n        if node2 not in list(self.graph[node1].keys()):\n            self.graph[node1][node2] = weight",
+    "imports": [],
+    "dependencies": [
+      "self.add_node",
+      "self.graph.keys"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Add an edge from node1 to node2 in the graph.",
+    "branches": 3,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "method",
+    "name": "nodes",
+    "qualified_name": "Graph.nodes",
+    "class_name": "Graph",
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_graph.py",
+    "source_code": "def nodes(self):\n        \"\"\"Return a list of all nodes in the graph.\"\"\"\n        node_list = []\n        for node in list(self.graph.keys()):\n            node_list.append(node)\n        return node_list",
+    "imports": [],
+    "dependencies": [
+      "node_list.append",
+      "self.graph.keys"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Return a list of all nodes in the graph.",
+    "branches": 1,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "method",
+    "name": "edges",
+    "qualified_name": "Graph.edges",
+    "class_name": "Graph",
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_graph.py",
+    "source_code": "def edges(self):\n        \"\"\"Return a list of all edges in the graph.\"\"\"\n        edge_list = []\n        for node in list(self.graph.keys()):\n            edge_list.append(\"{}: {}\".format(node, list(self.graph[node].keys())))\n        return edge_list",
+    "imports": [],
+    "dependencies": [
+      "edge_list.append",
+      "self.graph.keys"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Return a list of all edges in the graph.",
+    "branches": 1,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "method",
+    "name": "del_node",
+    "qualified_name": "Graph.del_node",
+    "class_name": "Graph",
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_graph.py",
+    "source_code": "def del_node(self, node):\n        \"\"\"Delete node n from the graph, raises error if does not exist.\"\"\"\n        if node not in list(self.graph.keys()):\n            raise KeyError(\"You can't delete a node that does not exist.\")\n        del self.graph[node]\n        for key in list(self.graph.keys()):\n            if node in list(self.graph[key].keys()):\n                del self.graph[key][node]",
+    "imports": [],
+    "dependencies": [
+      "self.graph.keys"
+    ],
+    "exceptions": [
+      "KeyError"
+    ],
+    "decorators": [],
+    "docstring": "Delete node n from the graph, raises error if does not exist.",
+    "branches": 3,
+    "edge_cases": [
+      "missing_key"
+    ]
+  },
+  {
+    "symbol_type": "method",
+    "name": "del_edge",
+    "qualified_name": "Graph.del_edge",
+    "class_name": "Graph",
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_graph.py",
+    "source_code": "def del_edge(self, node1, node2):\n        \"\"\"Delete the edge connecting n1 and n2.\"\"\"\n        if node2 in list(self.graph[node1].keys()) and self.graph[node2]:\n            del self.graph[node1][node2]\n        elif node1 not in list(self.graph.keys()) or node2 not in list(self.graph.keys()):\n            raise KeyError(\"That node is not in the graph.\")\n        else:\n            raise ValueError(\"That edge is not in the graph.\")",
+    "imports": [],
+    "dependencies": [
+      "self.graph.keys"
+    ],
+    "exceptions": [
+      "KeyError",
+      "ValueError"
+    ],
+    "decorators": [],
+    "docstring": "Delete the edge connecting n1 and n2.",
+    "branches": 2,
+    "edge_cases": [
+      "invalid_input",
+      "missing_key"
+    ]
+  },
+  {
+    "symbol_type": "method",
+    "name": "has_node",
+    "qualified_name": "Graph.has_node",
+    "class_name": "Graph",
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_graph.py",
+    "source_code": "def has_node(self, node):\n        \"\"\"Return True if node n is contained in the graph.\"\"\"\n        return node in list(self.graph.keys())",
+    "imports": [],
+    "dependencies": [
+      "self.graph.keys"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Return True if node n is contained in the graph.",
+    "branches": 0,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "method",
+    "name": "neighbors",
+    "qualified_name": "Graph.neighbors",
+    "class_name": "Graph",
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_graph.py",
+    "source_code": "def neighbors(self, node):\n        \"\"\"Return a list of all nodes connected to n by edges.\"\"\"\n        if node not in list(self.graph.keys()):\n            raise KeyError(\"Not in graph.\")\n        return self.graph[node]",
+    "imports": [],
+    "dependencies": [
+      "self.graph.keys"
+    ],
+    "exceptions": [
+      "KeyError"
+    ],
+    "decorators": [],
+    "docstring": "Return a list of all nodes connected to n by edges.",
+    "branches": 1,
+    "edge_cases": [
+      "missing_key"
+    ]
+  },
+  {
+    "symbol_type": "method",
+    "name": "adjacent",
+    "qualified_name": "Graph.adjacent",
+    "class_name": "Graph",
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_graph.py",
+    "source_code": "def adjacent(self, node1, node2):\n        \"\"\"Return True if n1 and n2 are connected by an edge.\"\"\"\n        if node1 not in list(self.graph.keys()):\n            raise KeyError(\"{} is not in the graph.\".format(node1))\n        elif node2 not in list(self.graph.keys()):\n            raise KeyError(\"{} is not in the graph.\".format(node2))\n        return node1 in list(self.graph[node2].keys()) or node2 in list(self.graph[node1].keys())",
+    "imports": [],
+    "dependencies": [
+      "self.graph.keys"
+    ],
+    "exceptions": [
+      "KeyError"
+    ],
+    "decorators": [],
+    "docstring": "Return True if n1 and n2 are connected by an edge.",
+    "branches": 2,
+    "edge_cases": [
+      "missing_key"
+    ]
+  },
+  {
+    "symbol_type": "method",
+    "name": "depth_traversal",
+    "qualified_name": "Graph.depth_traversal",
+    "class_name": "Graph",
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_graph.py",
+    "source_code": "def depth_traversal(self, start, checked=None):\n        \"\"\"Traverse the graph by depth.\"\"\"\n        if start not in list(self.graph.keys()):\n            raise KeyError(\"{} not in graph.\".format(start))\n        if checked is None:\n            checked = []\n        checked.extend([start])\n        for edge in list(self.graph[start].keys()):\n            if edge not in checked:\n                self.depth_traversal(edge, checked)\n        return checked",
+    "imports": [],
+    "dependencies": [
+      "checked.extend",
+      "self.depth_traversal",
+      "self.graph.keys"
+    ],
+    "exceptions": [
+      "KeyError"
+    ],
+    "decorators": [],
+    "docstring": "Traverse the graph by depth.",
+    "branches": 4,
+    "edge_cases": [
+      "missing_key"
+    ]
+  },
+  {
+    "symbol_type": "method",
+    "name": "breadth_traversal",
+    "qualified_name": "Graph.breadth_traversal",
+    "class_name": "Graph",
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_graph.py",
+    "source_code": "def breadth_traversal(self, start):\n        \"\"\"Traverse the graph by breadth.\"\"\"\n        checked, node_list = [], [start]\n        while node_list:\n            vertex = node_list.pop(0)\n            if vertex not in checked:\n                checked.append(vertex)\n                [node_list.append(edge) for edge in list(self.graph[vertex].keys())\n                    if edge not in checked]\n        return checked",
+    "imports": [],
+    "dependencies": [
+      "checked.append",
+      "node_list.append",
+      "node_list.pop",
+      "self.graph.keys"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Traverse the graph by breadth.",
+    "branches": 2,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "method",
+    "name": "dijkstra",
+    "qualified_name": "Graph.dijkstra",
+    "class_name": "Graph",
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_graph.py",
+    "source_code": "def dijkstra(self, start, finish):\n        \"\"\"Return the shortest path between two nodes.\"\"\"\n        visited = {start: 0}\n        path = {}\n        unvisited_nodes = self.nodes()\n        while unvisited_nodes:\n            min_node = None\n            for node in unvisited_nodes:\n                if node in visited:\n                    if min_node is None:\n                        min_node = node\n                    elif visited[node] < visited[min_node]:\n                        min_node = node\n            if min_node is None:\n                break\n\n            unvisited_nodes.remove(min_node)\n            current_weight = visited[min_node]\n\n            for edge in self.graph[min_node]:\n                weight = current_weight + self.graph[min_node][edge]\n                if edge not in visited or weight < visited[edge]:\n                    visited[edge] = weight\n                    path[edge] = min_node\n\n            if min_node == finish:\n                path_node = finish\n                journey = [finish]\n                while path_node != start:\n                    journey.append(path[path_node])\n                    path_node = path[path_node]\n                return {visited[finish]: journey[::-1]}",
+    "imports": [],
+    "dependencies": [
+      "journey.append",
+      "self.nodes",
+      "unvisited_nodes.remove"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Return the shortest path between two nodes.",
+    "branches": 10,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "function",
+    "name": "get_json",
+    "qualified_name": "get_json",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_paths.py",
+    "source_code": "def get_json():\n    \"\"\"Get json data from file.\"\"\"\n    with open(FPATH, 'r') as f:\n        flight_data = json.load(f)\n    return flight_data",
+    "imports": [
+      "flight_graph.Graph",
+      "json",
+      "math",
+      "os"
+    ],
+    "dependencies": [
+      "json.load"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Get json data from file.",
+    "branches": 0,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "function",
+    "name": "calculate_distance",
+    "qualified_name": "calculate_distance",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_paths.py",
+    "source_code": "def calculate_distance(point1, point2):\n    \"\"\"\n    Calculate the distance (in miles) between point1 and point2.\n    point1 and point2 must have the format [latitude, longitude].\n    The return value is a float.\n\n    Modified and converted to Python from:\n    http://www.movable-type.co.uk/scripts/latlong.html\n    \"\"\"\n    import math\n\n    def convert_to_radians(degrees):\n        return degrees * math.pi / 180\n\n    radius_earth = 6.371E3  # km\n    phi1 = convert_to_radians(point1[0])\n    phi2 = convert_to_radians(point2[0])\n    delta_phi = convert_to_radians(point1[0] - point2[0])\n    delta_lam = convert_to_radians(point1[1] - point2[1])\n\n    a = math.sin(\n        0.5 * delta_phi)**2 + math.cos(\n        phi1) * math.cos(phi2) * math.sin(0.5 * delta_lam)**2\n    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))\n    return radius_earth * c / 1.60934",
+    "imports": [
+      "flight_graph.Graph",
+      "json",
+      "math",
+      "os"
+    ],
+    "dependencies": [
+      "convert_to_radians",
+      "math.atan2",
+      "math.cos",
+      "math.sin",
+      "math.sqrt"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Calculate the distance (in miles) between point1 and point2.\npoint1 and point2 must have the format [latitude, longitude].\nThe return value is a float.\n\nModified and converted to Python from:\nhttp://www.movable-type.co.uk/scripts/latlong.html",
+    "branches": 0,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "function",
+    "name": "lat_long_dict",
+    "qualified_name": "lat_long_dict",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_paths.py",
+    "source_code": "def lat_long_dict():\n    \"\"\"Find each city's latitude and longitude and save in a dictionary.\"\"\"\n    flight_data = get_json()\n    lat_long = {}\n    for item in flight_data:\n        lat_long[item['city']] = item['lat_lon']\n    return lat_long",
+    "imports": [
+      "flight_graph.Graph",
+      "json",
+      "math",
+      "os"
+    ],
+    "dependencies": [
+      "get_json"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Find each city's latitude and longitude and save in a dictionary.",
+    "branches": 1,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "function",
+    "name": "create_graph",
+    "qualified_name": "create_graph",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_paths.py",
+    "source_code": "def create_graph():\n    \"\"\"Put json data into a weighted graph data structure.\n    If the city is included in destination_cities, but not as a city in its own\n    right, make the weight excessively long. This way, the path will still show\n    up, but the route will not be favored when calculating the shortest flight\n    path.\n    \"\"\"\n    flight_data = get_json()\n    lat_long = lat_long_dict()\n    connections = Graph()\n    for item in flight_data:\n        start = item['city']\n        for destination in item['destination_cities']:\n            if destination in list(lat_long.keys()):\n                connections.add_edge(\n                    start, destination, calculate_distance(\n                        lat_long[start], lat_long[destination]))\n            connections.add_edge(\n                start, destination, 500000)\n    return connections",
+    "imports": [
+      "flight_graph.Graph",
+      "json",
+      "math",
+      "os"
+    ],
+    "dependencies": [
+      "Graph",
+      "calculate_distance",
+      "connections.add_edge",
+      "get_json",
+      "lat_long.keys",
+      "lat_long_dict"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Put json data into a weighted graph data structure.\nIf the city is included in destination_cities, but not as a city in its own\nright, make the weight excessively long. This way, the path will still show\nup, but the route will not be favored when calculating the shortest flight\npath.",
+    "branches": 3,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "function",
+    "name": "flight_path",
+    "qualified_name": "flight_path",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_paths.py",
+    "source_code": "def flight_path(start, dest):\n    \"\"\"Return the shortest routes between two cities.\"\"\"\n    connections = create_graph()\n    unvisited = connections.depth_traversal(start)\n    if start not in unvisited:\n        raise KeyError(\"That city is not in the database.\")\n    elif dest not in unvisited:\n        raise ValueError(\"There is no connection between those cities.\")\n    else:\n        path = connections.dijkstra(start, dest)\n        key = list(path.keys())[0]\n        if key > 500000:\n            return path[key], \"There is a path between those cities, but the distance is unknown.\"\n        else:\n            return path",
+    "imports": [
+      "flight_graph.Graph",
+      "json",
+      "math",
+      "os"
+    ],
+    "dependencies": [
+      "connections.depth_traversal",
+      "connections.dijkstra",
+      "create_graph",
+      "path.keys"
+    ],
+    "exceptions": [
+      "KeyError",
+      "ValueError"
+    ],
+    "decorators": [],
+    "docstring": "Return the shortest routes between two cities.",
+    "branches": 3,
+    "edge_cases": [
+      "invalid_input",
+      "missing_key"
+    ]
+  },
+  {
+    "symbol_type": "function",
+    "name": "get_json",
+    "qualified_name": "get_json",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/forbes.py",
+    "source_code": "def get_json():\n    \"\"\"Get json data from file.\"\"\"\n    with open(FPATH, 'r') as f:\n        data = json.load(f)\n    return data",
+    "imports": [
+      "json"
+    ],
+    "dependencies": [
+      "json.load"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Get json data from file.",
+    "branches": 0,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "function",
+    "name": "oldest_youngest",
+    "qualified_name": "oldest_youngest",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/forbes.py",
+    "source_code": "def oldest_youngest():\n    \"\"\"Get JSON Data.\n    Compile a dictionary of all billionaires' names and ages.\n    Find the oldest billionaire under 80, and youngest living billionaire.\"\"\"\n    data = get_json()\n    age_dict = {}\n    for item in data['billionaires']:\n        if item['age'] >= 80 or item['age'] < 0:\n            pass\n        else:\n            age_dict[item['name']] = {\"age\": item['age'],\n                                      \"industry\": item['source'],\n                                      \"net worth\": item[\"net_worth (USD)\"]\n                                      }\n    oldest = max(age_dict.items(), key=lambda x: x[1][\"age\"])\n    youngest = min(age_dict.items(), key=lambda x: x[1][\"age\"])\n\n    return oldest, youngest",
+    "imports": [
+      "json"
+    ],
+    "dependencies": [
+      "age_dict.items",
+      "get_json"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Get JSON Data.\nCompile a dictionary of all billionaires' names and ages.\nFind the oldest billionaire under 80, and youngest living billionaire.",
+    "branches": 2,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "function",
+    "name": "get_grade",
+    "qualified_name": "get_grade",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/get_grade.py",
+    "source_code": "def get_grade(s1, s2, s3):\n    \"\"\"Return letter grade reflecting average grade in class.\"\"\"\n    avg_grade = (s1 + s2 + s3) / 3\n    if avg_grade >= 90:\n        return 'A'\n    elif avg_grade >= 80:\n        return 'B'\n    elif avg_grade >= 70:\n        return 'C'\n    elif avg_grade >= 60:\n        return 'D'\n    return \"F\"",
+    "imports": [],
+    "dependencies": [],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Return letter grade reflecting average grade in class.",
+    "branches": 4,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "function",
+    "name": "greet",
+    "qualified_name": "greet",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/jenny.py",
+    "source_code": "def greet(name):\n    \"\"\"Return special hello for Johnny, normal greeting for everyone else.\"\"\"\n    if name == \"Johnny\":\n        return \"Hello, my love!\"\n    return \"Hello, {}!\".format(name)",
+    "imports": [],
+    "dependencies": [],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Return special hello for Johnny, normal greeting for everyone else.",
+    "branches": 1,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "function",
+    "name": "mini",
+    "qualified_name": "mini",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/minmax.py",
+    "source_code": "def mini(lst):\n    \"\"\"Returns the smallest item in an list\"\"\"\n    if lst:\n        return sorted(lst)[0]\n    return lst",
+    "imports": [],
+    "dependencies": [],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Returns the smallest item in an list",
+    "branches": 1,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "function",
+    "name": "maxi",
+    "qualified_name": "maxi",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/minmax.py",
+    "source_code": "def maxi(lst):\n    \"\"\"returns the largest item in a list\"\"\"\n    if lst:\n        return sorted(lst)[-1]\n    return lst",
+    "imports": [],
+    "dependencies": [],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "returns the largest item in a list",
+    "branches": 1,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "function",
+    "name": "monkey_count",
+    "qualified_name": "monkey_count",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/monkey.py",
+    "source_code": "def monkey_count(n):\n    \"\"\"Return count from 1 to n.\"\"\"\n    return [i for i in range(1, n + 1)]",
+    "imports": [],
+    "dependencies": [],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Return count from 1 to n.",
+    "branches": 0,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "function",
+    "name": "find_next_square",
+    "qualified_name": "find_next_square",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/next_sq.py",
+    "source_code": "def find_next_square(sq):\n    \"\"\"If perfect square input, return next perfect square. Else return -1.\"\"\"\n    root = math.sqrt(sq)\n    if root == round(root):\n        return (root + 1) ** 2\n    else:\n        return -1",
+    "imports": [
+      "math"
+    ],
+    "dependencies": [
+      "math.sqrt"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "If perfect square input, return next perfect square. Else return -1.",
+    "branches": 1,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "class",
+    "name": "Node",
+    "qualified_name": "Node",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/parenthetics.py",
+    "source_code": "class Node(object):\n    \"\"\"Create node to push into Doubly link list.\"\"\"\n\n    def __init__(self, value=None, next_node=None, previous_node=None):\n        \"\"\"Create node to push into Doubly link list.\"\"\"\n        self.value = value\n        self.next_node = next_node\n        self.previous_node = previous_node",
+    "imports": [],
+    "dependencies": [],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Create node to push into Doubly link list.",
+    "branches": 0,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "method",
+    "name": "__init__",
+    "qualified_name": "Node.__init__",
+    "class_name": "Node",
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/parenthetics.py",
+    "source_code": "def __init__(self, value=None, next_node=None, previous_node=None):\n        \"\"\"Create node to push into Doubly link list.\"\"\"\n        self.value = value\n        self.next_node = next_node\n        self.previous_node = previous_node",
+    "imports": [],
+    "dependencies": [],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Create node to push into Doubly link list.",
+    "branches": 0,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "class",
+    "name": "DoubleLink",
+    "qualified_name": "DoubleLink",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/parenthetics.py",
+    "source_code": "class DoubleLink(object):\n    \"\"\"Create a doubly linked list.\n\n    The push() function adds new values to the list.\n\n    The balanced() function checks for three things.\n    It returns 0 if each open paren is followed by a closed paren.\n    It returns 1 if there is an unmatched open paren.\n    It returns -1 if there is an unmatched closed paren.\"\"\"\n\n    def __init__(self, iterable=None):\n        \"\"\"Create an instance of a doubly linked list.\"\"\"\n        self._length = 0\n        self.head = None\n        self.tail = None\n\n        if iterable:\n            for value in iterable:\n                self.push(value)\n        elif iterable:\n            raise TypeError\n\n    def push(self, value):\n        \"\"\"Add new value to the front of a doubly linked list.\"\"\"\n        new_node = Node(value)\n        if self.head:\n            new_node.next_node = self.head\n            self.head.previous_node = new_node\n            self.head = new_node\n        else:\n            self.head = new_node\n            self.tail = new_node\n        self._length += 1\n\n    def balanced(self):\n        \"\"\"Return 0 if equal number of matching open and closed parens.\n        Return 1 if there is an open, unmatched, paren.\n        Return -1 if there is an unmatched closed paren.\"\"\"\n\n        paren_dict = {'(': ')', ')': '('}\n\n        if self.head:\n            current = self.head\n            if current.value == ')':\n                return -1\n            elif current.value == '(':\n                while current:\n                    if current == self.tail:\n                        if current == ')':\n                            return 0\n                        elif current == '(':\n                            return 1\n                    elif current.next_node.value != paren_dict[current.value]:\n                        if current.value == '(':\n                            return 1\n                        return -1\n                    current = current.next_node\n                return 0\n            else:\n                raise ValueError(\"Value not in list.\")\n        else:\n            raise ValueError(\"Cannot balance an empty list.\")",
+    "imports": [],
+    "dependencies": [
+      "Node",
+      "self.push"
+    ],
+    "exceptions": [
+      "TypeError",
+      "ValueError"
+    ],
+    "decorators": [],
+    "docstring": "Create a doubly linked list.\n\nThe push() function adds new values to the list.\n\nThe balanced() function checks for three things.\nIt returns 0 if each open paren is followed by a closed paren.\nIt returns 1 if there is an unmatched open paren.\nIt returns -1 if there is an unmatched closed paren.",
+    "branches": 13,
+    "edge_cases": [
+      "invalid_input"
+    ]
+  },
+  {
+    "symbol_type": "method",
+    "name": "__init__",
+    "qualified_name": "DoubleLink.__init__",
+    "class_name": "DoubleLink",
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/parenthetics.py",
+    "source_code": "def __init__(self, iterable=None):\n        \"\"\"Create an instance of a doubly linked list.\"\"\"\n        self._length = 0\n        self.head = None\n        self.tail = None\n\n        if iterable:\n            for value in iterable:\n                self.push(value)\n        elif iterable:\n            raise TypeError",
+    "imports": [],
+    "dependencies": [
+      "self.push"
+    ],
+    "exceptions": [
+      "TypeError"
+    ],
+    "decorators": [],
+    "docstring": "Create an instance of a doubly linked list.",
+    "branches": 3,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "method",
+    "name": "push",
+    "qualified_name": "DoubleLink.push",
+    "class_name": "DoubleLink",
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/parenthetics.py",
+    "source_code": "def push(self, value):\n        \"\"\"Add new value to the front of a doubly linked list.\"\"\"\n        new_node = Node(value)\n        if self.head:\n            new_node.next_node = self.head\n            self.head.previous_node = new_node\n            self.head = new_node\n        else:\n            self.head = new_node\n            self.tail = new_node\n        self._length += 1",
+    "imports": [],
+    "dependencies": [
+      "Node"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Add new value to the front of a doubly linked list.",
+    "branches": 1,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "method",
+    "name": "balanced",
+    "qualified_name": "DoubleLink.balanced",
+    "class_name": "DoubleLink",
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/parenthetics.py",
+    "source_code": "def balanced(self):\n        \"\"\"Return 0 if equal number of matching open and closed parens.\n        Return 1 if there is an open, unmatched, paren.\n        Return -1 if there is an unmatched closed paren.\"\"\"\n\n        paren_dict = {'(': ')', ')': '('}\n\n        if self.head:\n            current = self.head\n            if current.value == ')':\n                return -1\n            elif current.value == '(':\n                while current:\n                    if current == self.tail:\n                        if current == ')':\n                            return 0\n                        elif current == '(':\n                            return 1\n                    elif current.next_node.value != paren_dict[current.value]:\n                        if current.value == '(':\n                            return 1\n                        return -1\n                    current = current.next_node\n                return 0\n            else:\n                raise ValueError(\"Value not in list.\")\n        else:\n            raise ValueError(\"Cannot balance an empty list.\")",
+    "imports": [],
+    "dependencies": [],
+    "exceptions": [
+      "ValueError"
+    ],
+    "decorators": [],
+    "docstring": "Return 0 if equal number of matching open and closed parens.\nReturn 1 if there is an open, unmatched, paren.\nReturn -1 if there is an unmatched closed paren.",
+    "branches": 9,
+    "edge_cases": [
+      "invalid_input"
+    ]
+  },
+  {
+    "symbol_type": "function",
+    "name": "make_negative",
+    "qualified_name": "make_negative",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/return_negative.py",
+    "source_code": "def make_negative(number):\n    \"\"\"Return the negative of the absolute value of number.\"\"\"\n    return abs(number) * -1",
+    "imports": [],
+    "dependencies": [],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Return the negative of the absolute value of number.",
+    "branches": 0,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "function",
+    "name": "reverse_words",
+    "qualified_name": "reverse_words",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/reverse.py",
+    "source_code": "def reverse_words(str):\n    \"\"\"Reverse the order of letters in each word in a string.\"\"\"\n    return \" \".join([\"\".join(s[::-1]) for s in str.split(\" \")])",
+    "imports": [],
+    "dependencies": [
+      "join"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Reverse the order of letters in each word in a string.",
+    "branches": 0,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "function",
+    "name": "sort_by_length",
+    "qualified_name": "sort_by_length",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/sort_bylength.py",
+    "source_code": "def sort_by_length(arr):\n    \"\"\"Sort list of strings by length of each string.\"\"\"\n    return sorted(arr, key=len)",
+    "imports": [],
+    "dependencies": [],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Sort list of strings by length of each string.",
+    "branches": 0,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "function",
+    "name": "sort_cards",
+    "qualified_name": "sort_cards",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/sort_cards.py",
+    "source_code": "def sort_cards(cards):\n    \"\"\"Sorts a deck of cards by their value, with Aces low.\"\"\"\n    rank = {\"A\": 0, \"2\": 1, \"3\": 2, \"4\": 3, \"5\": 4, \"6\": 5, \"7\": 6, \"8\": 7,\n            \"9\": 8, \"T\": 9, \"J\": 10, \"Q\": 11, \"K\": 12}\n    return sorted(cards, key=lambda x: rank[x])",
+    "imports": [],
+    "dependencies": [],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Sorts a deck of cards by their value, with Aces low.",
+    "branches": 0,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "function",
+    "name": "string_to_number",
+    "qualified_name": "string_to_number",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/string2num.py",
+    "source_code": "def string_to_number(s):\n    \"\"\"Input stringified number and return integer.\"\"\"\n    return int(s)",
+    "imports": [],
+    "dependencies": [],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Input stringified number and return integer.",
+    "branches": 0,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "function",
+    "name": "watch_pyramid_from_the_side",
+    "qualified_name": "watch_pyramid_from_the_side",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/string_pyramid.py",
+    "source_code": "def watch_pyramid_from_the_side(characters):\n    \"\"\"Show view of pyramid from the side.\"\"\"\n    if characters:\n        chars = characters[::-1]\n        row = 1\n        spaces = len(chars) - 1\n        pyramid = []\n        while chars:\n            pyramid.append((\" \" * spaces) + chars[0] * row + (\" \" * spaces))\n            row += 2\n            spaces -= 1\n            chars = chars[1:]\n        return \"\\n\".join(pyramid)\n    return characters",
+    "imports": [],
+    "dependencies": [
+      "join",
+      "pyramid.append"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Show view of pyramid from the side.",
+    "branches": 2,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "function",
+    "name": "watch_pyramid_from_above",
+    "qualified_name": "watch_pyramid_from_above",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/string_pyramid.py",
+    "source_code": "def watch_pyramid_from_above(characters):\n    \"\"\"Show view of pyramid from the top.\"\"\"\n    if characters:\n        pyramid = []\n        length = len(characters)\n        for i in range(length):\n            pyramid.append(\n                characters[:i] + characters[i] * len(characters[i:]))\n        for i in range(length):\n            pyramid[i] += pyramid[i][-2::-1]\n        for i in range(length - 2, -1, -1):\n            pyramid.append(pyramid[i])\n        return \"\\n\".join(pyramid)\n    return characters",
+    "imports": [],
+    "dependencies": [
+      "join",
+      "pyramid.append"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Show view of pyramid from the top.",
+    "branches": 4,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "function",
+    "name": "count_visible_characters_of_the_pyramid",
+    "qualified_name": "count_visible_characters_of_the_pyramid",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/string_pyramid.py",
+    "source_code": "def count_visible_characters_of_the_pyramid(characters):\n    if characters:\n        width = 2 * len(characters) - 1\n        return width ** 2\n    return -1",
+    "imports": [],
+    "dependencies": [],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": null,
+    "branches": 1,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "function",
+    "name": "count_all_characters_of_the_pyramid",
+    "qualified_name": "count_all_characters_of_the_pyramid",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/string_pyramid.py",
+    "source_code": "def count_all_characters_of_the_pyramid(characters):\n    if characters:\n        chars = characters\n        sum = 0\n        while chars:\n            sum += (2 * len(chars) - 1) ** 2\n            chars = chars[1:]\n        return sum\n    return -1",
+    "imports": [],
+    "dependencies": [],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": null,
+    "branches": 2,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "function",
+    "name": "sum_array",
+    "qualified_name": "sum_array",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/sum_highlow.py",
+    "source_code": "def sum_array(arr):\n    \"\"\"Return a the sum of a list of numbers, minus the min and max values\"\"\"\n    if arr and len(arr) > 1:\n        return sum(sorted(arr)[1:-1])\n    return 0",
+    "imports": [],
+    "dependencies": [],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Return a the sum of a list of numbers, minus the min and max values",
+    "branches": 1,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "function",
+    "name": "series_sum",
+    "qualified_name": "series_sum",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/sum_of_nth_terms.py",
+    "source_code": "def series_sum(n):\n    \"\"\"Returns the sum of a series up to the nth value.\"\"\"\n    total = 0\n    for i in range(n):\n        # Math (and revised math) from Stack Overflow\n        total += 1 / (1 + 3 * float(i))\n    return '{:.2f}'.format(total)",
+    "imports": [],
+    "dependencies": [],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Returns the sum of a series up to the nth value.",
+    "branches": 1,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "function",
+    "name": "positive_sum",
+    "qualified_name": "positive_sum",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/sum_positive.py",
+    "source_code": "def positive_sum(arr):\n    \"\"\"Return the sum of positive integers in a list of numbers.\"\"\"\n    if arr:\n        return sum([a for a in arr if a > 0])\n    return 0",
+    "imports": [],
+    "dependencies": [],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Return the sum of positive integers in a list of numbers.",
+    "branches": 1,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "class",
+    "name": "TrieNode",
+    "qualified_name": "TrieNode",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/trietree.py",
+    "source_code": "class TrieNode(object):\n    \"\"\"Create node to for use in a trie tree.\"\"\"\n\n    def __init__(self, value=None):\n        \"\"\"Create node to push into Doubly link list.\"\"\"\n        self.value = value\n        self.children = OrderedDict()",
+    "imports": [
+      "collections.OrderedDict"
+    ],
+    "dependencies": [
+      "OrderedDict"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Create node to for use in a trie tree.",
+    "branches": 0,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "method",
+    "name": "__init__",
+    "qualified_name": "TrieNode.__init__",
+    "class_name": "TrieNode",
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/trietree.py",
+    "source_code": "def __init__(self, value=None):\n        \"\"\"Create node to push into Doubly link list.\"\"\"\n        self.value = value\n        self.children = OrderedDict()",
+    "imports": [
+      "collections.OrderedDict"
+    ],
+    "dependencies": [
+      "OrderedDict"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Create node to push into Doubly link list.",
+    "branches": 0,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "class",
+    "name": "Trie",
+    "qualified_name": "Trie",
+    "class_name": null,
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/trietree.py",
+    "source_code": "class Trie(object):\n    \"\"\"An implementation of a trie tree.\n\n    insert(self, string): will insert the input string into the trie. If character in the input string is already present, it will be ignored.\n\n    contains(self, string): will return True if the string is in the trie, False if not.\n\n    size(self): will return the total number of words contained within the trie. 0 if empty.\n\n    remove(self, string): will remove the given string from the trie. If the word does not exist, will raise an appropriate exception.\n\n    traversal(self, start): Perform a full depth-first traversal of the graph beginning at start. The argument start should be a string, which may or may not be the beginning of a string or strings contained in the Trie.\n    \"\"\"\n\n    def __init__(self):\n        \"\"\"Initialize a trie tree.\"\"\"\n        self.root = TrieNode()\n        self._size = 0\n\n    def insert(self, string):\n        \"\"\"Insert a string into the trie.\"\"\"\n        if not isinstance(string, str):\n            raise TypeError(\"Word must be a string\")\n        string = string.lower()\n        current = self.root\n        for letter in string:\n            if letter in current.children:\n                current = current.children[letter]\n            else:\n                current.children[letter] = TrieNode(letter)\n                current = current.children[letter]\n        if '$' not in current.children:\n            current.children['$'] = string\n            self._size += 1\n\n    def contains(self, string):\n        \"\"\"Return true if string is in trie.\"\"\"\n        if not isinstance(string, str):\n            raise TypeError(\"Word must be a string\")\n        current = self.root\n        for letter in string:\n            if letter in current.children:\n                current = current.children[letter]\n            else:\n                return False\n        try:\n            if current.children['$']:\n                return True\n        except KeyError:\n            raise KeyError(\"That word has not been inserted\")\n\n    def size(self):\n        \"\"\"Return the number of words contained in the trie.\"\"\"\n        return self._size\n\n    def remove(self, string):\n        \"\"\"Return the string from the trie if it exists.\"\"\"\n        if not isinstance(string, str):\n            raise TypeError(\"Word must be a string\")\n        current = self.root\n        last_bifurcated_node = None\n        value_at_last_bifurcation = None\n        for letter in string:\n            if letter in current.children:\n                if len(current.children) > 1:\n                    last_bifurcated_node = current\n                    value_at_last_bifurcation = letter\n                current = current.children[letter]\n        if '$' in current.children and len(current.children) == 1:\n            if last_bifurcated_node:\n                del last_bifurcated_node.children[value_at_last_bifurcation]\n                self._size -= 1\n            else:\n                del self.root.children[string[:1]]\n        elif len(current.children) > 1:\n            del current.children['$']\n        else:\n            raise KeyError('Word is not in trie')\n\n    def traversal(self, start=None):\n        \"\"\"Return a list of all the words in the subtree starting at start.\"\"\"\n        current = self.root\n        if start:\n            for letter in start:\n                if letter in current.children:\n                    current = current.children[letter]\n                else:\n                    return\n        result = self._traversal(current, True)\n        for val in result:\n            yield val.value\n\n    def _traversal(self, node, first=False):\n        if not first:\n            yield node\n        for child in node.children:\n            if child == '$':\n                continue\n            for val in self._traversal(node.children[child]):\n                yield val",
+    "imports": [
+      "collections.OrderedDict"
+    ],
+    "dependencies": [
+      "TrieNode",
+      "self._traversal",
+      "string.lower"
+    ],
+    "exceptions": [
+      "KeyError",
+      "TypeError"
+    ],
+    "decorators": [],
+    "docstring": "An implementation of a trie tree.\n\ninsert(self, string): will insert the input string into the trie. If character in the input string is already present, it will be ignored.\n\ncontains(self, string): will return True if the string is in the trie, False if not.\n\nsize(self): will return the total number of words contained within the trie. 0 if empty.\n\nremove(self, string): will remove the given string from the trie. If the word does not exist, will raise an appropriate exception.\n\ntraversal(self, start): Perform a full depth-first traversal of the graph beginning at start. The argument start should be a string, which may or may not be the beginning of a string or strings contained in the Trie.",
+    "branches": 24,
+    "edge_cases": [
+      "missing_key"
+    ]
+  },
+  {
+    "symbol_type": "method",
+    "name": "__init__",
+    "qualified_name": "Trie.__init__",
+    "class_name": "Trie",
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/trietree.py",
+    "source_code": "def __init__(self):\n        \"\"\"Initialize a trie tree.\"\"\"\n        self.root = TrieNode()\n        self._size = 0",
+    "imports": [
+      "collections.OrderedDict"
+    ],
+    "dependencies": [
+      "TrieNode"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Initialize a trie tree.",
+    "branches": 0,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "method",
+    "name": "insert",
+    "qualified_name": "Trie.insert",
+    "class_name": "Trie",
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/trietree.py",
+    "source_code": "def insert(self, string):\n        \"\"\"Insert a string into the trie.\"\"\"\n        if not isinstance(string, str):\n            raise TypeError(\"Word must be a string\")\n        string = string.lower()\n        current = self.root\n        for letter in string:\n            if letter in current.children:\n                current = current.children[letter]\n            else:\n                current.children[letter] = TrieNode(letter)\n                current = current.children[letter]\n        if '$' not in current.children:\n            current.children['$'] = string\n            self._size += 1",
+    "imports": [
+      "collections.OrderedDict"
+    ],
+    "dependencies": [
+      "TrieNode",
+      "string.lower"
+    ],
+    "exceptions": [
+      "TypeError"
+    ],
+    "decorators": [],
+    "docstring": "Insert a string into the trie.",
+    "branches": 4,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "method",
+    "name": "contains",
+    "qualified_name": "Trie.contains",
+    "class_name": "Trie",
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/trietree.py",
+    "source_code": "def contains(self, string):\n        \"\"\"Return true if string is in trie.\"\"\"\n        if not isinstance(string, str):\n            raise TypeError(\"Word must be a string\")\n        current = self.root\n        for letter in string:\n            if letter in current.children:\n                current = current.children[letter]\n            else:\n                return False\n        try:\n            if current.children['$']:\n                return True\n        except KeyError:\n            raise KeyError(\"That word has not been inserted\")",
+    "imports": [
+      "collections.OrderedDict"
+    ],
+    "dependencies": [],
+    "exceptions": [
+      "KeyError",
+      "TypeError"
+    ],
+    "decorators": [],
+    "docstring": "Return true if string is in trie.",
+    "branches": 5,
+    "edge_cases": [
+      "missing_key"
+    ]
+  },
+  {
+    "symbol_type": "method",
+    "name": "size",
+    "qualified_name": "Trie.size",
+    "class_name": "Trie",
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/trietree.py",
+    "source_code": "def size(self):\n        \"\"\"Return the number of words contained in the trie.\"\"\"\n        return self._size",
+    "imports": [
+      "collections.OrderedDict"
+    ],
+    "dependencies": [],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Return the number of words contained in the trie.",
+    "branches": 0,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "method",
+    "name": "remove",
+    "qualified_name": "Trie.remove",
+    "class_name": "Trie",
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/trietree.py",
+    "source_code": "def remove(self, string):\n        \"\"\"Return the string from the trie if it exists.\"\"\"\n        if not isinstance(string, str):\n            raise TypeError(\"Word must be a string\")\n        current = self.root\n        last_bifurcated_node = None\n        value_at_last_bifurcation = None\n        for letter in string:\n            if letter in current.children:\n                if len(current.children) > 1:\n                    last_bifurcated_node = current\n                    value_at_last_bifurcation = letter\n                current = current.children[letter]\n        if '$' in current.children and len(current.children) == 1:\n            if last_bifurcated_node:\n                del last_bifurcated_node.children[value_at_last_bifurcation]\n                self._size -= 1\n            else:\n                del self.root.children[string[:1]]\n        elif len(current.children) > 1:\n            del current.children['$']\n        else:\n            raise KeyError('Word is not in trie')",
+    "imports": [
+      "collections.OrderedDict"
+    ],
+    "dependencies": [],
+    "exceptions": [
+      "KeyError",
+      "TypeError"
+    ],
+    "decorators": [],
+    "docstring": "Return the string from the trie if it exists.",
+    "branches": 7,
+    "edge_cases": [
+      "missing_key"
+    ]
+  },
+  {
+    "symbol_type": "method",
+    "name": "traversal",
+    "qualified_name": "Trie.traversal",
+    "class_name": "Trie",
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/trietree.py",
+    "source_code": "def traversal(self, start=None):\n        \"\"\"Return a list of all the words in the subtree starting at start.\"\"\"\n        current = self.root\n        if start:\n            for letter in start:\n                if letter in current.children:\n                    current = current.children[letter]\n                else:\n                    return\n        result = self._traversal(current, True)\n        for val in result:\n            yield val.value",
+    "imports": [
+      "collections.OrderedDict"
+    ],
+    "dependencies": [
+      "self._traversal"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": "Return a list of all the words in the subtree starting at start.",
+    "branches": 4,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "method",
+    "name": "_traversal",
+    "qualified_name": "Trie._traversal",
+    "class_name": "Trie",
+    "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/trietree.py",
+    "source_code": "def _traversal(self, node, first=False):\n        if not first:\n            yield node\n        for child in node.children:\n            if child == '$':\n                continue\n            for val in self._traversal(node.children[child]):\n                yield val",
+    "imports": [
+      "collections.OrderedDict"
+    ],
+    "dependencies": [
+      "self._traversal"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": null,
+    "branches": 4,
+    "edge_cases": []
+  }
+]

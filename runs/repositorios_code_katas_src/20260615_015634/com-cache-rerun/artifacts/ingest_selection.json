@@ -1,0 +1,468 @@
+{
+  "files": {
+    "total_py_found": 48,
+    "included_count": 25,
+    "excluded_count": 23,
+    "included": [
+      "alt_case.py",
+      "autocomplete.py",
+      "convert.py",
+      "disemvowel.py",
+      "even_odd.py",
+      "fatcat.py",
+      "flight_graph.py",
+      "flight_paths.py",
+      "forbes.py",
+      "get_grade.py",
+      "jenny.py",
+      "minmax.py",
+      "monkey.py",
+      "next_sq.py",
+      "parenthetics.py",
+      "return_negative.py",
+      "reverse.py",
+      "sort_bylength.py",
+      "sort_cards.py",
+      "string2num.py",
+      "string_pyramid.py",
+      "sum_highlow.py",
+      "sum_of_nth_terms.py",
+      "sum_positive.py",
+      "trietree.py"
+    ],
+    "excluded": [
+      {
+        "path": "test_altcase.py",
+        "reason": "glob:test_*.py"
+      },
+      {
+        "path": "test_autocomplete.py",
+        "reason": "glob:test_*.py"
+      },
+      {
+        "path": "test_convert.py",
+        "reason": "glob:test_*.py"
+      },
+      {
+        "path": "test_disemvowel.py",
+        "reason": "glob:test_*.py"
+      },
+      {
+        "path": "test_even_odd.py",
+        "reason": "glob:test_*.py"
+      },
+      {
+        "path": "test_fatcat.py",
+        "reason": "glob:test_*.py"
+      },
+      {
+        "path": "test_flight_paths.py",
+        "reason": "glob:test_*.py"
+      },
+      {
+        "path": "test_forbes.py",
+        "reason": "glob:test_*.py"
+      },
+      {
+        "path": "test_grade.py",
+        "reason": "glob:test_*.py"
+      },
+      {
+        "path": "test_jenny.py",
+        "reason": "glob:test_*.py"
+      },
+      {
+        "path": "test_minmax.py",
+        "reason": "glob:test_*.py"
+      },
+      {
+        "path": "test_monkey.py",
+        "reason": "glob:test_*.py"
+      },
+      {
+        "path": "test_nextsq.py",
+        "reason": "glob:test_*.py"
+      },
+      {
+        "path": "test_parenthetics.py",
+        "reason": "glob:test_*.py"
+      },
+      {
+        "path": "test_return_negative.py",
+        "reason": "glob:test_*.py"
+      },
+      {
+        "path": "test_reverse.py",
+        "reason": "glob:test_*.py"
+      },
+      {
+        "path": "test_sort.py",
+        "reason": "glob:test_*.py"
+      },
+      {
+        "path": "test_sortlength.py",
+        "reason": "glob:test_*.py"
+      },
+      {
+        "path": "test_string2num.py",
+        "reason": "glob:test_*.py"
+      },
+      {
+        "path": "test_string_pyramid.py",
+        "reason": "glob:test_*.py"
+      },
+      {
+        "path": "test_sum_highlow.py",
+        "reason": "glob:test_*.py"
+      },
+      {
+        "path": "test_sum_of_nth_terms.py",
+        "reason": "glob:test_*.py"
+      },
+      {
+        "path": "test_sum_positive.py",
+        "reason": "glob:test_*.py"
+      }
+    ]
+  },
+  "symbols": {
+    "extracted_total": 64,
+    "selected_count": 58,
+    "filtered_count": 6,
+    "filter_stats": {
+      "extracted_total": 64,
+      "filtered_total": 6,
+      "removed_container_class": 6
+    },
+    "selected": [
+      {
+        "qualified_name": "to_alternating_case",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/alt_case.py"
+      },
+      {
+        "qualified_name": "Autocomplete.__init__",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/autocomplete.py"
+      },
+      {
+        "qualified_name": "Autocomplete.autocomplete",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/autocomplete.py"
+      },
+      {
+        "qualified_name": "Autocomplete._autocomplete",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/autocomplete.py"
+      },
+      {
+        "qualified_name": "digitize",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/convert.py"
+      },
+      {
+        "qualified_name": "disemvowel",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/disemvowel.py"
+      },
+      {
+        "qualified_name": "even_or_odd",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/even_odd.py"
+      },
+      {
+        "qualified_name": "bonus_time",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/fatcat.py"
+      },
+      {
+        "qualified_name": "Graph.__init__",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_graph.py"
+      },
+      {
+        "qualified_name": "Graph.add_node",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_graph.py"
+      },
+      {
+        "qualified_name": "Graph.add_edge",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_graph.py"
+      },
+      {
+        "qualified_name": "Graph.nodes",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_graph.py"
+      },
+      {
+        "qualified_name": "Graph.edges",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_graph.py"
+      },
+      {
+        "qualified_name": "Graph.del_node",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_graph.py"
+      },
+      {
+        "qualified_name": "Graph.del_edge",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_graph.py"
+      },
+      {
+        "qualified_name": "Graph.has_node",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_graph.py"
+      },
+      {
+        "qualified_name": "Graph.neighbors",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_graph.py"
+      },
+      {
+        "qualified_name": "Graph.adjacent",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_graph.py"
+      },
+      {
+        "qualified_name": "Graph.depth_traversal",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_graph.py"
+      },
+      {
+        "qualified_name": "Graph.breadth_traversal",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_graph.py"
+      },
+      {
+        "qualified_name": "Graph.dijkstra",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_graph.py"
+      },
+      {
+        "qualified_name": "get_json",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_paths.py"
+      },
+      {
+        "qualified_name": "calculate_distance",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_paths.py"
+      },
+      {
+        "qualified_name": "lat_long_dict",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_paths.py"
+      },
+      {
+        "qualified_name": "create_graph",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_paths.py"
+      },
+      {
+        "qualified_name": "flight_path",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_paths.py"
+      },
+      {
+        "qualified_name": "get_json",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/forbes.py"
+      },
+      {
+        "qualified_name": "oldest_youngest",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/forbes.py"
+      },
+      {
+        "qualified_name": "get_grade",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/get_grade.py"
+      },
+      {
+        "qualified_name": "greet",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/jenny.py"
+      },
+      {
+        "qualified_name": "mini",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/minmax.py"
+      },
+      {
+        "qualified_name": "maxi",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/minmax.py"
+      },
+      {
+        "qualified_name": "monkey_count",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/monkey.py"
+      },
+      {
+        "qualified_name": "find_next_square",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/next_sq.py"
+      },
+      {
+        "qualified_name": "Node.__init__",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/parenthetics.py"
+      },
+      {
+        "qualified_name": "DoubleLink.__init__",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/parenthetics.py"
+      },
+      {
+        "qualified_name": "DoubleLink.push",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/parenthetics.py"
+      },
+      {
+        "qualified_name": "DoubleLink.balanced",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/parenthetics.py"
+      },
+      {
+        "qualified_name": "make_negative",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/return_negative.py"
+      },
+      {
+        "qualified_name": "reverse_words",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/reverse.py"
+      },
+      {
+        "qualified_name": "sort_by_length",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/sort_bylength.py"
+      },
+      {
+        "qualified_name": "sort_cards",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/sort_cards.py"
+      },
+      {
+        "qualified_name": "string_to_number",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/string2num.py"
+      },
+      {
+        "qualified_name": "watch_pyramid_from_the_side",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/string_pyramid.py"
+      },
+      {
+        "qualified_name": "watch_pyramid_from_above",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/string_pyramid.py"
+      },
+      {
+        "qualified_name": "count_visible_characters_of_the_pyramid",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/string_pyramid.py"
+      },
+      {
+        "qualified_name": "count_all_characters_of_the_pyramid",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/string_pyramid.py"
+      },
+      {
+        "qualified_name": "sum_array",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/sum_highlow.py"
+      },
+      {
+        "qualified_name": "series_sum",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/sum_of_nth_terms.py"
+      },
+      {
+        "qualified_name": "positive_sum",
+        "symbol_type": "function",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/sum_positive.py"
+      },
+      {
+        "qualified_name": "TrieNode.__init__",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/trietree.py"
+      },
+      {
+        "qualified_name": "Trie.__init__",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/trietree.py"
+      },
+      {
+        "qualified_name": "Trie.insert",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/trietree.py"
+      },
+      {
+        "qualified_name": "Trie.contains",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/trietree.py"
+      },
+      {
+        "qualified_name": "Trie.size",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/trietree.py"
+      },
+      {
+        "qualified_name": "Trie.remove",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/trietree.py"
+      },
+      {
+        "qualified_name": "Trie.traversal",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/trietree.py"
+      },
+      {
+        "qualified_name": "Trie._traversal",
+        "symbol_type": "method",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/trietree.py"
+      }
+    ],
+    "filtered": [
+      {
+        "qualified_name": "Autocomplete",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/autocomplete.py",
+        "reason": "container_class"
+      },
+      {
+        "qualified_name": "Graph",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/flight_graph.py",
+        "reason": "container_class"
+      },
+      {
+        "qualified_name": "Node",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/parenthetics.py",
+        "reason": "container_class"
+      },
+      {
+        "qualified_name": "DoubleLink",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/parenthetics.py",
+        "reason": "container_class"
+      },
+      {
+        "qualified_name": "TrieNode",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/trietree.py",
+        "reason": "container_class"
+      },
+      {
+        "qualified_name": "Trie",
+        "symbol_type": "class",
+        "file_path": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src/trietree.py",
+        "reason": "container_class"
+      }
+    ]
+  }
+}

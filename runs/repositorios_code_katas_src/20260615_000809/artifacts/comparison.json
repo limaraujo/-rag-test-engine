@@ -1,0 +1,404 @@
+{
+  "run_group": "20260615_000809",
+  "base_path": "runs\\repositorios_code_katas_src\\20260615_000809",
+  "profiles": {
+    "sem-rag": {
+      "symbols_eligible": 58,
+      "symbols_processed": 58,
+      "symbols_executable": 50,
+      "symbols_saved": 49,
+      "symbols_failed": 9,
+      "valid_generation_percent": 86.2,
+      "first_attempt_success_percent": 75.9,
+      "approval_percent": 100.0,
+      "symbol_line_avg_percent": 98.1,
+      "symbol_branch_avg_percent": 97.1,
+      "total_tokens": 223508,
+      "total_llm_calls": 64,
+      "avg_tokens_per_symbol": 3853.6,
+      "repaired_symbols": 5,
+      "avg_duration_seconds_per_symbol": 22.18,
+      "valid_tests_saved_per_llm_call": 0.77,
+      "validation_tests_approved": 198
+    },
+    "rag-limitado": {
+      "symbols_eligible": 58,
+      "symbols_processed": 58,
+      "symbols_executable": 50,
+      "symbols_saved": 47,
+      "symbols_failed": 11,
+      "valid_generation_percent": 86.2,
+      "first_attempt_success_percent": 79.3,
+      "approval_percent": 100.0,
+      "symbol_line_avg_percent": 99.1,
+      "symbol_branch_avg_percent": 98.8,
+      "total_tokens": 227066,
+      "total_llm_calls": 62,
+      "avg_tokens_per_symbol": 3914.9,
+      "repaired_symbols": 1,
+      "avg_duration_seconds_per_symbol": 23.91,
+      "valid_tests_saved_per_llm_call": 0.76,
+      "validation_tests_approved": 196
+    },
+    "rag-completo": {
+      "symbols_eligible": 58,
+      "symbols_processed": 58,
+      "symbols_executable": 50,
+      "symbols_saved": 47,
+      "symbols_failed": 11,
+      "valid_generation_percent": 86.2,
+      "first_attempt_success_percent": 79.3,
+      "approval_percent": 100.0,
+      "symbol_line_avg_percent": 99.0,
+      "symbol_branch_avg_percent": 98.5,
+      "total_tokens": 216233,
+      "total_llm_calls": 62,
+      "avg_tokens_per_symbol": 3728.2,
+      "repaired_symbols": 1,
+      "avg_duration_seconds_per_symbol": 21.68,
+      "valid_tests_saved_per_llm_call": 0.76,
+      "validation_tests_approved": 179
+    },
+    "com-cache": {
+      "symbols_eligible": 58,
+      "symbols_processed": 58,
+      "symbols_executable": 50,
+      "symbols_saved": 47,
+      "symbols_failed": 11,
+      "valid_generation_percent": 86.2,
+      "first_attempt_success_percent": 77.6,
+      "approval_percent": 100.0,
+      "symbol_line_avg_percent": 98.7,
+      "symbol_branch_avg_percent": 98.0,
+      "total_tokens": 242259,
+      "total_llm_calls": 63,
+      "avg_tokens_per_symbol": 4176.9,
+      "repaired_symbols": 2,
+      "avg_duration_seconds_per_symbol": 25.48,
+      "valid_tests_saved_per_llm_call": 0.75,
+      "validation_tests_approved": 190
+    }
+  },
+  "always_failed": [
+    "Autocomplete.__init__",
+    "Autocomplete._autocomplete",
+    "Autocomplete.autocomplete",
+    "Trie.__init__",
+    "calculate_distance",
+    "create_graph",
+    "flight_path",
+    "get_json",
+    "lat_long_dict"
+  ],
+  "only_sem_rag_saved": [
+    "Trie.traversal"
+  ],
+  "failure_matrix": [
+    {
+      "qualified_name": "Autocomplete.__init__",
+      "sem-rag": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      },
+      "rag-limitado": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      },
+      "rag-completo": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      },
+      "com-cache": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      }
+    },
+    {
+      "qualified_name": "Autocomplete._autocomplete",
+      "sem-rag": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      },
+      "rag-limitado": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      },
+      "rag-completo": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      },
+      "com-cache": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      }
+    },
+    {
+      "qualified_name": "Autocomplete.autocomplete",
+      "sem-rag": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      },
+      "rag-limitado": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      },
+      "rag-completo": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      },
+      "com-cache": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      }
+    },
+    {
+      "qualified_name": "Trie.__init__",
+      "sem-rag": {
+        "status": "fail",
+        "stop_reason": "tests_failed",
+        "suite_executable": true,
+        "repaired": false
+      },
+      "rag-limitado": {
+        "status": "fail",
+        "stop_reason": "tests_failed",
+        "suite_executable": true,
+        "repaired": false
+      },
+      "rag-completo": {
+        "status": "fail",
+        "stop_reason": "tests_failed",
+        "suite_executable": true,
+        "repaired": false
+      },
+      "com-cache": {
+        "status": "fail",
+        "stop_reason": "tests_failed",
+        "suite_executable": true,
+        "repaired": false
+      }
+    },
+    {
+      "qualified_name": "Trie._traversal",
+      "sem-rag": {
+        "status": "ok"
+      },
+      "rag-limitado": {
+        "status": "ok"
+      },
+      "rag-completo": {
+        "status": "fail",
+        "stop_reason": "tests_failed",
+        "suite_executable": true,
+        "repaired": false
+      },
+      "com-cache": {
+        "status": "fail",
+        "stop_reason": "tests_failed",
+        "suite_executable": true,
+        "repaired": false
+      }
+    },
+    {
+      "qualified_name": "Trie.remove",
+      "sem-rag": {
+        "status": "ok"
+      },
+      "rag-limitado": {
+        "status": "fail",
+        "stop_reason": "tests_failed",
+        "suite_executable": true,
+        "repaired": false
+      },
+      "rag-completo": {
+        "status": "ok"
+      },
+      "com-cache": {
+        "status": "ok"
+      }
+    },
+    {
+      "qualified_name": "Trie.traversal",
+      "sem-rag": {
+        "status": "ok"
+      },
+      "rag-limitado": {
+        "status": "fail",
+        "stop_reason": "tests_failed",
+        "suite_executable": true,
+        "repaired": false
+      },
+      "rag-completo": {
+        "status": "fail",
+        "stop_reason": "tests_failed",
+        "suite_executable": true,
+        "repaired": false
+      },
+      "com-cache": {
+        "status": "fail",
+        "stop_reason": "tests_failed",
+        "suite_executable": true,
+        "repaired": false
+      }
+    },
+    {
+      "qualified_name": "calculate_distance",
+      "sem-rag": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      },
+      "rag-limitado": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      },
+      "rag-completo": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      },
+      "com-cache": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      }
+    },
+    {
+      "qualified_name": "create_graph",
+      "sem-rag": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      },
+      "rag-limitado": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      },
+      "rag-completo": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      },
+      "com-cache": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      }
+    },
+    {
+      "qualified_name": "flight_path",
+      "sem-rag": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      },
+      "rag-limitado": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      },
+      "rag-completo": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      },
+      "com-cache": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      }
+    },
+    {
+      "qualified_name": "get_json",
+      "sem-rag": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      },
+      "rag-limitado": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      },
+      "rag-completo": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      },
+      "com-cache": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      }
+    },
+    {
+      "qualified_name": "lat_long_dict",
+      "sem-rag": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      },
+      "rag-limitado": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      },
+      "rag-completo": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      },
+      "com-cache": {
+        "status": "fail",
+        "stop_reason": "repair_skipped:pytest_collection_error",
+        "suite_executable": false,
+        "repaired": false
+      }
+    }
+  ]
+}
