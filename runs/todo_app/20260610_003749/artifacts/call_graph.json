@@ -1,0 +1,36 @@
+{
+  "exemplo_uso": {
+    "qualified_name": "exemplo_uso",
+    "calls": [
+      "GerenciadorTarefas"
+    ],
+    "called_by": []
+  },
+  "GerenciadorTarefas.__init__": {
+    "qualified_name": "GerenciadorTarefas.__init__",
+    "calls": [],
+    "called_by": []
+  },
+  "GerenciadorTarefas.adicionar": {
+    "qualified_name": "GerenciadorTarefas.adicionar",
+    "calls": [
+      "Tarefa"
+    ],
+    "called_by": []
+  },
+  "GerenciadorTarefas.listar_pendentes": {
+    "qualified_name": "GerenciadorTarefas.listar_pendentes",
+    "calls": [],
+    "called_by": []
+  },
+  "GerenciadorTarefas.total": {
+    "qualified_name": "GerenciadorTarefas.total",
+    "calls": [],
+    "called_by": []
+  },
+  "Tarefa.concluir": {
+    "qualified_name": "Tarefa.concluir",
+    "calls": [],
+    "called_by": []
+  }
+}

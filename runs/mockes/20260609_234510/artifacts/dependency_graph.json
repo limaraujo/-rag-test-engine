@@ -1,0 +1,35 @@
+{
+  "embedding_demo": {
+    "qualified_name": "embedding_demo",
+    "dependencies": [
+      "ingest.parser",
+      "ingest.parser.parse_file_symbols",
+      "ingest.parser.parse_repository_symbols",
+      "json",
+      "pathlib",
+      "pathlib.Path",
+      "retrieval.embeddings",
+      "retrieval.embeddings.embed_symbols",
+      "sys"
+    ]
+  },
+  "exemplo": {
+    "qualified_name": "exemplo",
+    "dependencies": [
+      "dataclasses",
+      "dataclasses.dataclass",
+      "ingest.parser",
+      "ingest.parser.parse_repository_symbols",
+      "json",
+      "pathlib",
+      "pathlib.Path",
+      "sys"
+    ]
+  },
+  "exemplo.Calculadora": {
+    "qualified_name": "exemplo.Calculadora",
+    "dependencies": [
+      "str"
+    ]
+  }
+}

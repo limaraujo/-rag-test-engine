@@ -1,0 +1,27 @@
+{
+  "main": {
+    "qualified_name": "main",
+    "calls": [],
+    "called_by": []
+  },
+  "soma": {
+    "qualified_name": "soma",
+    "calls": [],
+    "called_by": []
+  },
+  "Calculadora.multiplica": {
+    "qualified_name": "Calculadora.multiplica",
+    "calls": [],
+    "called_by": []
+  },
+  "Calculadora.divide": {
+    "qualified_name": "Calculadora.divide",
+    "calls": [],
+    "called_by": []
+  },
+  "Calculadora.potencia": {
+    "qualified_name": "Calculadora.potencia",
+    "calls": [],
+    "called_by": []
+  }
+}

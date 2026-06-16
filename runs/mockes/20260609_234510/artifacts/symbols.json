@@ -1,0 +1,178 @@
+[
+  {
+    "symbol_type": "function",
+    "name": "main",
+    "qualified_name": "main",
+    "class_name": null,
+    "file_path": "/workspaces/-rag-test-engine/mockes/embedding_demo.py",
+    "source_code": "def main() -> None:\n    root = ROOT\n    target_path: Path | None = None\n\n    if len(sys.argv) > 1:\n        target_path = Path(sys.argv[1]).resolve()\n\n    if target_path:\n        symbols = parse_file_symbols(str(target_path))\n    else:\n        symbols = parse_repository_symbols(str(root))\n    records = embed_symbols(symbols)\n\n    output_path = root / \"embedding_records.json\"\n    output_path.write_text(\n        json.dumps(records, indent=2, ensure_ascii=True),\n        encoding=\"utf-8\"\n    )\n    print(f\"Saved {len(records)} records to {output_path}\")",
+    "imports": [
+      "ingest.parser.parse_file_symbols",
+      "ingest.parser.parse_repository_symbols",
+      "json",
+      "pathlib.Path",
+      "retrieval.embeddings.embed_symbols",
+      "sys"
+    ],
+    "dependencies": [
+      "Path.resolve",
+      "embed_symbols",
+      "json.dumps",
+      "output_path.write_text",
+      "parse_file_symbols",
+      "parse_repository_symbols"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": null,
+    "branches": 2,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "function",
+    "name": "soma",
+    "qualified_name": "soma",
+    "class_name": null,
+    "file_path": "/workspaces/-rag-test-engine/mockes/exemplo.py",
+    "source_code": "def soma(a: int, b: int) -> int:\n    return a + b",
+    "imports": [
+      "dataclasses.dataclass",
+      "ingest.parser.parse_repository_symbols",
+      "json",
+      "pathlib.Path",
+      "sys"
+    ],
+    "dependencies": [],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": null,
+    "branches": 0,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "class",
+    "name": "Calculadora",
+    "qualified_name": "Calculadora",
+    "class_name": null,
+    "file_path": "/workspaces/-rag-test-engine/mockes/exemplo.py",
+    "source_code": "class Calculadora:\n    nome: str\n\n    def multiplica(self, a: int, b: int) -> int:\n        return a * b\n    \n    def divide(self, a: int, b: int) -> float:\n        if b == 0:\n            raise ValueError(\"Divisão por zero não é permitida.\")\n        return a / b\n\n    def potencia(self, a: int, b: int) -> int:\n        if b < 0:\n            raise ValueError(\"Expoente negativo não é permitido.\")\n        return a ** b",
+    "imports": [
+      "dataclasses.dataclass",
+      "ingest.parser.parse_repository_symbols",
+      "json",
+      "pathlib.Path",
+      "sys"
+    ],
+    "dependencies": [],
+    "exceptions": [
+      "ValueError"
+    ],
+    "decorators": [
+      "dataclass"
+    ],
+    "docstring": null,
+    "branches": 2,
+    "edge_cases": [
+      "invalid_input"
+    ]
+  },
+  {
+    "symbol_type": "method",
+    "name": "multiplica",
+    "qualified_name": "Calculadora.multiplica",
+    "class_name": "Calculadora",
+    "file_path": "/workspaces/-rag-test-engine/mockes/exemplo.py",
+    "source_code": "def multiplica(self, a: int, b: int) -> int:\n        return a * b",
+    "imports": [
+      "dataclasses.dataclass",
+      "ingest.parser.parse_repository_symbols",
+      "json",
+      "pathlib.Path",
+      "sys"
+    ],
+    "dependencies": [],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": null,
+    "branches": 0,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "method",
+    "name": "divide",
+    "qualified_name": "Calculadora.divide",
+    "class_name": "Calculadora",
+    "file_path": "/workspaces/-rag-test-engine/mockes/exemplo.py",
+    "source_code": "def divide(self, a: int, b: int) -> float:\n        if b == 0:\n            raise ValueError(\"Divisão por zero não é permitida.\")\n        return a / b",
+    "imports": [
+      "dataclasses.dataclass",
+      "ingest.parser.parse_repository_symbols",
+      "json",
+      "pathlib.Path",
+      "sys"
+    ],
+    "dependencies": [],
+    "exceptions": [
+      "ValueError"
+    ],
+    "decorators": [],
+    "docstring": null,
+    "branches": 1,
+    "edge_cases": [
+      "invalid_input"
+    ]
+  },
+  {
+    "symbol_type": "method",
+    "name": "potencia",
+    "qualified_name": "Calculadora.potencia",
+    "class_name": "Calculadora",
+    "file_path": "/workspaces/-rag-test-engine/mockes/exemplo.py",
+    "source_code": "def potencia(self, a: int, b: int) -> int:\n        if b < 0:\n            raise ValueError(\"Expoente negativo não é permitido.\")\n        return a ** b",
+    "imports": [
+      "dataclasses.dataclass",
+      "ingest.parser.parse_repository_symbols",
+      "json",
+      "pathlib.Path",
+      "sys"
+    ],
+    "dependencies": [],
+    "exceptions": [
+      "ValueError"
+    ],
+    "decorators": [],
+    "docstring": null,
+    "branches": 1,
+    "edge_cases": [
+      "invalid_input"
+    ]
+  },
+  {
+    "symbol_type": "function",
+    "name": "main",
+    "qualified_name": "main",
+    "class_name": null,
+    "file_path": "/workspaces/-rag-test-engine/mockes/exemplo.py",
+    "source_code": "def main() -> None:\n    root = ROOT\n    target_path = Path(__file__).resolve()\n    output_path = root / \"saida.json\"\n    extracted: list[dict] = []\n    for symbol in parse_repository_symbols(str(root)):\n        if Path(symbol.file_path).resolve() == target_path:\n            extracted.append(symbol.model_dump())\n\n    output_path.write_text(\n        json.dumps(extracted, indent=2, ensure_ascii=False),\n        encoding=\"utf-8\"\n    )\n    print(f\"Saved {len(extracted)} symbols to {output_path}\")",
+    "imports": [
+      "dataclasses.dataclass",
+      "ingest.parser.parse_repository_symbols",
+      "json",
+      "pathlib.Path",
+      "sys"
+    ],
+    "dependencies": [
+      "Path.resolve",
+      "extracted.append",
+      "json.dumps",
+      "output_path.write_text",
+      "parse_repository_symbols",
+      "symbol.model_dump"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": null,
+    "branches": 2,
+    "edge_cases": []
+  }
+]
