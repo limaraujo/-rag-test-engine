@@ -1,0 +1,5 @@
+dependency: "## Dependências estruturais (dependency graph)"
+callee: "## Funções chamadas (call graph)"
+caller: "## Funções chamadoras (call graph)"
+related: "## Funções relacionadas (busca híbrida)"
+similar_test: "## Testes similares existentes"

@@ -1,0 +1,14 @@
+{
+  "source_dir": "/mnt/c/Users/Araújo Notebook/Documents/GitHub/-rag-test-engine/repositorios/code_katas/src",
+  "source_slug": "repositorios_code_katas_src",
+  "profile": "sem-rag",
+  "run_group": "20260615_000809",
+  "workspace": "runs/repositorios_code_katas_src/20260615_000809/sem-rag",
+  "tests_dir": "runs/repositorios_code_katas_src/20260615_000809/sem-rag/tests",
+  "logs_dir": "runs/repositorios_code_katas_src/20260615_000809/sem-rag/logs",
+  "artifacts_dir": "runs/repositorios_code_katas_src/20260615_000809/sem-rag/artifacts",
+  "symbol_count": 64,
+  "call_graph_nodes": 57,
+  "dependency_graph_nodes": 31,
+  "started_at": "2026-06-15T00:08:13"
+}

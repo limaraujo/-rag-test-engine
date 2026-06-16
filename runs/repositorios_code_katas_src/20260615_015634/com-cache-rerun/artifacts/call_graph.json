@@ -1,0 +1,336 @@
+{
+  "to_alternating_case": {
+    "qualified_name": "to_alternating_case",
+    "calls": [],
+    "called_by": []
+  },
+  "Autocomplete.__init__": {
+    "qualified_name": "Autocomplete.__init__",
+    "calls": [
+      "Trie"
+    ],
+    "called_by": []
+  },
+  "Autocomplete.autocomplete": {
+    "qualified_name": "Autocomplete.autocomplete",
+    "calls": [
+      "Autocomplete._autocomplete"
+    ],
+    "called_by": []
+  },
+  "Autocomplete._autocomplete": {
+    "qualified_name": "Autocomplete._autocomplete",
+    "calls": [],
+    "called_by": [
+      "Autocomplete.autocomplete"
+    ]
+  },
+  "digitize": {
+    "qualified_name": "digitize",
+    "calls": [],
+    "called_by": []
+  },
+  "disemvowel": {
+    "qualified_name": "disemvowel",
+    "calls": [],
+    "called_by": []
+  },
+  "even_or_odd": {
+    "qualified_name": "even_or_odd",
+    "calls": [],
+    "called_by": []
+  },
+  "bonus_time": {
+    "qualified_name": "bonus_time",
+    "calls": [],
+    "called_by": []
+  },
+  "Graph.__init__": {
+    "qualified_name": "Graph.__init__",
+    "calls": [],
+    "called_by": []
+  },
+  "Graph.add_node": {
+    "qualified_name": "Graph.add_node",
+    "calls": [],
+    "called_by": [
+      "Graph.add_edge"
+    ]
+  },
+  "Graph.add_edge": {
+    "qualified_name": "Graph.add_edge",
+    "calls": [
+      "Graph.add_node"
+    ],
+    "called_by": []
+  },
+  "Graph.nodes": {
+    "qualified_name": "Graph.nodes",
+    "calls": [],
+    "called_by": [
+      "Graph.dijkstra"
+    ]
+  },
+  "Graph.edges": {
+    "qualified_name": "Graph.edges",
+    "calls": [],
+    "called_by": []
+  },
+  "Graph.del_node": {
+    "qualified_name": "Graph.del_node",
+    "calls": [],
+    "called_by": []
+  },
+  "Graph.del_edge": {
+    "qualified_name": "Graph.del_edge",
+    "calls": [],
+    "called_by": []
+  },
+  "Graph.has_node": {
+    "qualified_name": "Graph.has_node",
+    "calls": [],
+    "called_by": []
+  },
+  "Graph.neighbors": {
+    "qualified_name": "Graph.neighbors",
+    "calls": [],
+    "called_by": []
+  },
+  "Graph.adjacent": {
+    "qualified_name": "Graph.adjacent",
+    "calls": [],
+    "called_by": []
+  },
+  "Graph.depth_traversal": {
+    "qualified_name": "Graph.depth_traversal",
+    "calls": [],
+    "called_by": []
+  },
+  "Graph.breadth_traversal": {
+    "qualified_name": "Graph.breadth_traversal",
+    "calls": [],
+    "called_by": []
+  },
+  "Graph.dijkstra": {
+    "qualified_name": "Graph.dijkstra",
+    "calls": [
+      "Graph.nodes"
+    ],
+    "called_by": []
+  },
+  "get_json": {
+    "qualified_name": "get_json",
+    "calls": [],
+    "called_by": [
+      "create_graph",
+      "lat_long_dict",
+      "oldest_youngest"
+    ]
+  },
+  "calculate_distance": {
+    "qualified_name": "calculate_distance",
+    "calls": [],
+    "called_by": [
+      "create_graph"
+    ]
+  },
+  "lat_long_dict": {
+    "qualified_name": "lat_long_dict",
+    "calls": [
+      "get_json"
+    ],
+    "called_by": [
+      "create_graph"
+    ]
+  },
+  "create_graph": {
+    "qualified_name": "create_graph",
+    "calls": [
+      "Graph",
+      "calculate_distance",
+      "get_json",
+      "lat_long_dict"
+    ],
+    "called_by": [
+      "flight_path"
+    ]
+  },
+  "flight_path": {
+    "qualified_name": "flight_path",
+    "calls": [
+      "create_graph"
+    ],
+    "called_by": []
+  },
+  "oldest_youngest": {
+    "qualified_name": "oldest_youngest",
+    "calls": [
+      "get_json"
+    ],
+    "called_by": []
+  },
+  "get_grade": {
+    "qualified_name": "get_grade",
+    "calls": [],
+    "called_by": []
+  },
+  "greet": {
+    "qualified_name": "greet",
+    "calls": [],
+    "called_by": []
+  },
+  "mini": {
+    "qualified_name": "mini",
+    "calls": [],
+    "called_by": []
+  },
+  "maxi": {
+    "qualified_name": "maxi",
+    "calls": [],
+    "called_by": []
+  },
+  "monkey_count": {
+    "qualified_name": "monkey_count",
+    "calls": [],
+    "called_by": []
+  },
+  "find_next_square": {
+    "qualified_name": "find_next_square",
+    "calls": [],
+    "called_by": []
+  },
+  "Node.__init__": {
+    "qualified_name": "Node.__init__",
+    "calls": [],
+    "called_by": []
+  },
+  "DoubleLink.__init__": {
+    "qualified_name": "DoubleLink.__init__",
+    "calls": [
+      "DoubleLink.push"
+    ],
+    "called_by": []
+  },
+  "DoubleLink.push": {
+    "qualified_name": "DoubleLink.push",
+    "calls": [
+      "Node"
+    ],
+    "called_by": [
+      "DoubleLink.__init__"
+    ]
+  },
+  "DoubleLink.balanced": {
+    "qualified_name": "DoubleLink.balanced",
+    "calls": [],
+    "called_by": []
+  },
+  "make_negative": {
+    "qualified_name": "make_negative",
+    "calls": [],
+    "called_by": []
+  },
+  "reverse_words": {
+    "qualified_name": "reverse_words",
+    "calls": [],
+    "called_by": []
+  },
+  "sort_by_length": {
+    "qualified_name": "sort_by_length",
+    "calls": [],
+    "called_by": []
+  },
+  "sort_cards": {
+    "qualified_name": "sort_cards",
+    "calls": [],
+    "called_by": []
+  },
+  "string_to_number": {
+    "qualified_name": "string_to_number",
+    "calls": [],
+    "called_by": []
+  },
+  "watch_pyramid_from_the_side": {
+    "qualified_name": "watch_pyramid_from_the_side",
+    "calls": [],
+    "called_by": []
+  },
+  "watch_pyramid_from_above": {
+    "qualified_name": "watch_pyramid_from_above",
+    "calls": [],
+    "called_by": []
+  },
+  "count_visible_characters_of_the_pyramid": {
+    "qualified_name": "count_visible_characters_of_the_pyramid",
+    "calls": [],
+    "called_by": []
+  },
+  "count_all_characters_of_the_pyramid": {
+    "qualified_name": "count_all_characters_of_the_pyramid",
+    "calls": [],
+    "called_by": []
+  },
+  "sum_array": {
+    "qualified_name": "sum_array",
+    "calls": [],
+    "called_by": []
+  },
+  "series_sum": {
+    "qualified_name": "series_sum",
+    "calls": [],
+    "called_by": []
+  },
+  "positive_sum": {
+    "qualified_name": "positive_sum",
+    "calls": [],
+    "called_by": []
+  },
+  "TrieNode.__init__": {
+    "qualified_name": "TrieNode.__init__",
+    "calls": [],
+    "called_by": []
+  },
+  "Trie.__init__": {
+    "qualified_name": "Trie.__init__",
+    "calls": [
+      "TrieNode"
+    ],
+    "called_by": []
+  },
+  "Trie.insert": {
+    "qualified_name": "Trie.insert",
+    "calls": [
+      "TrieNode"
+    ],
+    "called_by": []
+  },
+  "Trie.contains": {
+    "qualified_name": "Trie.contains",
+    "calls": [],
+    "called_by": []
+  },
+  "Trie.size": {
+    "qualified_name": "Trie.size",
+    "calls": [],
+    "called_by": []
+  },
+  "Trie.remove": {
+    "qualified_name": "Trie.remove",
+    "calls": [],
+    "called_by": []
+  },
+  "Trie.traversal": {
+    "qualified_name": "Trie.traversal",
+    "calls": [
+      "Trie._traversal"
+    ],
+    "called_by": []
+  },
+  "Trie._traversal": {
+    "qualified_name": "Trie._traversal",
+    "calls": [],
+    "called_by": [
+      "Trie.traversal"
+    ]
+  }
+}

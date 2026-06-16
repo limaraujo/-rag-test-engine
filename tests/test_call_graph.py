@@ -3,13 +3,13 @@ from textwrap import dedent
 
 import pytest
 
-from ingest.call_graph import (
+from parsers.source.call_graph import (
     CallGraph,
     CallGraphBuilder,
     CallGraphNode,
     CodeSymbol,
 )
-from ingest.models.ExtractedSymbol import ExtractedSymbol
+from parsers.source.models.ExtractedSymbol import ExtractedSymbol
 from tests.conftest import make_symbol
 
 
@@ -412,7 +412,7 @@ def test_parse_repository_graphs_integration(tmp_path) -> None:
         encoding="utf-8",
     )
 
-    from ingest.parser import parse_repository_graphs
+    from parsers.source.parser import parse_repository_graphs
 
     symbols, call_graph, dependency_graph = parse_repository_graphs(str(root))
 

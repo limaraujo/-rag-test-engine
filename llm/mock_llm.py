@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 
 from llm.base import BaseLLM
+from llm.call_logger import get_call_logger
 from llm.models import LLMRequest, LLMResponse
 
 
@@ -44,8 +45,8 @@ def _build_mock_test(user_prompt: str) -> str:
     if "raise " in source:
         raises_block = f"""
 
+# Verifica que entradas inválidas disparam exceção.
 def test_{simple_name}_raises():
-    \"\"\"Cobre caminho de exceção.\"\"\"
 {setup}    with pytest.raises(Exception):
         {invoke}(0, 0)
 """
@@ -55,8 +56,8 @@ def test_{simple_name}_raises():
 {import_line}
 
 
+# Happy path: chamada válida retorna um resultado.
 def test_{simple_name}_happy_path():
-    \"\"\"Caminho feliz gerado em modo offline.\"\"\"
 {setup}    result = {invoke}(1, 2)
     assert result is not None
 {raises_block}""".strip()
@@ -78,9 +79,14 @@ class MockLLM(BaseLLM):
             code = code_match.group(1).strip() if code_match else ""
             if code and "def test_offline_smoke" not in code:
                 code += "\n\ndef test_offline_smoke():\n    assert True\n"
-            return LLMResponse(content=code or _build_mock_test(request.user_prompt), model=self.model)
-
-        return LLMResponse(
-            content=_build_mock_test(request.user_prompt),
-            model=self.model,
-        )
+            response = LLMResponse(
+                content=code or _build_mock_test(request.user_prompt),
+                model=self.model,
+            )
+        else:
+            response = LLMResponse(
+                content=_build_mock_test(request.user_prompt),
+                model=self.model,
+            )
+        get_call_logger().log_llm(request, response, model=self.model)
+        return response

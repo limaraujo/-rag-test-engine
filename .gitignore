@@ -58,7 +58,6 @@ cover/
 # Django stuff:
 *.log
 logs/
-runs/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
@@ -151,6 +150,7 @@ activemq-data/
 
 # Environments
 .env
+.env.*
 .envrc
 .venv
 env/
@@ -158,6 +158,25 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+# Chaves e credenciais locais
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+credentials.json
+service-account*.json
+secrets.toml
+secrets/
+.secrets/
+private/
+.private/
 
 # Spyder project settings
 .spyderproject
@@ -218,3 +237,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Artefatos locais do projeto
+.cache/
+saida.json
+embedding_records.json
+generated_tests/

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from ingest.models.ExtractedSymbol import ExtractedSymbol
+from parsers.source.models.ExtractedSymbol import ExtractedSymbol
 from llm.models import LLMEmbeddingRequest, LLMEmbeddingResponse
 
 TEST_DIM = 8

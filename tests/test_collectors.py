@@ -1,11 +1,34 @@
 import ast
 from textwrap import dedent
 
-from ingest.collectors.branches import BranchCollector
-from ingest.collectors.dependency_collector import DependencyCollector
-from ingest.collectors.exceptions import ExceptionCollector
-from ingest.collectors.imports import ImportCollector
-from ingest.heuristics.edge_cases import EdgeCaseInferer
+from parsers.source.collectors.branches import BranchCollector
+from parsers.source.collectors.dependency_collector import DependencyCollector
+from parsers.source.collectors.exceptions import ExceptionCollector
+from parsers.source.collectors.imports import ImportCollector
+from parsers.source.heuristics.edge_cases import EdgeCaseInferer
+from parsers.source.extract import SymbolExtractor
+
+
+def test_extract_adds_dataclass_init_hint(tmp_path) -> None:
+    code = dedent(
+        """
+        from dataclasses import dataclass
+
+        @dataclass
+        class Calculadora:
+            nome: str
+
+            def multiplica(self, a: int, b: int) -> int:
+                return a * b
+        """
+    )
+    path = tmp_path / "exemplo.py"
+    path.write_text(code, encoding="utf-8")
+    tree = ast.parse(code)
+    symbols = SymbolExtractor(str(path), tree).extract()
+    method = next(s for s in symbols if s.qualified_name == "Calculadora.multiplica")
+    assert any("dataclass" in hint.lower() for hint in method.edge_cases)
+    assert any("nome" in hint for hint in method.edge_cases)
 
 
 def test_import_collector_collects_imports() -> None:

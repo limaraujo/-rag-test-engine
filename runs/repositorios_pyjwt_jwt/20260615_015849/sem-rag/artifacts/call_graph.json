@@ -1,0 +1,879 @@
+{
+  "get_default_algorithms": {
+    "qualified_name": "get_default_algorithms",
+    "calls": [
+      "ECAlgorithm",
+      "HMACAlgorithm",
+      "NoneAlgorithm",
+      "OKPAlgorithm",
+      "RSAAlgorithm",
+      "RSAPSSAlgorithm"
+    ],
+    "called_by": [
+      "PyJWK.__init__",
+      "PyJWS.__init__"
+    ]
+  },
+  "Algorithm.compute_hash_digest": {
+    "qualified_name": "Algorithm.compute_hash_digest",
+    "calls": [],
+    "called_by": []
+  },
+  "Algorithm.check_crypto_key_type": {
+    "qualified_name": "Algorithm.check_crypto_key_type",
+    "calls": [
+      "InvalidKeyError"
+    ],
+    "called_by": []
+  },
+  "Algorithm.prepare_key": {
+    "qualified_name": "Algorithm.prepare_key",
+    "calls": [],
+    "called_by": []
+  },
+  "Algorithm.sign": {
+    "qualified_name": "Algorithm.sign",
+    "calls": [],
+    "called_by": []
+  },
+  "Algorithm.verify": {
+    "qualified_name": "Algorithm.verify",
+    "calls": [],
+    "called_by": []
+  },
+  "Algorithm.to_jwk": {
+    "qualified_name": "Algorithm.to_jwk",
+    "calls": [],
+    "called_by": []
+  },
+  "Algorithm.from_jwk": {
+    "qualified_name": "Algorithm.from_jwk",
+    "calls": [],
+    "called_by": []
+  },
+  "Algorithm.check_key_length": {
+    "qualified_name": "Algorithm.check_key_length",
+    "calls": [],
+    "called_by": []
+  },
+  "NoneAlgorithm.prepare_key": {
+    "qualified_name": "NoneAlgorithm.prepare_key",
+    "calls": [
+      "InvalidKeyError"
+    ],
+    "called_by": []
+  },
+  "NoneAlgorithm.sign": {
+    "qualified_name": "NoneAlgorithm.sign",
+    "calls": [],
+    "called_by": []
+  },
+  "NoneAlgorithm.verify": {
+    "qualified_name": "NoneAlgorithm.verify",
+    "calls": [],
+    "called_by": []
+  },
+  "NoneAlgorithm.to_jwk": {
+    "qualified_name": "NoneAlgorithm.to_jwk",
+    "calls": [],
+    "called_by": []
+  },
+  "NoneAlgorithm.from_jwk": {
+    "qualified_name": "NoneAlgorithm.from_jwk",
+    "calls": [],
+    "called_by": []
+  },
+  "HMACAlgorithm.__init__": {
+    "qualified_name": "HMACAlgorithm.__init__",
+    "calls": [],
+    "called_by": []
+  },
+  "HMACAlgorithm.prepare_key": {
+    "qualified_name": "HMACAlgorithm.prepare_key",
+    "calls": [
+      "InvalidKeyError",
+      "force_bytes",
+      "is_pem_format",
+      "is_ssh_key"
+    ],
+    "called_by": []
+  },
+  "HMACAlgorithm.to_jwk": {
+    "qualified_name": "HMACAlgorithm.to_jwk",
+    "calls": [],
+    "called_by": []
+  },
+  "HMACAlgorithm.from_jwk": {
+    "qualified_name": "HMACAlgorithm.from_jwk",
+    "calls": [
+      "InvalidKeyError",
+      "base64url_decode"
+    ],
+    "called_by": []
+  },
+  "HMACAlgorithm.check_key_length": {
+    "qualified_name": "HMACAlgorithm.check_key_length",
+    "calls": [],
+    "called_by": []
+  },
+  "HMACAlgorithm.sign": {
+    "qualified_name": "HMACAlgorithm.sign",
+    "calls": [],
+    "called_by": [
+      "HMACAlgorithm.verify"
+    ]
+  },
+  "HMACAlgorithm.verify": {
+    "qualified_name": "HMACAlgorithm.verify",
+    "calls": [
+      "HMACAlgorithm.sign"
+    ],
+    "called_by": []
+  },
+  "RSAAlgorithm.__init__": {
+    "qualified_name": "RSAAlgorithm.__init__",
+    "calls": [],
+    "called_by": []
+  },
+  "RSAAlgorithm.check_key_length": {
+    "qualified_name": "RSAAlgorithm.check_key_length",
+    "calls": [],
+    "called_by": []
+  },
+  "RSAAlgorithm.prepare_key": {
+    "qualified_name": "RSAAlgorithm.prepare_key",
+    "calls": [
+      "InvalidKeyError",
+      "force_bytes"
+    ],
+    "called_by": []
+  },
+  "RSAAlgorithm.to_jwk": {
+    "qualified_name": "RSAAlgorithm.to_jwk",
+    "calls": [
+      "InvalidKeyError"
+    ],
+    "called_by": []
+  },
+  "RSAAlgorithm.from_jwk": {
+    "qualified_name": "RSAAlgorithm.from_jwk",
+    "calls": [
+      "InvalidKeyError",
+      "from_base64url_uint"
+    ],
+    "called_by": []
+  },
+  "RSAAlgorithm.sign": {
+    "qualified_name": "RSAAlgorithm.sign",
+    "calls": [],
+    "called_by": []
+  },
+  "RSAAlgorithm.verify": {
+    "qualified_name": "RSAAlgorithm.verify",
+    "calls": [],
+    "called_by": []
+  },
+  "ECAlgorithm.__init__": {
+    "qualified_name": "ECAlgorithm.__init__",
+    "calls": [],
+    "called_by": []
+  },
+  "ECAlgorithm._validate_curve": {
+    "qualified_name": "ECAlgorithm._validate_curve",
+    "calls": [
+      "InvalidKeyError"
+    ],
+    "called_by": [
+      "ECAlgorithm.prepare_key"
+    ]
+  },
+  "ECAlgorithm.prepare_key": {
+    "qualified_name": "ECAlgorithm.prepare_key",
+    "calls": [
+      "ECAlgorithm._validate_curve",
+      "force_bytes"
+    ],
+    "called_by": []
+  },
+  "ECAlgorithm.sign": {
+    "qualified_name": "ECAlgorithm.sign",
+    "calls": [
+      "der_to_raw_signature"
+    ],
+    "called_by": []
+  },
+  "ECAlgorithm.verify": {
+    "qualified_name": "ECAlgorithm.verify",
+    "calls": [
+      "raw_to_der_signature"
+    ],
+    "called_by": []
+  },
+  "ECAlgorithm.to_jwk": {
+    "qualified_name": "ECAlgorithm.to_jwk",
+    "calls": [
+      "InvalidKeyError"
+    ],
+    "called_by": []
+  },
+  "ECAlgorithm.from_jwk": {
+    "qualified_name": "ECAlgorithm.from_jwk",
+    "calls": [
+      "InvalidKeyError",
+      "base64url_decode"
+    ],
+    "called_by": []
+  },
+  "RSAPSSAlgorithm.sign": {
+    "qualified_name": "RSAPSSAlgorithm.sign",
+    "calls": [],
+    "called_by": []
+  },
+  "RSAPSSAlgorithm.verify": {
+    "qualified_name": "RSAPSSAlgorithm.verify",
+    "calls": [],
+    "called_by": []
+  },
+  "OKPAlgorithm.__init__": {
+    "qualified_name": "OKPAlgorithm.__init__",
+    "calls": [],
+    "called_by": []
+  },
+  "OKPAlgorithm.prepare_key": {
+    "qualified_name": "OKPAlgorithm.prepare_key",
+    "calls": [
+      "InvalidKeyError"
+    ],
+    "called_by": []
+  },
+  "OKPAlgorithm.sign": {
+    "qualified_name": "OKPAlgorithm.sign",
+    "calls": [],
+    "called_by": []
+  },
+  "OKPAlgorithm.verify": {
+    "qualified_name": "OKPAlgorithm.verify",
+    "calls": [],
+    "called_by": []
+  },
+  "OKPAlgorithm.to_jwk": {
+    "qualified_name": "OKPAlgorithm.to_jwk",
+    "calls": [
+      "InvalidKeyError"
+    ],
+    "called_by": []
+  },
+  "OKPAlgorithm.from_jwk": {
+    "qualified_name": "OKPAlgorithm.from_jwk",
+    "calls": [
+      "InvalidKeyError",
+      "base64url_decode"
+    ],
+    "called_by": []
+  },
+  "PyJWK.__init__": {
+    "qualified_name": "PyJWK.__init__",
+    "calls": [
+      "InvalidKeyError",
+      "MissingCryptographyError",
+      "PyJWKError",
+      "get_default_algorithms"
+    ],
+    "called_by": []
+  },
+  "PyJWK.from_dict": {
+    "qualified_name": "PyJWK.from_dict",
+    "calls": [
+      "PyJWK"
+    ],
+    "called_by": [
+      "PyJWK.from_json"
+    ]
+  },
+  "PyJWK.from_json": {
+    "qualified_name": "PyJWK.from_json",
+    "calls": [
+      "PyJWK.from_dict"
+    ],
+    "called_by": []
+  },
+  "PyJWK.key_type": {
+    "qualified_name": "PyJWK.key_type",
+    "calls": [],
+    "called_by": []
+  },
+  "PyJWK.key_id": {
+    "qualified_name": "PyJWK.key_id",
+    "calls": [],
+    "called_by": []
+  },
+  "PyJWK.public_key_use": {
+    "qualified_name": "PyJWK.public_key_use",
+    "calls": [],
+    "called_by": []
+  },
+  "PyJWKSet.__init__": {
+    "qualified_name": "PyJWKSet.__init__",
+    "calls": [
+      "PyJWK",
+      "PyJWKSetError"
+    ],
+    "called_by": []
+  },
+  "PyJWKSet.from_dict": {
+    "qualified_name": "PyJWKSet.from_dict",
+    "calls": [
+      "PyJWKSet"
+    ],
+    "called_by": [
+      "PyJWKClient.get_jwk_set",
+      "PyJWKSet.from_json"
+    ]
+  },
+  "PyJWKSet.from_json": {
+    "qualified_name": "PyJWKSet.from_json",
+    "calls": [
+      "PyJWKSet.from_dict"
+    ],
+    "called_by": []
+  },
+  "PyJWKSet.__getitem__": {
+    "qualified_name": "PyJWKSet.__getitem__",
+    "calls": [],
+    "called_by": []
+  },
+  "PyJWKSet.__iter__": {
+    "qualified_name": "PyJWKSet.__iter__",
+    "calls": [],
+    "called_by": []
+  },
+  "PyJWTSetWithTimestamp.__init__": {
+    "qualified_name": "PyJWTSetWithTimestamp.__init__",
+    "calls": [],
+    "called_by": []
+  },
+  "PyJWTSetWithTimestamp.get_jwk_set": {
+    "qualified_name": "PyJWTSetWithTimestamp.get_jwk_set",
+    "calls": [],
+    "called_by": []
+  },
+  "PyJWTSetWithTimestamp.get_timestamp": {
+    "qualified_name": "PyJWTSetWithTimestamp.get_timestamp",
+    "calls": [],
+    "called_by": []
+  },
+  "PyJWS.__init__": {
+    "qualified_name": "PyJWS.__init__",
+    "calls": [
+      "PyJWS._get_default_options",
+      "get_default_algorithms"
+    ],
+    "called_by": []
+  },
+  "PyJWS._get_default_options": {
+    "qualified_name": "PyJWS._get_default_options",
+    "calls": [],
+    "called_by": [
+      "PyJWS.__init__"
+    ]
+  },
+  "PyJWS.register_algorithm": {
+    "qualified_name": "PyJWS.register_algorithm",
+    "calls": [],
+    "called_by": []
+  },
+  "PyJWS.unregister_algorithm": {
+    "qualified_name": "PyJWS.unregister_algorithm",
+    "calls": [],
+    "called_by": []
+  },
+  "PyJWS.get_algorithms": {
+    "qualified_name": "PyJWS.get_algorithms",
+    "calls": [],
+    "called_by": []
+  },
+  "PyJWS.get_algorithm_by_name": {
+    "qualified_name": "PyJWS.get_algorithm_by_name",
+    "calls": [],
+    "called_by": [
+      "PyJWS._verify_signature",
+      "PyJWS.encode"
+    ]
+  },
+  "PyJWS.encode": {
+    "qualified_name": "PyJWS.encode",
+    "calls": [
+      "InvalidKeyError",
+      "InvalidTokenError",
+      "PyJWS._validate_headers",
+      "PyJWS.get_algorithm_by_name",
+      "base64url_encode"
+    ],
+    "called_by": []
+  },
+  "PyJWS.decode_complete": {
+    "qualified_name": "PyJWS.decode_complete",
+    "calls": [
+      "DecodeError",
+      "InvalidTokenError",
+      "PyJWS._load",
+      "PyJWS._validate_headers",
+      "PyJWS._verify_signature"
+    ],
+    "called_by": [
+      "PyJWS.decode"
+    ]
+  },
+  "PyJWS.decode": {
+    "qualified_name": "PyJWS.decode",
+    "calls": [
+      "PyJWS.decode_complete"
+    ],
+    "called_by": []
+  },
+  "PyJWS.get_unverified_header": {
+    "qualified_name": "PyJWS.get_unverified_header",
+    "calls": [
+      "PyJWS._load",
+      "PyJWS._validate_headers"
+    ],
+    "called_by": []
+  },
+  "PyJWS._load": {
+    "qualified_name": "PyJWS._load",
+    "calls": [
+      "DecodeError",
+      "base64url_decode"
+    ],
+    "called_by": [
+      "PyJWS.decode_complete",
+      "PyJWS.get_unverified_header"
+    ]
+  },
+  "PyJWS._verify_signature": {
+    "qualified_name": "PyJWS._verify_signature",
+    "calls": [
+      "InvalidAlgorithmError",
+      "InvalidKeyError",
+      "InvalidSignatureError",
+      "PyJWS.get_algorithm_by_name"
+    ],
+    "called_by": [
+      "PyJWS.decode_complete"
+    ]
+  },
+  "PyJWS._validate_headers": {
+    "qualified_name": "PyJWS._validate_headers",
+    "calls": [
+      "PyJWS._validate_crit",
+      "PyJWS._validate_kid"
+    ],
+    "called_by": [
+      "PyJWS.decode_complete",
+      "PyJWS.encode",
+      "PyJWS.get_unverified_header"
+    ]
+  },
+  "PyJWS._validate_kid": {
+    "qualified_name": "PyJWS._validate_kid",
+    "calls": [
+      "InvalidTokenError"
+    ],
+    "called_by": [
+      "PyJWS._validate_headers"
+    ]
+  },
+  "PyJWS._validate_crit": {
+    "qualified_name": "PyJWS._validate_crit",
+    "calls": [
+      "InvalidTokenError"
+    ],
+    "called_by": [
+      "PyJWS._validate_headers"
+    ]
+  },
+  "PyJWT.__init__": {
+    "qualified_name": "PyJWT.__init__",
+    "calls": [
+      "PyJWS",
+      "PyJWT._get_default_options",
+      "PyJWT._get_sig_options",
+      "PyJWT._merge_options"
+    ],
+    "called_by": []
+  },
+  "PyJWT._get_default_options": {
+    "qualified_name": "PyJWT._get_default_options",
+    "calls": [],
+    "called_by": [
+      "PyJWT.__init__"
+    ]
+  },
+  "PyJWT._get_sig_options": {
+    "qualified_name": "PyJWT._get_sig_options",
+    "calls": [],
+    "called_by": [
+      "PyJWT.__init__"
+    ]
+  },
+  "PyJWT._merge_options": {
+    "qualified_name": "PyJWT._merge_options",
+    "calls": [],
+    "called_by": [
+      "PyJWT.__init__",
+      "PyJWT.decode_complete"
+    ]
+  },
+  "PyJWT.encode": {
+    "qualified_name": "PyJWT.encode",
+    "calls": [
+      "PyJWT._encode_payload"
+    ],
+    "called_by": []
+  },
+  "PyJWT._encode_payload": {
+    "qualified_name": "PyJWT._encode_payload",
+    "calls": [],
+    "called_by": [
+      "PyJWT.encode"
+    ]
+  },
+  "PyJWT.decode_complete": {
+    "qualified_name": "PyJWT.decode_complete",
+    "calls": [
+      "PyJWT._decode_payload",
+      "PyJWT._merge_options",
+      "PyJWT._validate_claims"
+    ],
+    "called_by": [
+      "PyJWKClient.get_signing_key_from_jwt",
+      "PyJWT.decode"
+    ]
+  },
+  "PyJWT._decode_payload": {
+    "qualified_name": "PyJWT._decode_payload",
+    "calls": [
+      "DecodeError"
+    ],
+    "called_by": [
+      "PyJWT.decode_complete"
+    ]
+  },
+  "PyJWT.decode": {
+    "qualified_name": "PyJWT.decode",
+    "calls": [
+      "PyJWT.decode_complete"
+    ],
+    "called_by": []
+  },
+  "PyJWT._validate_claims": {
+    "qualified_name": "PyJWT._validate_claims",
+    "calls": [
+      "PyJWT._validate_aud",
+      "PyJWT._validate_exp",
+      "PyJWT._validate_iat",
+      "PyJWT._validate_iss",
+      "PyJWT._validate_jti",
+      "PyJWT._validate_nbf",
+      "PyJWT._validate_required_claims",
+      "PyJWT._validate_sub"
+    ],
+    "called_by": [
+      "PyJWT.decode_complete"
+    ]
+  },
+  "PyJWT._validate_required_claims": {
+    "qualified_name": "PyJWT._validate_required_claims",
+    "calls": [
+      "MissingRequiredClaimError"
+    ],
+    "called_by": [
+      "PyJWT._validate_claims"
+    ]
+  },
+  "PyJWT._validate_sub": {
+    "qualified_name": "PyJWT._validate_sub",
+    "calls": [
+      "InvalidSubjectError"
+    ],
+    "called_by": [
+      "PyJWT._validate_claims"
+    ]
+  },
+  "PyJWT._validate_jti": {
+    "qualified_name": "PyJWT._validate_jti",
+    "calls": [
+      "InvalidJTIError"
+    ],
+    "called_by": [
+      "PyJWT._validate_claims"
+    ]
+  },
+  "PyJWT._validate_iat": {
+    "qualified_name": "PyJWT._validate_iat",
+    "calls": [
+      "ImmatureSignatureError",
+      "InvalidIssuedAtError"
+    ],
+    "called_by": [
+      "PyJWT._validate_claims"
+    ]
+  },
+  "PyJWT._validate_nbf": {
+    "qualified_name": "PyJWT._validate_nbf",
+    "calls": [
+      "DecodeError",
+      "ImmatureSignatureError"
+    ],
+    "called_by": [
+      "PyJWT._validate_claims"
+    ]
+  },
+  "PyJWT._validate_exp": {
+    "qualified_name": "PyJWT._validate_exp",
+    "calls": [
+      "DecodeError",
+      "ExpiredSignatureError"
+    ],
+    "called_by": [
+      "PyJWT._validate_claims"
+    ]
+  },
+  "PyJWT._validate_aud": {
+    "qualified_name": "PyJWT._validate_aud",
+    "calls": [
+      "InvalidAudienceError",
+      "MissingRequiredClaimError"
+    ],
+    "called_by": [
+      "PyJWT._validate_claims"
+    ]
+  },
+  "PyJWT._validate_iss": {
+    "qualified_name": "PyJWT._validate_iss",
+    "calls": [
+      "InvalidIssuerError",
+      "MissingRequiredClaimError"
+    ],
+    "called_by": [
+      "PyJWT._validate_claims"
+    ]
+  },
+  "MissingRequiredClaimError.__init__": {
+    "qualified_name": "MissingRequiredClaimError.__init__",
+    "calls": [],
+    "called_by": []
+  },
+  "MissingRequiredClaimError.__str__": {
+    "qualified_name": "MissingRequiredClaimError.__str__",
+    "calls": [],
+    "called_by": []
+  },
+  "info": {
+    "qualified_name": "info",
+    "calls": [],
+    "called_by": [
+      "main"
+    ]
+  },
+  "main": {
+    "qualified_name": "main",
+    "calls": [
+      "info"
+    ],
+    "called_by": []
+  },
+  "JWKSetCache.__init__": {
+    "qualified_name": "JWKSetCache.__init__",
+    "calls": [],
+    "called_by": []
+  },
+  "JWKSetCache.put": {
+    "qualified_name": "JWKSetCache.put",
+    "calls": [
+      "PyJWTSetWithTimestamp"
+    ],
+    "called_by": []
+  },
+  "JWKSetCache.get": {
+    "qualified_name": "JWKSetCache.get",
+    "calls": [
+      "JWKSetCache.is_expired"
+    ],
+    "called_by": []
+  },
+  "JWKSetCache.is_expired": {
+    "qualified_name": "JWKSetCache.is_expired",
+    "calls": [],
+    "called_by": [
+      "JWKSetCache.get"
+    ]
+  },
+  "PyJWKClient.__init__": {
+    "qualified_name": "PyJWKClient.__init__",
+    "calls": [
+      "JWKSetCache",
+      "PyJWKClientError"
+    ],
+    "called_by": []
+  },
+  "PyJWKClient.fetch_data": {
+    "qualified_name": "PyJWKClient.fetch_data",
+    "calls": [
+      "PyJWKClientConnectionError"
+    ],
+    "called_by": [
+      "PyJWKClient.get_jwk_set"
+    ]
+  },
+  "PyJWKClient.get_jwk_set": {
+    "qualified_name": "PyJWKClient.get_jwk_set",
+    "calls": [
+      "PyJWKClient.fetch_data",
+      "PyJWKClientError",
+      "PyJWKSet.from_dict"
+    ],
+    "called_by": [
+      "PyJWKClient.get_signing_keys"
+    ]
+  },
+  "PyJWKClient.get_signing_keys": {
+    "qualified_name": "PyJWKClient.get_signing_keys",
+    "calls": [
+      "PyJWKClient.get_jwk_set",
+      "PyJWKClientError"
+    ],
+    "called_by": [
+      "PyJWKClient.get_signing_key"
+    ]
+  },
+  "PyJWKClient.get_signing_key": {
+    "qualified_name": "PyJWKClient.get_signing_key",
+    "calls": [
+      "PyJWKClient.get_signing_keys",
+      "PyJWKClient.match_kid",
+      "PyJWKClientError"
+    ],
+    "called_by": [
+      "PyJWKClient.get_signing_key_from_jwt"
+    ]
+  },
+  "PyJWKClient.get_signing_key_from_jwt": {
+    "qualified_name": "PyJWKClient.get_signing_key_from_jwt",
+    "calls": [
+      "PyJWKClient.get_signing_key",
+      "PyJWT.decode_complete"
+    ],
+    "called_by": []
+  },
+  "PyJWKClient.match_kid": {
+    "qualified_name": "PyJWKClient.match_kid",
+    "calls": [],
+    "called_by": [
+      "PyJWKClient.get_signing_key"
+    ]
+  },
+  "force_bytes": {
+    "qualified_name": "force_bytes",
+    "calls": [],
+    "called_by": [
+      "ECAlgorithm.prepare_key",
+      "HMACAlgorithm.prepare_key",
+      "RSAAlgorithm.prepare_key",
+      "base64url_decode",
+      "from_base64url_uint"
+    ]
+  },
+  "base64url_decode": {
+    "qualified_name": "base64url_decode",
+    "calls": [
+      "force_bytes"
+    ],
+    "called_by": [
+      "ECAlgorithm.from_jwk",
+      "HMACAlgorithm.from_jwk",
+      "OKPAlgorithm.from_jwk",
+      "PyJWS._load",
+      "from_base64url_uint"
+    ]
+  },
+  "base64url_encode": {
+    "qualified_name": "base64url_encode",
+    "calls": [],
+    "called_by": [
+      "PyJWS.encode",
+      "to_base64url_uint"
+    ]
+  },
+  "to_base64url_uint": {
+    "qualified_name": "to_base64url_uint",
+    "calls": [
+      "base64url_encode",
+      "bytes_from_int"
+    ],
+    "called_by": []
+  },
+  "from_base64url_uint": {
+    "qualified_name": "from_base64url_uint",
+    "calls": [
+      "base64url_decode",
+      "force_bytes"
+    ],
+    "called_by": [
+      "RSAAlgorithm.from_jwk"
+    ]
+  },
+  "number_to_bytes": {
+    "qualified_name": "number_to_bytes",
+    "calls": [],
+    "called_by": [
+      "der_to_raw_signature"
+    ]
+  },
+  "bytes_to_number": {
+    "qualified_name": "bytes_to_number",
+    "calls": [],
+    "called_by": [
+      "raw_to_der_signature"
+    ]
+  },
+  "bytes_from_int": {
+    "qualified_name": "bytes_from_int",
+    "calls": [],
+    "called_by": [
+      "to_base64url_uint"
+    ]
+  },
+  "der_to_raw_signature": {
+    "qualified_name": "der_to_raw_signature",
+    "calls": [
+      "number_to_bytes"
+    ],
+    "called_by": [
+      "ECAlgorithm.sign"
+    ]
+  },
+  "raw_to_der_signature": {
+    "qualified_name": "raw_to_der_signature",
+    "calls": [
+      "bytes_to_number"
+    ],
+    "called_by": [
+      "ECAlgorithm.verify"
+    ]
+  },
+  "is_pem_format": {
+    "qualified_name": "is_pem_format",
+    "calls": [],
+    "called_by": [
+      "HMACAlgorithm.prepare_key"
+    ]
+  },
+  "is_ssh_key": {
+    "qualified_name": "is_ssh_key",
+    "calls": [],
+    "called_by": [
+      "HMACAlgorithm.prepare_key"
+    ]
+  }
+}

@@ -5,6 +5,7 @@ import struct
 
 from config.settings import settings
 from llm.base import BaseEmbedding
+from llm.call_logger import get_call_logger
 from llm.models import LLMEmbeddingRequest, LLMEmbeddingResponse
 
 
@@ -34,8 +35,10 @@ class LocalEmbedding(BaseEmbedding):
     ) -> LLMEmbeddingResponse:
         dims = settings.EMBEDDING_DIMENSIONS
         vector = _deterministic_vector(request.input, dims)
-        return LLMEmbeddingResponse(
+        response = LLMEmbeddingResponse(
             embedding=vector,
             model=self.model,
             dimensions=dims,
         )
+        get_call_logger().log_embedding(request, response, model=self.model)
+        return response

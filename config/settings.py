@@ -61,6 +61,33 @@ class Settings(BaseSettings):
         default=False,
     )
 
+    GENERATION_CACHE_ENABLED: bool = Field(
+        default=True,
+        description="Reutiliza testes aprovados do cache persistente antes de chamar o LLM.",
+    )
+
+    GENERATION_CACHE_DIR: str = Field(
+        default="",
+        description=(
+            "Diretório do cache de geração (fora do workspace temporal). "
+            "Vazio = .cache/generation na raiz do projeto."
+        ),
+    )
+
+    GENERATION_CACHE_SCHEMA_VERSION: int = Field(
+        default=1,
+        description="Versão do schema JSON das entradas do cache de geração.",
+    )
+
+    # none = sem enriquecimento RAG; limited = orçamento reduzido; full = defaults.
+    RAG_MODE: str = Field(
+        default="full",
+        description=(
+            "Modo RAG: none (desligado), limited (orçamento reduzido) ou full (completo). "
+            "Perfis CLI (--profile) sobrescrevem este valor durante a execução."
+        ),
+    )
+
     RUNS_DIR: str = Field(
         default="runs",
         description="Raiz das pastas de execução (runs/<fonte>/<timestamp>/).",
@@ -76,25 +103,71 @@ class Settings(BaseSettings):
         description="Nível de log: DEBUG, INFO, WARNING, ERROR.",
     )
 
+    LOG_API_CALLS: bool = Field(
+        default=True,
+        description=(
+            "Grava chamadas LLM/embedding em logs/api_calls/ do workspace."
+        ),
+    )
+
+    LOG_API_CALL_BODIES: bool = Field(
+        default=False,
+        description=(
+            "Quando true, persiste prompt e resposta integral nos logs de API "
+            "(desativado por padrão por segurança; valores sensíveis são mascarados)."
+        ),
+    )
+
+    SOURCE_DIR_STRICT: bool = Field(
+        default=False,
+        description=(
+            "Quando true, bloqueia source_dir arriscado (raiz do engine ou volume alto) "
+            "salvo SOURCE_DIR_ALLOW_RISKY ou --allow-risky-source."
+        ),
+    )
+
+    SOURCE_DIR_ALLOW_RISKY: bool = Field(
+        default=False,
+        description="Permite source_dir arriscado em automação não interativa (CI/scripts).",
+    )
+
+    SOURCE_DIR_PY_WARN_THRESHOLD: int = Field(
+        default=200,
+        description="Aviso (ou bloqueio em modo estrito) quando há mais arquivos Python incluídos.",
+    )
+
+    LOG_API_CALL_METADATA: bool = Field(
+        default=True,
+        description="Inclui metadados (tamanhos, operação, símbolo) nos logs de API.",
+    )
+
+    LLM_PRICING_JSON: str = Field(
+        default="",
+        description=(
+            "JSON opcional de preços por modelo (USD / 1M tokens). "
+            'Ex.: {"gpt-5-nano":{"input":0.05,"output":0.40}}'
+        ),
+    )
+
     # ── Configurações padrão de recuperação
     #Quantidade final de resultados após reranking híbrido.
     RETRIEVER_TOP_K: int = Field(
-        default=10,
+        default=3,
     )
 
     #Quantidade de trechos de funções relacionadas recuperados por consulta.
     RETRIEVER_TOP_K_FUNCTIONS: int = Field(
-        default=10,
+        default=3,
     )
 
     #Quantidade de trechos de testes semelhantes recuperados por consulta.
     RETRIEVER_TOP_K_TESTS: int = Field(
-        default=10,
+        default=2,
     )
 
     #Candidatos vetoriais buscados antes do reranking híbrido.
     RETRIEVER_RERANK_POOL_SIZE: int = Field(
-        default=30,
+        default=10,
     )
 
     #Pesos do score híbrido (devem somar 1.0).
@@ -103,8 +176,47 @@ class Settings(BaseSettings):
     RETRIEVER_CALL_GRAPH_WEIGHT: float = Field(default=0.2)
 
     #Pontuação mínima de similaridade cosseno aceita (0 – 1).
+    #0.55 filtra ruído semântico fraco; aumente para prompts mais enxutos.
     RETRIEVER_SCORE_THRESHOLD: float = Field(
         default=0.55,
+        description=(
+            "Similaridade cosseno mínima (0–1) para candidatos vetoriais. "
+            "Valores mais altos reduzem recall; mais baixos aumentam ruído."
+        ),
+    )
+
+    RETRIEVER_TEST_SCORE_THRESHOLD: float = Field(
+        default=0.45,
+        description=(
+            "Limiar de similaridade para testes similares (coleção costuma ser "
+            "esparsa no início do run)."
+        ),
+    )
+
+    RAG_SKIP_ISOLATED_SYMBOLS: bool = Field(
+        default=True,
+        description=(
+            "Não enriquece com RAG símbolos sem vizinhos de grafo, sem exceções "
+            "e com poucos branches (funções triviais isoladas)."
+        ),
+    )
+
+    RAG_MIN_BRANCHES_FOR_ENRICHMENT: int = Field(
+        default=1,
+        description="Com RAG_SKIP_ISOLATED_SYMBOLS, exige > este valor de branches.",
+    )
+
+    RAG_MIN_HYBRID_SCORE: float = Field(
+        default=0.35,
+        description=(
+            "Score híbrido mínimo para candidatos vetoriais em related_functions. "
+            "Vizinhos de grafo/deps ignoram este limiar."
+        ),
+    )
+
+    RAG_SAME_MODULE_BOOST: float = Field(
+        default=0.15,
+        description="Bônus no rerank híbrido para símbolos no mesmo diretório do alvo.",
     )
 
     #Percentual mínimo de cobertura de linhas para aceitar um teste gerado.
@@ -112,9 +224,84 @@ class Settings(BaseSettings):
         default=80.0,
     )
 
-    #Tentativas de regeneração quando cobertura fica abaixo do threshold.
+    #Tentativas de regeneração quando cobertura fica abaixo do threshold (0 = desligado).
     MAX_COVERAGE_ROUNDS: int = Field(
+        default=0,
+        description="Rodadas extras de geração por cobertura. 0 desliga o loop.",
+    )
+
+    #Interrompe regeneração quando a cobertura não aumenta entre rodadas.
+    COVERAGE_STOP_ON_NO_IMPROVEMENT: bool = Field(
+        default=True,
+    )
+
+    #Tentativas de reparo via LLM quando pytest falha.
+    MAX_REPAIRS: int = Field(
+        default=1,
+    )
+
+    #Limite global de chamadas LLM (geração + reparo + cobertura) por símbolo.
+    MAX_LLM_CALLS_PER_SYMBOL: int = Field(
         default=2,
+        description="Perfil econômico: 1 geração + 1 reparo. Cache hit não consome.",
+    )
+
+    #Limite de tokens de saída do LLM (None = sem limite na API).
+    LLM_MAX_OUTPUT_TOKENS: int | None = Field(
+        default=None,
+    )
+
+    #Limites solicitados ao LLM na geração de testes (validados após parsing).
+    GENERATION_MAX_TEST_FUNCTIONS: int = Field(
+        default=4,
+        description="Máximo de funções test_* por arquivo gerado.",
+    )
+
+    GENERATION_MAX_LINES: int = Field(
+        default=400,
+        description="Máximo de linhas no arquivo de teste gerado.",
+    )
+
+    #Funções de módulo ignoradas na geração (separadas por vírgula).
+    INGEST_SKIP_FUNCTION_NAMES: str = Field(
+        default="main",
+    )
+
+    #Diretórios extras ignorados na ingestão (separados por vírgula; mesclados aos padrões).
+    INGEST_SKIP_DIRS: str = Field(
+        default="",
+        description=(
+            "Nomes de diretório ignorados na varredura. Mesclado com padrões "
+            "como tests/, runs/, __pycache__/, etc."
+        ),
+    )
+
+    #Globs extras de arquivo ignorados na ingestão (separados por vírgula; mesclados aos padrões).
+    INGEST_SKIP_FILE_GLOBS: str = Field(
+        default="",
+        description=(
+            "Globs de nome de arquivo ignorados na varredura e na geração. "
+            "Mesclado com padrões como test_*.py, conftest.py, etc."
+        ),
+    )
+
+    #Orçamento global (corpo dos snippets RAG) no prompt do LLM.
+    PROMPT_MAX_RAG_TOTAL_CHARS: int = Field(
+        default=2500,
+        description=(
+            "Limite de caracteres para o corpo dos trechos RAG. "
+            "Cabeçalhos de seção ficam fora deste orçamento."
+        ),
+    )
+
+    #Tamanho máximo de cada trecho RAG no prompt do LLM.
+    PROMPT_MAX_RAG_SNIPPET_CHARS: int = Field(
+        default=300,
+    )
+
+    #Tamanho máximo do bloco de erro do pytest no prompt de reparo.
+    REPAIR_ERROR_MAX_CHARS: int = Field(
+        default=900,
     )
 
     model_config = SettingsConfigDict(

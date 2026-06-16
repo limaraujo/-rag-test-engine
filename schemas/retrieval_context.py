@@ -15,7 +15,7 @@ class RetrievalContext(BaseModel):
         default_factory=list,
         description=(
             "Funções reordenadas por score híbrido "
-            "(vetor + dependency graph + call graph). Top 10."
+            "(vetor + dependency graph + call graph)."
         ),
     )
     dependency_functions: list[str] = Field(
@@ -32,7 +32,7 @@ class RetrievalContext(BaseModel):
     )
     similar_tests: list[str] = Field(
         default_factory=list,
-        description="Testes semanticamente similares recuperados do Qdrant. Top 10.",
+        description="Testes semanticamente similares recuperados do Qdrant.",
     )
 
 
