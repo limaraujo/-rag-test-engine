@@ -1,98 +1,81 @@
 #let methodology = [
   = Metodologia
-  Esta seção detalha o planejamento experimental, a arquitetura do sistema desenvolvido e os critérios de avaliação utilizados para mensurar a eficácia da integração.
+  Esta seção detalha o planejamento experimental, a arquitetura do pipeline, os critérios de avaliação e os protocolos comparativos utilizados para mensurar o impacto do RAG na geração autônoma de testes unitários.
 
   == Objetivo e Questões de Pesquisa
-  O objetivo principal deste trabalho é investigar se, e em que medida, a injeção de contexto dinâmico via RAG melhora a precisão e reduz o esforço computacional de LLMs na geração autônoma de testes unitários. Para guiar o experimento, foram definidas as seguintes Questões de Pesquisa:
 
-  - QP1: Qual é o impacto da utilização do RAG na taxa de sucesso dos testes gerados em comparação a um modelo de contexto estático?
-  - QP2: A provisão de contexto estruturado reduz o número de iterações necessárias no ciclo autônomo de correção?
-  - QP3: Como a arquitetura proposta afeta a métrica final de cobertura de código nas amostras analisadas?
+  Para guiar o experimento, foram definidas as seguintes Questões de Pesquisa:
 
-  == Arquitetura do Sistema
-  A solução proposta consiste em um pipeline automatizado desenvolvido em Python que orquestra modelos de LLM. O diferencial metodológico é a transformação do repositório em um banco vetorial antes da geração do código, permitindo que o LLM consulte dependências externas em tempo real. A execução é coordenada pelo módulo central main.py.
+  - QP1: Qual é o impacto do RAG híbrido (vetorial + grafos) na taxa de sucesso dos testes gerados em comparação a um baseline sem contexto recuperado?
+  - QP2: O contexto estruturado recuperado dinamicamente reduz o número de iterações necessárias no ciclo de reparo autônomo?
+  - QP3: Como a arquitetura proposta afeta a cobertura de código (linhas e branches) nas suítes analisadas?
+  - QP4: Qual é o trade-off entre qualidade (taxa de sucesso, cobertura) e custo computacional (tokens gastos)?
 
-  A arquitetura do sistema é composta por quatro módulos principais, descritos a seguir com suas respectivas entradas, saídas e algoritmos de funcionamento:
+  == Arquitetura do Pipeline
 
-  === Módulo de Ingestão
+  A solução propõe um pipeline de 8 fases orquestradas que transforma um repositório de código em uma suíte de testes pytest automaticamente gerada:
 
-  ==== Entradas
-  Repositório de código-fonte bruto.
+  === Fase 1: Ingestão e Estruturação
+  O repositório é analisado via Abstract Syntax Tree (AST) para extrair símbolos estruturados (funções, métodos, classes). O sistema constrói dois grafos: (1) grafo de chamadas (caller-callee) que mapeia quem chama quem; (2) grafo de dependências que captura importações inter-módulos. Símbolos triviais (getters, setters, `__init__` simples) e classes encapsuladores são filtrados. Todos os símbolos brutos, grafos e estatísticas de seleção são persistidos para rastreabilidade.
 
-  ==== Saídas
-  Métodos estruturados e metadados.
+  === Fase 2: Indexação Vetorial
+  Cada símbolo elegível é transformado em um documento textual (nome, assinatura, corpo, docstring, imports) e convertido em embedding de alta dimensionalidade via modelo de embeddings. Os embeddings são persistidos em um banco de dados vetorial (Qdrant) para rápida recuperação posterior.
 
-  ==== Funcionamento: 
-  Utiliza a biblioteca nativa ast (Abstract Syntax Tree) do Python para varrer os arquivos, extrair assinaturas de funções, docstrings e dependências mapeadas. Essa abordagem contorna as limitações da análise puramente textual, garantindo a extração precisa da topologia do código.
+  === Fase 3: Enriquecimento de Contexto (Busca Híbrida)
+  Para cada símbolo alvo, o sistema recupera contexto relevante através de três canais simultâneos: (1) busca de similaridade vetorial no banco de dados (código semelhante); (2) análise do grafo de chamadas (funções que chamam ou são chamadas); (3) análise do grafo de dependências (classes/funções importadas). Os resultados são combinados via score ponderado e filtrados para manter apenas os mais relevantes dentro de um orçamento de tokens configurável.
 
-  === Módulo de Controle de Contexto
+  === Fase 4: Geração de Testes
+  O contexto recuperado é integrado com a assinatura e corpo do método alvo em um prompt formatado. O LLM recebe o método isolado (baseline) ou enriquecido com contexto (com RAG) dependendo do perfil de teste. O LLM gera código pytest candidato. Opcionalmente, o sistema consulta um cache de testes já aprovados antes de chamar o LLM, economizando chamadas de API.
 
-  ==== Entradas
-  Método alvo a ser testado.
+  === Fase 5: Execução e Validação
+  O código gerado é executado via pytest em um ambiente isolado. O sistema captura o status de execução (passou/falhou) e mede a cobertura de código (percentual de linhas e branches exercitadas).
 
-  ==== Saídas
-  Trechos de código correlatos (nós de contexto).
+  === Fase 6: Reparo Autônomo
+  Se o teste falha, o sistema injeta a mensagem de erro (stack trace, assertion failures) em um novo prompt e pede ao LLM que corrija o código. Este ciclo se repete até que o teste passe ou um limite de iterações seja atingido. O objetivo é resolver erros comuns (imports inválidos, ausência de mocks) sem regeneração completa.
 
-  ==== Funcionamento
-  Implementa o algoritmo de busca de similaridade vetorial (Cosine Similarity) no banco de dados Qdrant. Na fase de Linha de Base, este módulo é suprimido. Na fase Principal (RAG), ele é responsável por buscar as dependências externas e classes necessárias ao teste do método alvo.
+  === Fase 7: Otimização de Cobertura
+  Se o teste passou mas cobriu menos do que um threshold configurado (definimos como 80%), o sistema identifica as linhas/branches não cobertos e injeta essa informação como "dica" em um novo prompt para o LLM. O teste é regenerado buscando aumentar cobertura. Este passo é opcional, podendo ser alterado a cada execução.
 
-  === Módulo de Geração e Reparo
+  === Fase 8: Salvamento e Validação de Suíte
+  Todos os testes aprovados são salvos em arquivos. Ao final, a suíte completa é re-executada para medir cobertura agregada e confirmar que todos os testes funcionam em conjunto. Metadados finais (tokens gastos, número de iterações, estatísticas) são compilados.
 
-  ==== Entradas
-  Método alvo, contexto recuperado (se aplicável) e feedback de erro (em caso de falha iterativa).
+  == Seleção da Amostra e Dados
 
-  ==== Saídas
-  Código do teste unitário.
-
-  ==== Funcionamento
-  Atua como um agente autônomo. O LLM propõe um teste inicial; caso a execução falhe, o agente ingere a tipologia do erro (ex: stack trace) e ajusta iterativamente o prompt em um ciclo de tuning, até que o código seja aprovado ou atinja o limite máximo de tentativas estabelecido.
-
-  === Módulo de Medição e Execução
-
-  ==== Entradas
-  Código do teste candidato.
-
-  ==== Saídas
-  Status de execução (Pass/Fail) e métricas numéricas de cobertura.
-
-  ==== Funcionamento
-  Instancia um ambiente isolado (sandbox) para rodar o teste de forma segura, utilizando frameworks padrão da linguagem, como o pytest. Ao final da execução, o módulo registra o percentual de cobertura alcançado e cataloga eventuais exceções geradas pelo código.
-
-  == Seleção da Amostra e Dados Usados
-  Para garantir a validade externa do experimento, o sistema não é testado em fragmentos de código isolados, mas sim em repositórios open-source consolidados no ecossistema Python.
-
-  Estes dados representam cenários do mundo real, contendo dependências inter-módulos, classes aninhadas e regras de negócio complexas, essenciais para testar o limite da janela de contexto do LLM. A amostra foi gerada através do módulo parser.py, que filtrou o repositório utilizando critérios baseados em AST. Foram excluídos métodos triviais (como `__init__` simples ou getters/setters) e selecionados métodos com complexidade ciclomática moderada a alta. O experimento utilizou um conjunto de 184 métodos alvo, extraídos de 2 repositórios distintos, gerando um volume de testes suficiente para análise estatística.
+  O experimento é executado em repositórios Python open-source consolidados (não fragmentos isolados de código), garantindo cenários realistas com dependências inter-módulos, classes aninhadas e lógica complexa. Repositório 1: PyJWT e o Repositório 2: Code Katas. A amostra inclui símbolos selecionados por critérios estruturais: exclusão de métodos triviais, priorização de métodos com complexidade moderada a alta. O volume de testes gerados é suficiente para análise estatística robusta.
 
   == Métricas de Avaliação
-  As métricas foram selecionadas para avaliar tanto a qualidade do produto gerado quanto o esforço computacional da ferramenta. Os resultados extraídos pelo main.py serão submetidos às seguintes equações:
 
   === Taxa de Sucesso (Pass Rate - PR)
-  Mede a proporção de testes que compilam e passam com sucesso na primeira asserção válida, sem gerar erros de sintaxe ou importação. Observa-se a capacidade do modelo de gerar código pronto para uso.
+  Proporção de testes que compilam, executam sem erros e passam em todas as asserções (após execução inicial ou reparo bem-sucedido).
 
-  $ "PR" = ("T_pass" / "T_total") * 100 $ <eq:taxa-de-sucesso>
-
-  Onde T_pass é o número de testes aprovados e T_total é o total de métodos avaliados na amostra.
+  $ "PR" = ("T_pass" / "T_total") * 100 $
 
   === Cobertura de Código (Code Coverage - CC)
-  Indicador primário da qualidade funcional. Avalia o percentual de linhas do código original que foram efetivamente exercitadas pelo teste gerado.
+  Percentual de linhas e branches do código original que foram exercitadas pelo teste.
 
-  $ "CC" = ("L_exec" / "L_total") * 100 $ <eq:cobertura-de-codigo>
+  $ "CC" = ("L_exec" / "L_total") * 100 $
 
-  Onde L_exec representa as linhas de código executadas durante o teste e L_total é o número total de linhas do método alvo.
+  === Autonomia / Esforço de Reparo (Repair Effort - RE)
+  Média de iterações do ciclo de reparo necessárias para aprovação ou descarte.
 
-  === Esforço de Reparo ou Autonomia (Repair Effort -RE)
-  Mede o custo computacional do ciclo de tuning. Representa a média de iterações que o módulo repair.py precisou executar até aprovar o código. Uma métrica menor indica maior resiliência e precisão no prompt inicial.
+  $ "RE" = (1 / N) sum_(i=1)^N I_i $
 
-  $ "RE" = 1 / N sum_(i=1)^N I_i $ <eq:esforco-de-reparo>
+  == Experimento
 
-  Onde N é o total de métodos e I_i é o número de iterações gastas no método i.
+  O experimento executa o pipeline sob quatro perfis comparativos, cada um com a mesma amostra de símbolos:
 
-  == Abordagem de Coleta de Dados
-  A coleta de dados ocorrerá em um ambiente controlado, utilizando a própria arquitetura como instrumento de medição. O experimento será dividido em duas fases rigorosas sobre o mesmo conjunto de dados:
+  Perfil 1 - Baseline (sem RAG): O LLM recebe apenas a assinatura e corpo do método, sem contexto recuperado. Este perfil mede a linha de base de qualidade.
 
-  1. Linha de Base (Baseline - Contexto Estático): O sistema processará a amostra com o módulo retriever.py desativado. O LLM receberá em seu prompt apenas a assinatura e o corpo isolado do método extraído via AST.
+  Perfil 2 - RAG Limitado: Recuperação com orçamento reduzido de tokens. Simula contexto restrito para ambientes com custo apertado.
 
-  2. Fase Principal (Abordagem RAG): O experimento é reiniciado, ativando a integração com o Qdrant. O LLM receberá o método alvo acrescido dos nós vetoriais recuperados (dependências externas, importações e declarações de classes).
+  Perfil 3 - RAG Completo: Recuperação com orçamento padrão de tokens. O LLM tem acesso a mais contexto, mas sem reutilizar testes já aprovados.
 
-  Ao final da execução de ambas as fases, o componente de orquestração compilará as métricas (PR, CC e RE) cruzando os dados de cada fase em um arquivo tabular (JSON/CSV), permitindo a análise quantitativa que responderá às questões de pesquisa propostas.
-] 
+  Perfil 4 - Com Cache: Reutiliza testes já aprovados de execuções anteriores, economizando chamadas ao LLM.
+
+  Todos os perfis compartilham a mesma ingestão (símbolos candidatos são determinísticos). Cada perfil cria um workspace isolado para rastreabilidade. Ao final, as métricas são comparadas por símbolo para isolar o efeito do RAG, cache e configurações de orçamento.
+
+  Para garantir comparação equiparável: 
+  - ingestão é única e compartilhada; 
+  - cada perfil executa independentemente;
+  -  métricas são cruzadas por símbolo entre perfis, controlando variáveis de confusão (ex.: mesmos símbolos em sem-rag vs rag-completo têm mesma dificuldade base).
+]
