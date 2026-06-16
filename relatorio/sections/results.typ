@@ -11,7 +11,8 @@
   A biblioteca PyJWT é uma implementação Python amplamente utilizada do padrão
   JSON Web Tokens (RFC 7519), caracterizada por forte interdependência entre
   módulos, uso intenso de criptografia (RSA, EC, OKP, HMAC) e abstrações
-  polimórficas. Foram extraídos *126 símbolos* elegíveis para geração.
+  polimórficas. Foram extraídos *126 símbolos* elegíveis para geração (funções
+  e métodos), após filtragem das 39 classes presentes nos 12 arquivos analisados.
 
   Os resultados por perfil de execução são apresentados na @tab:jwt-resumo.
 
