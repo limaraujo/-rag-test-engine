@@ -1,0 +1,15 @@
+{
+  "workspace": "runs/todo_app/20260610_003749",
+  "source_dir": "/workspaces/-rag-test-engine/mockes/todo_app",
+  "tests_dir": "runs/todo_app/20260610_003749/tests",
+  "logs_dir": "runs/todo_app/20260610_003749/logs",
+  "finished_at": "2026-06-10T00:45:48",
+  "stats": {
+    "ok": 1,
+    "repaired": 0,
+    "failed": 7,
+    "skipped": 0,
+    "coverage_boosted": 0
+  },
+  "token_usage": "  LLM (22 chamadas)\n    entrada  : 47,843 tokens\n    saída    : 71,309 tokens\n    total    : 119,152 tokens\n  Embeddings (8 chamadas)\n    entrada  : 938 tokens\n    total    : 938 tokens\n  Geral    : 120,090 tokens"
+}

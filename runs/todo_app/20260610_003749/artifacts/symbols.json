@@ -1,0 +1,152 @@
+[
+  {
+    "symbol_type": "function",
+    "name": "exemplo_uso",
+    "qualified_name": "exemplo_uso",
+    "class_name": null,
+    "file_path": "/workspaces/-rag-test-engine/mockes/todo_app/main.py",
+    "source_code": "def exemplo_uso():\n    gestor = GerenciadorTarefas()\n\n    gestor.adicionar(\"Criar testes unitários\")\n    gestor.adicionar(\"Validar cobertura\")\n\n    gestor.tarefas[0].concluir()\n\n    print(\"Total:\", gestor.total())\n    print(\"Pendentes:\", len(gestor.listar_pendentes()))",
+    "imports": [
+      "services.gerenciador.GerenciadorTarefas"
+    ],
+    "dependencies": [
+      "GerenciadorTarefas",
+      "gestor.adicionar",
+      "gestor.listar_pendentes",
+      "gestor.tarefas.concluir",
+      "gestor.total"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": null,
+    "branches": 0,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "class",
+    "name": "GerenciadorTarefas",
+    "qualified_name": "GerenciadorTarefas",
+    "class_name": null,
+    "file_path": "/workspaces/-rag-test-engine/mockes/todo_app/services/gerenciador.py",
+    "source_code": "class GerenciadorTarefas:\n    def __init__(self):\n        self.tarefas = []\n\n    def adicionar(self, titulo):\n        tarefa = Tarefa(titulo)\n        self.tarefas.append(tarefa)\n        return tarefa\n\n    def listar_pendentes(self):\n        return [t for t in self.tarefas if not t.concluida]\n\n    def total(self):\n        return len(self.tarefas)",
+    "imports": [
+      "models.tarefa.Tarefa"
+    ],
+    "dependencies": [
+      "Tarefa",
+      "self.tarefas.append"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": null,
+    "branches": 0,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "method",
+    "name": "__init__",
+    "qualified_name": "GerenciadorTarefas.__init__",
+    "class_name": "GerenciadorTarefas",
+    "file_path": "/workspaces/-rag-test-engine/mockes/todo_app/services/gerenciador.py",
+    "source_code": "def __init__(self):\n        self.tarefas = []",
+    "imports": [
+      "models.tarefa.Tarefa"
+    ],
+    "dependencies": [],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": null,
+    "branches": 0,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "method",
+    "name": "adicionar",
+    "qualified_name": "GerenciadorTarefas.adicionar",
+    "class_name": "GerenciadorTarefas",
+    "file_path": "/workspaces/-rag-test-engine/mockes/todo_app/services/gerenciador.py",
+    "source_code": "def adicionar(self, titulo):\n        tarefa = Tarefa(titulo)\n        self.tarefas.append(tarefa)\n        return tarefa",
+    "imports": [
+      "models.tarefa.Tarefa"
+    ],
+    "dependencies": [
+      "Tarefa",
+      "self.tarefas.append"
+    ],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": null,
+    "branches": 0,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "method",
+    "name": "listar_pendentes",
+    "qualified_name": "GerenciadorTarefas.listar_pendentes",
+    "class_name": "GerenciadorTarefas",
+    "file_path": "/workspaces/-rag-test-engine/mockes/todo_app/services/gerenciador.py",
+    "source_code": "def listar_pendentes(self):\n        return [t for t in self.tarefas if not t.concluida]",
+    "imports": [
+      "models.tarefa.Tarefa"
+    ],
+    "dependencies": [],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": null,
+    "branches": 0,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "method",
+    "name": "total",
+    "qualified_name": "GerenciadorTarefas.total",
+    "class_name": "GerenciadorTarefas",
+    "file_path": "/workspaces/-rag-test-engine/mockes/todo_app/services/gerenciador.py",
+    "source_code": "def total(self):\n        return len(self.tarefas)",
+    "imports": [
+      "models.tarefa.Tarefa"
+    ],
+    "dependencies": [],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": null,
+    "branches": 0,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "class",
+    "name": "Tarefa",
+    "qualified_name": "Tarefa",
+    "class_name": null,
+    "file_path": "/workspaces/-rag-test-engine/mockes/todo_app/models/tarefa.py",
+    "source_code": "class Tarefa:\n    titulo: str\n    concluida: bool = False\n\n    def concluir(self):\n        self.concluida = True",
+    "imports": [
+      "dataclasses.dataclass"
+    ],
+    "dependencies": [],
+    "exceptions": [],
+    "decorators": [
+      "dataclass"
+    ],
+    "docstring": null,
+    "branches": 0,
+    "edge_cases": []
+  },
+  {
+    "symbol_type": "method",
+    "name": "concluir",
+    "qualified_name": "Tarefa.concluir",
+    "class_name": "Tarefa",
+    "file_path": "/workspaces/-rag-test-engine/mockes/todo_app/models/tarefa.py",
+    "source_code": "def concluir(self):\n        self.concluida = True",
+    "imports": [
+      "dataclasses.dataclass"
+    ],
+    "dependencies": [],
+    "exceptions": [],
+    "decorators": [],
+    "docstring": null,
+    "branches": 0,
+    "edge_cases": []
+  }
+]

@@ -1,0 +1,42 @@
+{
+  "main": {
+    "qualified_name": "main",
+    "dependencies": [
+      "services.gerenciador",
+      "services.gerenciador.GerenciadorTarefas"
+    ]
+  },
+  "models": {
+    "qualified_name": "models",
+    "dependencies": []
+  },
+  "models.tarefa": {
+    "qualified_name": "models.tarefa",
+    "dependencies": [
+      "dataclasses",
+      "dataclasses.dataclass"
+    ]
+  },
+  "models.tarefa.Tarefa": {
+    "qualified_name": "models.tarefa.Tarefa",
+    "dependencies": [
+      "bool",
+      "str"
+    ]
+  },
+  "services": {
+    "qualified_name": "services",
+    "dependencies": []
+  },
+  "services.gerenciador": {
+    "qualified_name": "services.gerenciador",
+    "dependencies": [
+      "models.tarefa",
+      "models.tarefa.Tarefa"
+    ]
+  },
+  "services.gerenciador.GerenciadorTarefas": {
+    "qualified_name": "services.gerenciador.GerenciadorTarefas",
+    "dependencies": []
+  }
+}

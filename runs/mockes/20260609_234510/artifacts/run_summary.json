@@ -1,0 +1,15 @@
+{
+  "workspace": "runs/mockes/20260609_234510",
+  "source_dir": "/workspaces/-rag-test-engine/mockes",
+  "tests_dir": "runs/mockes/20260609_234510/tests",
+  "logs_dir": "runs/mockes/20260609_234510/logs",
+  "finished_at": "2026-06-09T23:52:06",
+  "stats": {
+    "ok": 6,
+    "repaired": 2,
+    "failed": 1,
+    "skipped": 0,
+    "coverage_boosted": 5
+  },
+  "token_usage": "  LLM (22 chamadas)\n    entrada  : 62,833 tokens\n    saída    : 72,054 tokens\n    total    : 134,887 tokens\n  Embeddings (2 chamadas)\n    entrada  : 445 tokens\n    total    : 445 tokens\n  Geral    : 135,332 tokens"
+}
