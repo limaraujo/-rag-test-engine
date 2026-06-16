@@ -11,6 +11,7 @@
 | [CLI.md](CLI.md) | Argumentos de linha de comando e perfis (`--profile`) |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Arquitetura, fases do pipeline, diagramas |
 | [RAG_TUNING.md](RAG_TUNING.md) | Ajuste do RAG, gating, protocolo de avaliação |
+| [PROMPTS_AND_TECHNIQUES.md](PROMPTS_AND_TECHNIQUES.md) | System/user prompts, técnicas RAG e pós-processamento |
 | [CONFIGURATION.md](CONFIGURATION.md) | Variáveis de ambiente (`.env`) |
 | [API.md](API.md) | `main()`, agentes e uso programático |
 | [MODULES.md](MODULES.md) | Referência de módulos por pacote |

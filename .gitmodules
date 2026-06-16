@@ -1,0 +1,6 @@
+[submodule "repositorios/code_katas"]
+	path = repositorios/code_katas
+	url = https://github.com/rwisecar/code-katas.git
+[submodule "repositorios/pyjwt"]
+	path = repositorios/pyjwt
+	url = https://github.com/jpadilla/pyjwt.git
