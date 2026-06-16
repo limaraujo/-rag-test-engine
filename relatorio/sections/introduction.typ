@@ -1,20 +1,19 @@
 #let introduction = [
   = Introdução
-  Testes unitários são fundamentais para a qualidade de software, mas sua criação consome esforço considerable dos desenvolvedores. Esse tempo dedicado à escrita de testes poderia ser alocado no desenvolvimento de novas funcionalidades.
   
-  LLMs abrem oportunidades para automatizar a escrita de testes. Contudo, enfrentam limitações críticas: desconhecimento do domínio global do projeto e alucinação de código. Essas limitações resultam em testes que referenciam métodos ou variáveis inexistentes, gerando falhas em execução.
-
-  A investigação deste problema é de grande interesse acadêmico e industrial, pois a criação de um mecanismo que automatize a geração de testes de forma confiável e semanticamente correta tem o potencial de reduzir drasticamente os custos de manutenção de software e elevar a cobertura de código, especialmente em bases de código complexas e colaborativas, como projetos open-source.
-
-  Atualmente, as soluções existentes para automação de testes dividem-se em duas abordagens com limitações claras. As ferramentas tradicionais baseadas em busca (como fuzzers e geradores estáticos) conseguem alta cobertura, mas frequentemente produzem testes difíceis de ler e manter por humanos, carecendo de compreensão semântica. Por outro lado, o uso de LLMs de forma isolada (vanilla prompts) gera testes legíveis, mas o modelo fica restrito à janela de contexto imediata fornecida pelo usuário, ignorando as dependências e a arquitetura do ecossistema do software. É necessário, portanto, uma solução que una a precisão estrutural do código com o poder de generalização e contextualização dos modelos de linguagem.
-
-  Para resolver esse problema, este trabalho propõe uma arquitetura que integra Análise Estática e Retrieval-Augmented Generation (RAG). A abordagem realiza a extração estruturada de métodos através de Abstract Syntax Tree (AST) e utiliza o banco de dados vetorial Qdrant para buscar dinamicamente o contexto exato necessário para o modelo. Além disso, a arquitetura incorpora um ciclo de agentes autônomos de reparo, que refinam iterativamente o código gerado com base no feedback de execução (erros e cobertura).
-
+  Testes unitários são fundamentais para a qualidade e confiabilidade do software, mas sua criação consome esforço e tempo considerável dos desenvolvedores. A automação dessa tarefa representa uma oportunidade significativa para ampliar a cobertura de código e reduzir custos de manutenção, especialmente em bases de código extensas e complexas.
+  
+  Modelos de Linguagem de Grande Escala (LLMs) abriram novas possibilidades para automatizar a geração de testes através de prompting. Contudo, essas soluções enfrentam limitações críticas quando aplicadas a sistemas reais: (1) desconhecimento do contexto global do projeto, levando a referências de métodos ou variáveis inexistentes; (2) alucinação de comportamentos que não refletem a lógica real do código; (3) perda de qualidade semântica dos testes, resultando em métricas de cobertura enganosas que não garantem resiliência em produção.
+  
+  As abordagens existentes dividem-se em dois extremos com limitações claras. Ferramentas tradicionais baseadas em busca (_fuzzers_, geradores estáticos) conseguem cobertura alta, mas produzem testes difíceis de ler e manter, carecendo de compreensão semântica. Por outro lado, LLMs isolados (_vanilla prompts_) geram testes legíveis e conceitualmente corretos, mas são restritos à janela de contexto imediata, ignorando as dependências inter-módulos e a arquitetura real do sistema. É necessária, portanto, uma solução que combine a precisão estrutural da análise estática com o poder de generalização dos modelos de linguagem.
+  
+  Este trabalho propõe uma arquitetura integrada que combina Análise Estática e _Retrieval-Augmented Generation_ (RAG) em um motor automatizado de geração de testes pytest em Python. O sistema realiza a extração estruturada de métodos via _Abstract Syntax Tree_ (AST), indexa símbolos no banco de dados vetorial Qdrant, enriquece o contexto através de busca híbrida (vetorial + grafos) em tempo real, e implementa um pipeline de automação completo com múltiplos agentes especializados: um gerador de testes, um reparador autônomo que corrige falhas iterativamente baseado em feedback de execução, um analisador de cobertura que regenera testes conforme necessário, além de mecanismos de cache inteligente e rastreamento detalhado de custos computacionais.
+  
   As principais contribuições deste trabalho são:
-
-  - Desenvolvimento de uma arquitetura híbrida: Integração de Análise Estática (AST) e memória vetorial (RAG) para fornecer contexto estruturado e preciso aos LLMs na geração de código em Python;
-
-  - Implementação de um ciclo de reparo autônomo (tuning): Criação de agentes capazes de executar o código gerado, catalogar erros e refazer os testes de forma iterativa sem intervenção humana;
-
-  - Avaliação empírica do impacto do contexto vetorial: Um experimento comparativo em projetos open-source que isola e mensura como a ativação do RAG afeta o esforço computacional (número de iterações de correção) e a qualidade funcional (taxa de sucesso e cobertura de código).
+  
+  - Desenvolvimento de uma arquitetura híbrida funcional: Integração de Análise Estática (AST) e memória vetorial (RAG) com busca híbrida para fornecer contexto estruturado e dinâmico aos LLMs na geração de código Python, com suporte a múltiplos modelos e configurações de orçamento (sem-rag, rag-limitado, rag-completo);
+  
+  - Implementação de um pipeline de automação completo em produção: Sistema de geração com cache persistente, reparação iterativa sem intervenção humana, análise automática de cobertura de código, rastreamento detalhado de custo computacional (tokens LLM, iterações de reparo), e execução segura em ambientes isolados, permitindo operação eficiente em repositórios reais de qualquer escala;
+  
+  - Avaliação empírica comparativa: Experimento em dois repositórios open-source consolidados (PyJWT, code-katas) que isola e mensura o impacto do RAG versus linha de base (sem RAG), analisando Taxa de Sucesso (_pass rate_), Cobertura de Código, Esforço de Reparo (iterações), e custo computacional (tokens), com análise de trade-offs entre os quatro perfis de teste implementados.
 ]
