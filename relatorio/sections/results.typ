@@ -11,7 +11,7 @@
   A biblioteca PyJWT é uma implementação Python amplamente utilizada do padrão
   JSON Web Tokens (RFC 7519), caracterizada por forte interdependência entre
   módulos, uso intenso de criptografia (RSA, EC, OKP, HMAC) e abstrações
-  polimórficas. Foram extraídos *126 símbolos* elegíveis para geração (funções
+  polimórficas. Foram extraídos 126 símbolos elegíveis para geração (funções
   e métodos), após filtragem das 39 classes presentes nos 12 arquivos analisados.
 
   Os resultados por perfil de execução são apresentados na @tab:jwt-resumo.
@@ -37,13 +37,13 @@
   ) <tab:jwt-resumo>
 
   O perfil `rag-completo` obteve o maior número de testes salvos (96) e a
-  maior taxa de símbolos válidos (81,0%), representando uma melhoria de *9,6
-  pontos percentuais* em relação à linha de base `sem-rag` (71,4%). O perfil
+  maior taxa de símbolos válidos (81,0%), representando uma melhoria de 9,6
+  pontos percentuai em relação à linha de base `sem-rag` (71,4%). O perfil
   `rag-limitado`, com orçamento de contexto reduzido, já entregou ganho
   expressivo (80,2%), indicando que mesmo uma quantidade moderada de contexto
   vetorial é suficiente para impactar a geração.
 
-  O indicador *1ª Geração* aponta a fração de símbolos cujo teste foi aprovado
+  O indicador 1ª Geração aponta a fração de símbolos cujo teste foi aprovado
   diretamente pelo LLM, sem iterações de reparo. O `rag-limitado` obteve o
   melhor desempenho nessa métrica (60,3%), superando o `sem-rag` em 7,9 p.p.
   Isso evidencia que o contexto RAG reduz a necessidade de ciclos de correção
@@ -56,7 +56,7 @@
   sugere que o RAG melhora a taxa de compilação e execução dos testes, mas não
   impacta diretamente a densidade de cobertura após o teste ser gerado.
 
-  *Falhas persistentes.* Treze símbolos falharam em todos os quatro perfis,
+  Falhas persistentes: Treze símbolos falharam em todos os quatro perfis,
   predominantemente métodos criptográficos que exigem chaves RSA/EC reais ou
   acesso a endpoints HTTP: `RSAAlgorithm.from_jwk`, `RSAAlgorithm.to_jwk`,
   `ECAlgorithm.to_jwk`, `HMACAlgorithm.prepare_key`,
@@ -96,7 +96,7 @@
 
   O repositório Code Katas reúne implementações algorítmicas independentes
   (grafos, estruturas de dados, algoritmos de busca), caracterizadas por baixo
-  acoplamento inter-módulo e lógica autocontida. Foram extraídos *58 símbolos*
+  acoplamento inter-módulo e lógica autocontida. Foram extraídos 58 símbolos
   elegíveis.
 
   Os resultados estão consolidados na @tab:katas-resumo.
@@ -132,7 +132,7 @@
   algorítmico autocontido, o LLM já dispõe de contexto suficiente na própria
   assinatura e corpo do método, e o RAG não acrescenta ganho significativo.
 
-  *Falhas persistentes.* Nove símbolos falharam em todos os perfis: os
+  Falhas persistentes: Nove símbolos falharam em todos os perfis: os
   relacionados à classe `Autocomplete` (que depende de um arquivo de dados
   externos não incluído no repositório), funções de acesso à rede (`get_json`,
   `lat_long_dict`, `flight_path`) e funções que requerem arquivos CSV
