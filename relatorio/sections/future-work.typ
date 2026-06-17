@@ -4,14 +4,7 @@
   Os experimentos realizados apontam direções concretas de evolução para o
   sistema proposto:
 
-  Recuperação baseada em grafos: O retriever atual utiliza exclusivamente
-  similaridade vetorial para selecionar snippets de contexto. Integrar o grafo
-  de chamadas (`call_graph.json`) como sinal primário de recuperação, priorizando
-  callers e callees diretos do método alvo, permitiria fornecer ao LLM
-  exatamente as dependências estruturais necessárias, em detrimento de funções
-  apenas semanticamente similares. O módulo `hybrid.py` já computa um score
-  híbrido, mas os pesos poderiam ser calibrados por aprendizado supervisionado
-  sobre os resultados de execução.
+  Testes de Integração. Evoluir o escopo da ferramenta para ir além dos testes unitários isolados. O próximo passo é capacitar os agentes LLM a gerar cenários de teste mais amplos, verificando se múltiplos componentes interligados funcionam corretamente em conjunto.
 
   Expansão para múltiplas linguagens: A arquitetura modulariza o parser AST
   em `parsers/source/`, mas a implementação atual é exclusiva para Python.
