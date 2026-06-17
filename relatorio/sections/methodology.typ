@@ -14,14 +14,44 @@
 
   A solução propõe um pipeline de 8 fases orquestradas pelo `OrchestratorAgent` que transforma um repositório de código em uma suíte de testes pytest automaticamente gerada. O diferencial metodológico é a transformação do repositório em um banco vetorial antes da geração do código, permitindo que o LLM consulte dependências externas em tempo real.
 
+  A @fig-visão-geral-do-pipeline oferece uma visão integrada do pipeline de execução. O sistema recebe um diretório de código-fonte e um perfil de execução opcional, orquestra as fases e persiste os resultados estruturados em `runs/<slug>/<profile>/<timestamp>/`. Esta organização permite rastrear histórico de execuções e comparar resultados entre diferentes perfis e repositórios.
+
+  #figure(
+    image("../imagens/visão_geral_do_pipeline.png"),
+    caption: [Visão geral do pipeline: entrada, orquestração, e persistência de resultados.]
+  ) <fig-visão-geral-do-pipeline>
+
   === Fase 1: Ingestão e Estruturação
   O repositório é analisado via Abstract Syntax Tree (AST) para extrair símbolos estruturados (funções, métodos, classes). O sistema constrói dois grafos: (1) grafo de chamadas (caller-callee) que mapeia quem chama quem; (2) grafo de dependências que captura importações inter-módulos. Símbolos triviais (getters, setters, `__init__` simples) e classes encapsuladores são filtrados. Todos os símbolos brutos, grafos e estatísticas de seleção são persistidos para rastreabilidade.
 
   === Fase 2: Indexação Vetorial
   Cada símbolo elegível é transformado em um documento textual (nome, assinatura, corpo, docstring, imports) e convertido em embedding de alta dimensionalidade via modelo de embeddings. Os embeddings são persistidos em um banco de dados vetorial (Qdrant) para rápida recuperação posterior.
 
+  A @fig-ingestão-e-indexação ilustra o fluxo de dados nestas duas primeiras fases. A ingestão realiza a varredura dos arquivos Python via AST, extração de grafos de chamadas e filtragem de símbolos, gerando artefatos estruturados. Como a indexação é sensível ao perfil, no modo `sem-rag`, os símbolos são armazenados localmente sem necessidade de indexação vetorial; nos demais modos, o sistema embute os símbolos no Qdrant para recuperação posterior via RAG.
+
+  #figure(
+    image("../imagens/fase_de_ingestão_e_indexação.png"),
+    caption: [Fluxo das fases de Ingestão e Indexação, condicionado pelo modo RAG.]
+  ) <fig-ingestão-e-indexação>
+  
+
   === Fase 3: Enriquecimento de Contexto (Busca Híbrida)
+
   Para cada símbolo alvo, o sistema recupera contexto relevante através de três canais simultâneos: (1) busca de similaridade vetorial no banco de dados (código semelhante); (2) análise do grafo de chamadas (funções que chamam ou são chamadas); (3) análise do grafo de dependências (classes/funções importadas). Os resultados são combinados via score ponderado e filtrados para manter apenas os mais relevantes dentro de um orçamento de tokens configurável.
+
+  A @fig-estados-por-símbolo especifica a máquina de estados de cada símbolo durante o processamento. O fluxo começa em `generated` (resultado do LLM ou hit do cache), passa por testes (`pytest`), e prossegue para validação de cobertura. Símbolos podem entrar em `repairing` para corrigir falhas, ser marcados como `passed` após sucesso, ou finalmente `completed` quando todas as tentativas de otimização de cobertura se esgotam. Este modelo granular permite rastrear o ciclo de vida completo de cada teste gerado.
+
+  #figure(
+    image("../imagens/estados_por_simbolo.png"),
+    caption: [Máquina de estados de geração e otimização para cada símbolo.]
+  ) <fig-estados-por-símbolo>
+
+  A @fig-estados-por-orçamento-LLM detalha como o orçamento de chamadas LLM é gerenciado durante o ciclo de geração e reparo. Cada operação (geração inicial, ciclos de reparo, tentativas de aumento de cobertura) consome chamadas do orçamento. Quando o limite é atingido, o estado `LLMBudgetExhausted` é alcançado e a geração é suspensa para o símbolo em questão, permitindo que símbolos posteriores ainda sejam processados, mas sem possibilidade de reparo adicional.
+
+  #figure(
+    image("../imagens/estados_por_orçamento_LLM.png"),
+    caption: [Máquina de estados controlada pelo orçamento de chamadas LLM.]
+  ) <fig-estados-por-orçamento-LLM>
 
   === Fase 4: Geração de Testes
   O contexto recuperado é integrado com a assinatura e corpo do método alvo em um prompt formatado. O LLM recebe o método isolado (baseline) ou enriquecido com contexto (com RAG) dependendo do perfil de teste. O LLM gera código pytest candidato. Opcionalmente, o sistema consulta um cache de testes já aprovados antes de chamar o LLM, economizando chamadas de API.
