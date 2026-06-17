@@ -31,7 +31,7 @@
 
   == QP2: RAG e Redução do Esforço de Reparo
 
-  A métrica de *1ª Geração* operacionaliza indiretamente o esforço de reparo:
+  A métrica de 1ª Geração operacionaliza indiretamente o esforço de reparo:
   quanto maior a fração de testes aprovados sem iterações de correção, menor o
   custo computacional autônomo. No PyJWT, o `rag-limitado` obteve o melhor
   resultado nessa dimensão (60,3%), contra 52,4% do `sem-rag`, representando
